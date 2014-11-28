@@ -1,0 +1,1 @@
+nd=31; load('conc.txt'); i=floor(300*nd/nd); pcolor([conc((i-1)*nd+1:i*nd,:) zeros(nd, 1); zeros(1, 12)]); axis ij; colorbar;

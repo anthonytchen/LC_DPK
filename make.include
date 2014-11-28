@@ -1,0 +1,18 @@
+
+# C-compiler
+CC=g++
+
+
+# libraries
+LIBSPATH=/home/tc0008/sundials/lib
+LIBS=-L/home/tc0008/sundials/lib -lgsl
+INC=-I/home/tc0008/sundials/include/
+
+CFLAGS=-O3 -ffast-math -Wno-deprecated -c
+#CFLAGS=-g -O0 -c -Wno-deprecated
+
+# linker
+LD=g++
+
+LFLAGS=-O3 -ffast-math -Wno-deprecated
+#LFLAGS=-g -O0 -Wno-deprecated
