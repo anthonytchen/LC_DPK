@@ -1,0 +1,14 @@
+# of grids: [x] 12, [y] 22
+L L L L L L L L L L L L L L L L L L L L L L 
+L L L L L L L L L L L L L L L L L L L L L L 
+C C C C C C C C C C C C C C C C C C C C L L 
+C C C C C C C C C C C C C C C C C C C C L L 
+C C C C C C C C C C C C C C C C C C C C L L 
+L L L L L L L L L L L L L L L L L L L L L L 
+L L L L L L L L L L L L L L L L L L L L L L 
+C C L L C C C C C C C C C C C C C C C C C C 
+C C L L C C C C C C C C C C C C C C C C C C 
+C C L L C C C C C C C C C C C C C C C C C C 
+L L L L L L L L L L L L L L L L L L L L L L 
+L L L L L L L L L L L L L L L L L L L L L L 
+cpu time = 1.500000e-02 s 
