@@ -1,8 +1,6 @@
 #ifndef _H_GRID_
 #define _H_GRID_
 
-// #include "Parameters.h"
-
 struct mass_diffused
 {
 	// indicates whether diffusion on this direction has been calculated
@@ -37,29 +35,24 @@ public:
 	double m_dx, // grid size in verticle direction
 		m_dy, // grid size in lateral direction
 		m_dz; // grid size in the 3rd dimension. Note this is 2D simulation, thus dz only used to calculate the diffusion area
-		
-	// Parameters paras; // A class to contain all parameters	
+	
 
 public:
 	Grid(void) { };
 	virtual ~Grid(void) {};
 	
-	void Init(char[], double, double, double, double, double, double D_vehicle=-1);
-	void Init(char[], double, double, double, double, double, double, 
+	void Init(const char[], double, double, double, double, double, double D_vehicle=-1);
+	void Init(const char[], double, double, double, double, double, double, 
 		double, double, double, double, double, double, double, double, double, double, double);
 	void Release() {};
 	
 
 	double getConcChem() { return m_concChem; }
 	char* getName() { return m_name; }
+
+	void setConcFromDiffMass(void);	
 	
-	void diffuse(Grid&, Grid&, Grid&, Grid&, double);
-	void setConcFromDiffMass(void);
-	double compFlux(Grid&, double, double);
-	
-	// Rountines to calculate model parameters
-	void compD_lipid();
-	void compD_corneocyte();
+	// Functions to calculate model parameters
 	void compDiffusivity(double D_vehicle=-1);
 	void compKcoef(void);
 };

@@ -6,12 +6,13 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include <math.h>
 #include <pthread.h>
 #include <time.h>
-#include <gsl/gsl_odeiv2.h>
+
 #include <gsl/gsl_errno.h>
 
 #include <cvode/cvode.h>             /* prototypes for CVODE fcts., consts. */
@@ -21,6 +22,7 @@
 #include <sundials/sundials_band.h>  /* definitions of type DlsMat and macros */
 #include <sundials/sundials_types.h> /* definition of type realtype */
 #include <sundials/sundials_math.h>  /* definition of ABS and EXP */
+
 
 //#define _DEBUG_3_
 

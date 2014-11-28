@@ -1,7 +1,7 @@
 
 include make.include
 
-all:	Grid.o Skin.o LCK
+all:	arg.o Grid.o Skin.o LCK
 
 clean:
 	rm -f *.o *.lnk
@@ -12,10 +12,11 @@ clean:
 
 ### executables ##
 LCK: LCK.cpp Grid.o Skin.o
-	$(LD) $(LFLAGS)  LCK.cpp Grid.o Skin.o $(LIBS) $(INC) $(LIBSPATH)/libsundials_cvode.a $(LIBSPATH)/libsundials_nvecserial.a -o LCK
+	$(LD) $(LFLAGS)  LCK.cpp Grid.o Skin.o arg.o $(LIBS) $(INC) $(LIBSPATH)/libsundials_cvode.a $(LIBSPATH)/libsundials_nvecserial.a -o LCK
 
 ### objective files ##
-
+arg.o: arg.h arg.c
+	$(CC) $(CFLAGS) arg.c -o arg.o
 Grid.o: Grid.h Grid.cpp
 	$(CC) $(CFLAGS) Grid.cpp $(INC) -o Grid.o
 Skin.o: Skin.h Skin.cpp

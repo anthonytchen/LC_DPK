@@ -280,134 +280,6 @@ void Skin::createGrids()
 #endif
 }
 
-// Cellular automaton implementation of diffusion
-void Skin::diffuseCA()
-{
-	int i, j;
-
-	/* Assumptions:
-		-- The vehicle is a infinite source.
-		-- Left/right/down boundaries are sink (concentration always zero)
-	*/
-	Grid *gridUp, *gridLeft, *gridRight, *gridDown;
-	
-	gridUp = gridLeft = gridRight = gridDown = NULL;
-
-	// Calculate diffused mass
-	for ( i=0; i<m_nx; i++ ) { // x direction up to down
-		for ( j=0; j<m_ny; j++ ) { // y direction left to right			
-			
-			// setup the neighbouring grids
-			if ( i==0 ) { // top layer, its top is source
-				gridUp = &m_gridSource;
-			} else {
-				gridUp = &m_grids[(i-1)*m_ny+j];
-			}			
-
-			if ( j==0 ) { // left layer, its left is sink
-				gridLeft = &m_gridSinkLeft;
-				// gridLeft->m_Kw = m_Kw; // so that the sink has the same partition coefficient as this object
-			} else {
-				gridLeft = &m_grids[i*m_ny+j-1];
-			}
-
-			if ( j==m_ny-1 ) { // right layer, its right is sink
-				gridRight = &m_gridSinkRight;
-				// gridRight->m_Kw = m_Kw;
-			} else {
-				gridRight = &m_grids[i*m_ny+j+1];
-			}
-
-			if ( i==m_nx-1 ) { // bottom layer, its down is sink
-				gridDown = &m_gridSink;
-				// gridDown->m_Kw = m_Kw;
-			} else {
-				gridDown = &m_grids[(i+1)*m_ny+j];
-			}
-
-			m_grids[i*m_ny + j].diffuse(*gridUp, *gridLeft, *gridRight, *gridDown, m_dt);
-			
-		} // for j
-	} // for i
-
-	// Update concentrations
-	for ( i=0; i<m_nx; i++ ) { // x direction up to down
-		for ( j=0; j<m_ny; j++ ) { // y direction left to right
-			m_grids[i*m_ny + j].setConcFromDiffMass();
-		} // for j
-	} // for i
-
-}
-
-// Method of lines implementation of diffusion
-void Skin::diffuseMoL(double t_start, double t_end)
-{
-	bool bJacobianRequired = false;
-	int i, j, gsl_status, dim;
-	double *y = NULL;
-	gsl_odeiv2_driver *driver = NULL;
-	
-	dim = m_nx*m_ny;
-	
-	// setup GSL ODE solver system
-	if (bJacobianRequired){ // most implicit methods need Jacobian to solve the stiff problem
-		m_gsl_ode_Jacobian = new double [dim*dim];
-		memset(m_gsl_ode_Jacobian, 0, sizeof(double)*dim*dim);
-		gsl_odeiv2_system sys = {static_gslODE, static_gslJacobian, m_nx*m_ny, this};
-		driver = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rk1imp, 1e-5, 1e-4, 0.0);
-		// gsl_odeiv2_step_msbdf, gsl_odeiv2_step_bsimp
-	} else { // rk8pd (and other explicit methods) does not need Jacobian
-		gsl_odeiv2_system sys = {static_gslODE, NULL, m_nx*m_ny, this};
-		driver = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rkf45, 1e-5, 1e-4, 0.0);
-	} // gsl_odeiv2_step_rk8pd
-	
-	// get current concentration
-	y = new double[dim];
-	for ( i=0; i<m_nx; i++ ){ // x direction up to down
-		for ( j=0; j<m_ny; j++ ){ // y direction left to right	
-			y[i*m_ny + j] = m_grids[i*m_ny + j].m_concChem;
-		}
-	}
-	
-	gsl_status = gsl_odeiv2_driver_apply(driver, &t_start, t_end, y);
-	assert(gsl_status==GSL_SUCCESS);
-	
-	for ( i=0; i<m_nx; i++ ){ // x direction up to down
-		for ( j=0; j<m_ny; j++ ){ // y direction left to right	
-			m_grids[i*m_ny + j].m_concChem = y[i*m_ny + j];
-		}
-	}
-	
-	gsl_odeiv2_driver_free(driver);
-	delete [] y;
-	if (bJacobianRequired)
-		delete [] m_gsl_ode_Jacobian;
-}
-
-int Skin::static_gslJacobian(double t, const double y[], double *dfdy, double dfdt[], void *paras)
-{
-	return ((Skin*)paras)->gslJacobian(t, y, dfdy, dfdt);
-}
-
-int Skin::gslJacobian(double t, const double y[], double *dfdy, double dfdt[])
-{
-	int i, dim;
-	dim = m_nx*m_ny;
-	
-	// memset(dfdy, 0, sizeof(double)*dim*dim);
-	assert(m_gsl_ode_Jacobian!=NULL);
-	gslODE(t, y, dfdt); // dfdt here is a dummy place holder
-	memcpy(dfdy, m_gsl_ode_Jacobian, sizeof(double)*dim*dim);
-	
-	// df/dt = 0
-	memset(dfdt, 0, sizeof(double)*dim);
-	// for ( i=0; i< m_nx*m_ny; i++ )
-	// 	dfdt[i] = 0;
-	//printf("Jacobian called\n");
-		
-	return GSL_SUCCESS;
-}
-
 
 int Skin::static_cvJacobian (long int N, double t, 
 		N_Vector y, N_Vector dydt, DlsMat Jac, void *paras,
@@ -533,11 +405,6 @@ int Skin::static_cvJacobian (long int N, long int mupper, long int mlower, doubl
 	
 	delete [] p_fy;
 	// exit(0);
-}
-
-int Skin::static_gslODE(double t, const double y[], double f[], void *paras)
-{
-	return ((Skin*)paras)->gslODE(t, y, f);
 }
 
 int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
@@ -734,7 +601,6 @@ void Skin::diffuseMoL_cv(double t_start, double t_end)
 	int i, j, gsl_status, dim, flag;
 	double reltol, abstol, t;
 	double *y = NULL;
-	gsl_odeiv2_driver *driver = NULL;
 	N_Vector y0;
 	void *cvode_mem = NULL;
 	
@@ -822,11 +688,12 @@ double Skin::compFlux(Grid* thiis, Grid* other, double conc_this, double conc_ot
 	return flux;
 }
 
-/*
+/*	++++++++++++++++++++++++++++++++++
 	Setting/copying functions
-*/
+	++++++++++++++++++++++++++++++++++ */
 
-void Skin::setPoint(struct Point& pt, double x_coord, double y_coord, double dx, double dy, char x_type[], char y_type[])
+void Skin::setPoint(struct Point& pt, double x_coord, double y_coord, double dx, double dy, 
+	const char x_type[], const char y_type[])
 {
 	pt.x_coord = x_coord;
 	pt.y_coord = y_coord;
@@ -845,11 +712,13 @@ void Skin::cpyPoint(struct Point& dst, struct Point& src)
 	strcpy(dst.x_type, src.x_type);
 	strcpy(dst.y_type, src.y_type);
 }
+/*  END <Setting/copying functions>
+	------------------------------ */
 
-
-/*
+	
+/*  ++++++++++++++++++++++++++++++++++
 	I/O functions
-*/
+	++++++++++++++++++++++++++++++++++ */
 
 void Skin::displayGrids()
 {
@@ -858,22 +727,20 @@ void Skin::displayGrids()
 	int i, j, idx;
 
 	for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
-		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
 
-			idx = i*m_ny + j;
-			// check type
+			idx = i*m_ny + j;			
 			if ( !strcmp(m_grids[idx].m_name, "LP") )
 				printf("L ");
 			else
-				printf("C ");
-			
+				printf("C ");	
+				
 		} // for j
 		printf("\n");
 	} // for i
-
 }
 
-void Skin::saveGrids(bool b_1st_time, char fn[])
+void Skin::saveGrids(bool b_1st_time, const char fn[])
 {
 	assert( m_grids );
 
@@ -881,12 +748,11 @@ void Skin::saveGrids(bool b_1st_time, char fn[])
 	int i, j, idx;
 
 	// save grids
-	if ( b_1st_time ) {
+	if ( b_1st_time )
 		file = fopen(fn, "w");
-	} else {
+	else 
 		file = fopen(fn, "a");
-	}
-
+	
 	for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
 		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
 
@@ -900,7 +766,7 @@ void Skin::saveGrids(bool b_1st_time, char fn[])
 	fclose(file);
 }
 
-void Skin::saveCoord(char fn_x[], char fn_y[])
+void Skin::saveCoord(const char fn_x[], const char fn_y[])
 {
 	assert( m_grids );
 
@@ -926,3 +792,5 @@ void Skin::saveCoord(char fn_x[], char fn_y[])
 	fclose(file_x);
 	fclose(file_y);
 }
+/*  END <I/O functions>
+	------------------------------ */
