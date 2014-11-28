@@ -1,5 +1,6 @@
 #ifndef _H_SKIN_
 #define _H_SKIN_
+
 #include "Grid.h"
 
 struct Point
@@ -37,21 +38,18 @@ public:
 	void Release();
 
 	void createGrids();
-	void diffuseCA(); // cellular automaton implementation of diffusion
-	void diffuseMoL(double, double); // method of lines implementation of diffusion
 	void diffuseMoL_cv(double t_start, double t_end); // method of lines using CVODE solver
 	double compFlux(Grid*, Grid*, double, double, double, double, 
 		double *deriv_this=NULL, double *deriv_other=NULL);
 	
-	// routines needed for GSL ODE solver
-	static int static_gslJacobian(double, const double[], double*, double[], void*);
-	int gslJacobian(double, const double[], double*, double[]);
-	static int static_gslODE (double, const double[], double[], void*);
+	// Functions needed for ODE solver
+	// 	The prefix "gsl" is for historical reasons
+	//	i.e. the gsl ODE solvers were initially used, but changed to CVODE solvers
 	static void* static_gslODE_threads(void *paras);
 	int gslODE (double, const double[], double []);	
 	void gslODE (double, const double[], double [], int, int, int, int);	
 	
-	// routines needed for SUNDIALS' cv ODE solver
+	// Functions needed for SUNDIALS' CVODE solver
 	static int static_cvODE (double, N_Vector, N_Vector, void *);
 	static int static_cvJacobian (long int, long int, long int, double, 
 		N_Vector, N_Vector, DlsMat J, void *,
@@ -61,14 +59,14 @@ public:
 		
 	int cvODE (double, const double[], double []);
 	
-	
-	void setPoint(struct Point&, double, double, double, double, char [], char []);
+	// Setting/copying functions
+	void setPoint(struct Point&, double, double, double, double, const char [], const char []);
 	void cpyPoint(struct Point&, struct Point&);
 
 	// I/O functions
 	void displayGrids();
-	void saveGrids(bool, char []);
-	void saveCoord(char [], char []);
+	void saveGrids(bool, const char []);
+	void saveCoord(const char [], const char []);
 };
 
 #endif
