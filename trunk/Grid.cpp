@@ -82,7 +82,7 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
 }
 
 void Grid::Init(const char name[], double concChem, double K_ow, 
-				double dx, double dy, double dz, double D_vehicle)
+		double dx, double dy, double dz, double D_vehicle)
 {
 	strcpy(m_name, name);
 	m_concChem = concChem;
@@ -131,6 +131,7 @@ void Grid::compDiffusivity(double D_vehicle)
 		} else {
 			m_D = 3 * 1E-13;
 		}
+		//m_D = 9.6187e-12; // !!
 
 	} else if ( !strcmp(m_name, "CC") ) { // corneocyte
 		
@@ -150,6 +151,7 @@ void Grid::compDiffusivity(double D_vehicle)
 	
 		m_D = exp( -alpha*pow(S,lambda) ) / ( 1 + r_s_inA/sqrt(k) + r_s_inA*r_s_inA/3/k );
 		m_D *= m_Dw;
+		//m_D = 1.3824e-015; // !!
 			
 	} else if ( !strcmp(m_name, "SC") ) { // vehicle source
 	
@@ -176,10 +178,15 @@ void Grid::compKcoef()
 	double K_kw;
 	
 	if ( !strcmp(m_name, "LP") ) {	// lipid	
-		m_Kw = pow(m_K_ow, 0.7);
+	  m_Kw = pow(m_K_ow, 0.7);
+	  //m_Kw = 0.9*pow(m_K_ow,0.69);
 	} else if ( !strcmp(m_name, "CC") ) { // corneocyte
-		K_kw = 5.6 * pow(m_K_ow, 0.27);
-		m_Kw = (1-m_phi_b) * K_kw + m_theta_b;		
+	  if (m_K_ow>10)
+	    K_kw = 5.6 * pow(m_K_ow, 0.27);
+	  else 
+	    K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
+	  // K_kw = 1.37*4.2*pow(m_K_ow,0.31);
+	  m_Kw = (1-m_phi_b) * K_kw + m_theta_b;		
 	} else if ( !strcmp(m_name, "SC") ) { // vehicle source
 		m_Kw = 1.0;
 	} else if ( !strcmp(m_name, "SK") ) { // sink
