@@ -1,10 +1,10 @@
-/* The header file for stratum corneum  */
-#ifndef _H_STRACORN_
-#define _H_STRACORN_
+/* The header file for viable epidermis  */
+#ifndef _H_VIAEPD_
+#define _H_VIAEPD_
 
 #include "Grid.h"
 
-class StraCorn
+class ViaEpd
 {
  private:
   double m_rou_lipid, m_rou_keratin, m_rou_water, // the density of lipid, keratin and water
@@ -13,20 +13,17 @@ class StraCorn
                                     //	in each element of stratum corneum dimensions
   double m_dz, m_x_length, m_y_length; // the skin size in the z, x (verticle)
                                        //	and y (lateral) directions
-  int m_nx, m_ny, // number of grids at x and y directions for SC
-    m_nx_grids_lipid, m_nx_grids_cc, // number of grids for each lipid/corneocyte layer in the x direction
-    m_ny_grids_lipid, m_ny_grids_cc_dn; // number of grids for each lipid/corneocyte layer in the y direction
+  int m_nx, m_ny; // number of grids at x and y directions for SC
   int m_boundary_cond;
-  double m_geom_g, m_geom_d, m_geom_s, m_geom_t, m_geom_dm, m_geom_dn, m_w, // geometry parameters
-    m_offset_y; // offset at the left simulation boundary, relative to corneocyte
+
   double *m_ode_Jacobian; // Jacobian matrix needed for GSL ODE solver
 
   Grid *m_grids, m_gridBdyUp, m_gridBdyDown, m_gridBdyLeft, m_gridBdyRight;
 
 public:
-  StraCorn(void) {};	
-  ~StraCorn(void) {};
-  void Init(double, double, double, double, double, int, int, double);
+  ViaEpd(void) {};	
+  ~ViaEpd(void) {};
+  void Init(int, int, double, int);
   void Release();
   
   void createGrids(double, double, double, double);
