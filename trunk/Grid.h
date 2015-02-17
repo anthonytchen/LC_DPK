@@ -11,11 +11,11 @@ struct mass_diffused
 class Grid
 {
 public:
-	char m_name[3]; // two-letter combination of the name of the grid
-				 //		'CC' - corneocyte in stratum corneum
-				 //		'LP' - lipid in stratum corneum
-				 //		'SC' - source, usually vehicle
-				 //		'SK' - sink
+  char m_name[3]; // two-letter combination of the name of the grid
+  //		'CC' - corneocyte in stratum corneum
+  //		'LP' - lipid in stratum corneum
+  //		'SC' - source, usually vehicle
+  //		'SK' - sink
 	
 	double m_Kw,  // partition coefficient between this object and water
 		m_D, // diffusivity of solute in this object

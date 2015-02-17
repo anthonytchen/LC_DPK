@@ -17,53 +17,57 @@ void Skin::Init(double g, double d, double s, double t,
 {	
   double w;
 	
-	m_rou_lipid = 1e3; // kg m^{-3}
-	m_rou_keratin = 1.2e3; // kg m^{-3}
-	m_rou_water = 1e3; // kg m^{-3}
-	m_dz = 0.01; // in metre
-	m_T = 309; // in Kelvin
-	m_eta = 7.1E-4; // Pa s,
+  m_rou_lipid = 1e3; // kg m^{-3}
+  m_rou_keratin = 1.2e3; // kg m^{-3}
+  m_rou_water = 1e3; // kg m^{-3}
+  m_dz = 0.01; // in metre
+  m_T = 309; // in Kelvin
+  m_eta = 7.1E-4; // Pa s,
+  
+  m_mw = MW; // 119.12; // Da, i.e. g/mol
 
-	m_mw = MW; // 119.12; // Da, i.e. g/mol
+  m_grids = NULL;
+  m_gsl_ode_Jacobian = NULL;
 
-	m_grids = NULL;
-	m_gsl_ode_Jacobian = NULL;
-
-	assert( s < d ); // inter-corneocyte gap must be less than the corneocyte width
-	m_geom_g = g; // * 1e6;
-	m_geom_d = d; // * 1e6;
-	m_geom_s = s; // * 1e6;
-	m_geom_t = t; // * 1e6;
-	m_w = 8.0; // offset ratio
-	m_geom_dm = m_w*(m_geom_d-m_geom_s)/(1+m_w);
-	m_geom_dh = m_geom_d-m_geom_s-m_geom_dm;
+  assert( s < d ); // inter-corneocyte gap must be less than the corneocyte width
+  m_geom_g = g; // * 1e6;
+  m_geom_d = d; // * 1e6;
+  m_geom_s = s; // * 1e6;
+  m_geom_t = t; // * 1e6;
+  m_w = 8.0; // offset ratio, 8.0
+  m_geom_dm = m_w*(m_geom_d-m_geom_s)/(1+m_w);
+  m_geom_dh = m_geom_d-m_geom_s-m_geom_dm;
 	
-	m_nx_grids_lipid = 2; // 2
-	m_nx_grids_cc = 4; // 4
-	m_ny_grids_lipid = 2; // 2
-	m_ny_grids_cc_dh = 2; // 2
+  m_nx_grids_lipid = 2; // 2
+  m_nx_grids_cc = 4; // 4
+  m_ny_grids_lipid = 2; // 2
+  m_ny_grids_cc_dh = 2; // 2
 	
-	int n1, n2;
-	// Vertical direction, lipid layer is at both top and bottom of the stratum corneum
-	m_nx = (m_nx_grids_lipid+m_nx_grids_cc)*n_layer_x + m_nx_grids_lipid; 	
-	// Lateral direction, [dh] [s] [dm] [s], here d=dh+dm+s, w=dm/dh
-	m_ny = (int) ( m_ny_grids_lipid*2 + m_ny_grids_cc_dh + m_ny_grids_cc_dh*m_w ) * n_layer_y;
+  int n1, n2;
+  // Vertical direction, lipid layer is at both top and bottom of the stratum corneum
+  m_nx = (m_nx_grids_lipid+m_nx_grids_cc)*n_layer_x + m_nx_grids_lipid; 	
+  // Lateral direction, [dh] [s] [dm] [s], here d=dh+dm+s, w=dm/dh
+  m_ny = (int) ( m_ny_grids_lipid*2 + m_ny_grids_cc_dh + m_ny_grids_cc_dh*m_w ) * n_layer_y;
 
-	m_x_length = n_layer_x*(g+t)+g;
-	m_y_length = n_layer_y*(d+s);
-	m_dt = tinv;
+  m_nx_ve = 10; // viable epidermis
+  m_x_length_ve = 100e-6; // ve has depth of 100 micron
+  //  m_x_length_ve = 0.075e-6; // ve has depth of 100 micron
 
-	m_V_mortar = ( g*(d+s)+t*s ) * m_dz;	
-	m_V_brick = d*t * m_dz;
-	m_V_all = m_V_mortar + m_V_brick;
+  m_x_length = n_layer_x*(g+t)+g;
+  m_y_length = n_layer_y*(d+s);
+  m_dt = tinv;
 
-	m_K_ow = K_ow;
-	// m_concSource = concSource * m_mw; // converting from mol/L to kg/m^3 (same as g/l)
-	m_concSource = concSource; // mol/m^3
-	m_DSource = DSource;
-	m_offset_y =  offset_y;
+  m_V_mortar = ( g*(d+s)+t*s ) * m_dz;	
+  m_V_brick = d*t * m_dz;
+  m_V_all = m_V_mortar + m_V_brick;
 
-	m_boundary_cond = 1; // Boundary condition, [0] - zero flux at left/right sides
+  m_K_ow = K_ow;
+  // m_concSource = concSource * m_mw; // converting from mol/L to kg/m^3 (same as g/l)
+  m_concSource = concSource; // mol/m^3
+  m_DSource = DSource;
+  m_offset_y =  offset_y;
+
+  m_boundary_cond = 1; // Boundary condition, [0] - zero flux at left/right sides
 	                     //    [1] - mirror flux at left/right sides
 }
 
@@ -86,7 +90,7 @@ void Skin::createGrids()
   dy_lipid = m_geom_s/m_ny_grids_lipid;
   dy_cc = m_geom_dh/m_ny_grids_cc_dh;
 	
-  m_grids = new Grid[m_nx*m_ny]; // organised in row dominant
+  m_grids = new Grid[(m_nx+m_nx_ve)*m_ny]; // organised in row dominant
 
   // Initialise source and sink grids; 
   //	the distance perpendicular to diffusion is zero
@@ -132,21 +136,12 @@ void Skin::createGrids()
   idx_x = 0; idx_y = idx_y_offset;
   coord_x = coord_y = 0;
   cc_subtype = cc_subtype_offset;
-  // double *y = new double[m_nx*m_ny];
+
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
 			
       idx = i*m_ny + j;
-#ifdef _DEBUG_3_			
-      if ( i < 2 ){
-	if ( j >= m_ny-2 )
-	  y[idx] = m_concSource/10;
-	else
-	  y[idx] = m_concSource;
-      }
-      else
-	y[idx] = 0;
-#endif
+
       // assign type
       if ( !strcmp(current_point.x_type, "LP") || !strcmp(current_point.y_type, "LP") ) { 
 	// entire lipid layer (1st strcmp) or lateral lipid between two coreneocytes
@@ -330,6 +325,9 @@ void Skin::createGrids()
     } // for j
   } // for i
 	
+  createGridsVE(m_x_length, m_x_length_ve/m_nx_ve, dy_lipid, dy_cc, dy_offset, 
+		idx_y_offset, cc_subtype_offset);
+
 #ifdef _DEBUG_3_
 	double *f = new double[m_nx*m_ny];
 	memset(f, 0, sizeof(double)*m_nx*m_ny);	
@@ -339,6 +337,98 @@ void Skin::createGrids()
 	delete [] f;
 	exit(0);
 #endif
+}
+
+void Skin::createGridsVE(double coord_x, double dx_ve, double dy_lipid, double dy_cc, double dy_offset,
+			 int idx_y_offset, int cc_subtype_offset)
+{
+  int i, j, idx, idx_x, idx_y, gsl_errno;
+  int cc_subtype; // 0 = d_h; 1 = s; 2 = d_m, 3 = s; this order matters
+  double coord_y;
+
+  struct Point current_point;
+
+  coord_y = 0;
+  setPoint(current_point, coord_x, coord_y, dx_ve, dy_offset, "VE", "VE");
+    
+  idx_x = 0; idx_y = idx_y_offset;
+  cc_subtype = cc_subtype_offset;
+
+  for ( i = m_nx; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+			
+      idx = i*m_ny + j;
+
+      m_grids[idx].Init("VE", m_mw, 0.65, -1, -1, -1, -1, // -1 means invalid values; do not use
+			m_rou_lipid, m_rou_keratin, m_rou_water, m_T, m_eta, m_K_ow, 
+			current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz);
+
+      // update current_point
+      if (j==m_ny-1) { // last element in the lateral direction, move down
+				
+	idx_x ++;
+
+	coord_x += dx_ve; coord_y=0;
+	setPoint(current_point, coord_x, coord_y, dx_ve, dy_offset, "VE", "VE");
+
+	idx_y = idx_y_offset;
+	cc_subtype = cc_subtype_offset;
+
+      } else { // not the last element in the lateral direction, thus move to the right
+			
+	idx_y ++;
+				
+	switch (cc_subtype) {
+	case 0 : // now within dh
+	  coord_y += dy_cc;
+	  if (idx_y==m_ny_grids_cc_dh){
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_lipid, "VE", "VE");
+	    idx_y = 0;
+	    cc_subtype ++;
+	  } else {
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_cc, "VE", "VE");
+	  }
+	  break;
+	case 1 : // now within s
+	  coord_y += dy_lipid;
+	  if (idx_y==m_ny_grids_lipid){
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_cc, "VE", "VE");
+	    idx_y = 0;
+	    cc_subtype ++;
+	  } else {
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_lipid, "VE", "VE");
+	  }
+	  break;
+	case 2 : // now wtihin dm
+	  coord_y += dy_cc;
+	  if (idx_y==m_ny_grids_cc_dh*m_w){
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_lipid, "VE", "VE");
+	    idx_y = 0;
+	    cc_subtype ++;
+	  } else {
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_cc, "VE", "VE");
+	  }
+	  break;
+	case 3 : // now within the 2nd s
+	  coord_y += dy_lipid;
+	  if (idx_y==m_ny_grids_lipid){
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_cc, "VE", "VE");
+	    idx_y = 0;
+	    cc_subtype = 0;
+	  } else {
+	    setPoint(current_point, coord_x, coord_y, dx_ve, dy_lipid, "VE", "VE");
+	  }
+	  break;
+	default :
+	  gsl_error("cc_subtype not implemented", __FILE__, __LINE__, gsl_errno);
+	  exit(-1);
+	} // switch-case
+
+      } // if (j==m_ny-1)
+      
+    } // for j
+  } // for i
+	
 }
 
 
@@ -489,7 +579,7 @@ int Skin::gslODE (double t, const double y[], double f[])
 	int i, rc;
 	
 	if (NTHREADS==1) {
-		gslODE (t, y, f, 0, m_nx, 0, m_ny);
+		gslODE (t, y, f, 0, m_nx+m_nx_ve, 0, m_ny);
 	} else {		
 		struct pthread_struct p[NTHREADS];
 		pthread_t threads[NTHREADS];
@@ -497,7 +587,7 @@ int Skin::gslODE (double t, const double y[], double f[])
 		for ( i=0; i < NTHREADS; i++ ) {
 			p[i].skin_obj = this;
 			p[i].t=t; p[i].y=y; p[i].f=f;			
-			p[i].x_start=0; p[i].x_end=m_nx;
+			p[i].x_start=0; p[i].x_end=m_nx+m_nx_ve;
 			
 			p[i].y_start=i*m_ny/NTHREADS; p[i].y_end=(i+1)*m_ny/NTHREADS;
 			pthread_create(&threads[i], NULL, static_gslODE_threads, (void *) &p[i]);
@@ -519,10 +609,10 @@ void Skin::gslODE (double t, const double y[], double f[],
   double flux, mass_transfer_rate, conc_this, conc_other, deriv_this, deriv_other,
     deriv_this_sum, volume_this;
 	
-  dim = m_nx*m_ny;
+  dim = (m_nx+m_nx_ve)*m_ny;
 	
-  assert(idx_x_start>=0 && idx_x_start<=m_nx);
-  assert(idx_x_end>idx_x_start && idx_x_end<=m_nx);
+  assert(idx_x_start>=0 && idx_x_start<=m_nx+m_nx_ve);
+  assert(idx_x_end>idx_x_start && idx_x_end<=m_nx+m_nx_ve);
   assert(idx_y_start>=0 && idx_y_start<=m_ny);
   assert(idx_y_end>idx_y_start && idx_y_end<=m_ny);
 	
@@ -533,17 +623,7 @@ void Skin::gslODE (double t, const double y[], double f[],
   Grid *gridThiis, *gridUp, *gridLeft, *gridRight, *gridDown;
 	
   gridThiis = gridUp = gridLeft = gridRight = gridDown = NULL;
-#ifdef _DEBUG_3_
-  printf("\n =============== t = %lf ================\n", t);
-  printf("\n === y ====\n");
-  for ( i=idx_x_start; i<idx_x_end; i++ ) { // x direction up to down
-    for ( j=idx_y_start; j<idx_y_end; j++ ) { // y direction left to right
-      printf("%e\t", y[i*m_ny+j]);
-    }
-    printf("\n");
-  }
-  printf("\n === f ====\n");
-#endif	
+	
   // Calculate diffused mass
   for ( i=idx_x_start; i<idx_x_end; i++ ) { // x direction up to down
     for ( j=idx_y_start; j<idx_y_end; j++ ) { // y direction left to right
@@ -570,9 +650,11 @@ void Skin::gslODE (double t, const double y[], double f[],
       }
       flux = compFlux( gridThiis, gridUp, conc_this, conc_other, 
 		       gridThiis->m_dx/2, gridUp->m_dx/2, &deriv_this, &deriv_other);
-      //if ( i==2 && j < 3 )
-      //	printf("flux=%e\t", flux);
-				
+      /*
+      if ( i==m_nx )
+	printf("i=%d, j=%d, mass=%e\t", 
+	       i, j, gridThiis->m_dy*gridThiis->m_dz * flux);
+      */			
       mass_transfer_rate += gridThiis->m_dy*gridThiis->m_dz * flux;			
       if (m_gsl_ode_Jacobian!=NULL) {
 	deriv_this_sum = deriv_this / gridThiis->m_dx;
@@ -600,9 +682,12 @@ void Skin::gslODE (double t, const double y[], double f[],
 	conc_other = y[idx_other];
 	flux = compFlux( gridThiis, gridLeft, conc_this, conc_other, 
 			 gridThiis->m_dy/2, gridLeft->m_dy/2, &deriv_this, &deriv_other);
-      }			
-      //if ( i==2 && j < 3 )
-      //	printf("flux=%e\t", flux);
+      }	
+      /*
+      if ( i==m_nx )
+	printf("mass=%e\t", gridThiis->m_dx*gridThiis->m_dz * flux);
+      */
+	
       mass_transfer_rate += gridThiis->m_dx*gridThiis->m_dz * flux;
       if (m_gsl_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dy;
@@ -630,9 +715,13 @@ void Skin::gslODE (double t, const double y[], double f[],
 	conc_other = y[idx_other];
 	flux = compFlux( gridThiis, gridRight, conc_this, conc_other, 
 			 gridThiis->m_dy/2, gridRight->m_dy/2, &deriv_this, &deriv_other);
-      }		
-      //if ( i==2 && j < 3 )
-      //	printf("flux=%e\t", flux);			
+      }	
+
+      /*
+      if ( i==m_nx )
+	printf("mass=%e\t", gridThiis->m_dx*gridThiis->m_dz * flux);
+      */
+
       mass_transfer_rate += gridThiis->m_dx*gridThiis->m_dz * flux;
       if (m_gsl_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dy;
@@ -641,7 +730,7 @@ void Skin::gslODE (double t, const double y[], double f[],
       }
 
 			
-      if ( i==m_nx-1 ) { // bottom layer, its down is sink
+      if ( i==m_nx+m_nx_ve-1 ) { // bottom layer, its down is sink
 	gridDown = &m_gridSink;
 	conc_other = m_gridSink.m_concChem;				
       } else {
@@ -651,8 +740,11 @@ void Skin::gslODE (double t, const double y[], double f[],
       }
       flux = compFlux( gridThiis, gridDown, conc_this, conc_other, 
 		       gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
-      //if ( i==2 && j < 3 )
-      //	printf("flux=%e\t", flux);
+      /*
+      if ( i==m_nx )
+	printf("mass=%e\n", gridThiis->m_dy*gridThiis->m_dz * flux);
+      */
+
       mass_transfer_rate += gridThiis->m_dy*gridThiis->m_dz * flux;
       if (m_gsl_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dx;
@@ -664,12 +756,7 @@ void Skin::gslODE (double t, const double y[], double f[],
       f[idx_this] = mass_transfer_rate / volume_this;
       if (m_gsl_ode_Jacobian!=NULL) 
 	m_gsl_ode_Jacobian[ idx_this*dim + idx_this ] = deriv_this_sum;
-#ifdef _DEBUG_3_
-      printf("%e\t", y[idx_this]);
-			
-      if ( i==2 && j < 3 )
-	printf("t=%lf, i=%d, j=%d, mass=%e, f=%e\n", t, i, j, mass_transfer_rate, f[idx_this]);
-#endif
+
     } // for j
     //printf("\n");
   } // for i
@@ -678,72 +765,72 @@ void Skin::gslODE (double t, const double y[], double f[],
 
 void Skin::diffuseMoL_cv(double t_start, double t_end)
 {		
-	bool bJacobianRequired = false;
-	int i, j, gsl_status, dim, flag;
-	double reltol, abstol, t;
-	double *y = NULL;
-	N_Vector y0;
-	void *cvode_mem = NULL;
+  bool bJacobianRequired = false;
+  int i, j, gsl_status, dim, flag;
+  double reltol, abstol, t;
+  double *y = NULL;
+  N_Vector y0;
+  void *cvode_mem = NULL;
 	
-	dim = m_nx*m_ny;	
+  dim = (m_nx+m_nx_ve)*m_ny;
 
-	// get current concentration, and set as initial conditions
-	y = new double[dim];
-	for ( i=0; i<m_nx; i++ ){ // x direction up to down
-		for ( j=0; j<m_ny; j++ ){ // y direction left to right	
-			y[i*m_ny + j] = m_grids[i*m_ny + j].m_concChem;
-		}
-	}
-	y0 = N_VMake_Serial(dim, y);
+  // get current concentration, and set as initial conditions
+  y = new double[dim];
+  for ( i=0; i<m_nx+m_nx_ve; i++ ){ // x direction up to down
+    for ( j=0; j<m_ny; j++ ){ // y direction left to right	
+      y[i*m_ny + j] = m_grids[i*m_ny + j].m_concChem;
+    }
+  }
+  y0 = N_VMake_Serial(dim, y);
 	
-	// Call CVodeCreate to create the solver memory and specify the 
-    //	 Backward Differentiation Formula and the use of a Newton iteration
-	// cvode_mem = CVodeCreate(CV_ADAMS, CV_FUNCTIONAL);
-	cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+  // Call CVodeCreate to create the solver memory and specify the 
+  //	 Backward Differentiation Formula and the use of a Newton iteration
+  // cvode_mem = CVodeCreate(CV_ADAMS, CV_FUNCTIONAL);
+  cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
 		
-	// Call CVodeInit to initialize the integrator memory and specify the
-	//	user's right hand side function in y'=f(t,y), the inital time t_start, and
-	//	the initial condition y0.
-	CVodeInit(cvode_mem, static_cvODE, t_start, y0);
+  // Call CVodeInit to initialize the integrator memory and specify the
+  //	user's right hand side function in y'=f(t,y), the inital time t_start, and
+  //	the initial condition y0.
+  CVodeInit(cvode_mem, static_cvODE, t_start, y0);
 
-	// Call CVodeSStolerances to specify the scalar relative tolerance
-	//	 and scalar absolute tolerance.
-	reltol=1e-4; abstol=1e-5;
-	// reltol=1; abstol=1;
-	CVodeSStolerances(cvode_mem, reltol, abstol);
+  // Call CVodeSStolerances to specify the scalar relative tolerance
+  //	 and scalar absolute tolerance.
+  reltol=1e-4; abstol=1e-5;
+  // reltol=1; abstol=1;
+  CVodeSStolerances(cvode_mem, reltol, abstol);
 	
-	// Set the pointer to user-defined data
-	CVodeSetUserData(cvode_mem, this);
-	CVodeSetMaxNumSteps(cvode_mem, 10000*5);
+  // Set the pointer to user-defined data
+  CVodeSetUserData(cvode_mem, this);
+  CVodeSetMaxNumSteps(cvode_mem, 10000*5);
 	
-	// Call CVBand to specify the CVBAND band linear solver
-	//	m_ny is the bandwidth of the banded Jacobian matrix.
-	//	Then setup the Jacobian function
-	//CVBand(cvode_mem, dim, m_ny, m_ny);
-	//CVDlsSetBandJacFn(cvode_mem, static_cvJacobian);
+  // Call CVBand to specify the CVBAND band linear solver
+  //	m_ny is the bandwidth of the banded Jacobian matrix.
+  //	Then setup the Jacobian function
+  //CVBand(cvode_mem, dim, m_ny, m_ny);
+  //CVDlsSetBandJacFn(cvode_mem, static_cvJacobian);
   
-	CVDense(cvode_mem, dim);
-	// CVDlsSetDenseJacFn(cvode_mem, static_cvJacobian);
+  CVDense(cvode_mem, dim);
+  // CVDlsSetDenseJacFn(cvode_mem, static_cvJacobian);
   
-	// prepare for the memory
-	m_gsl_ode_Jacobian = new double [dim*dim];
-	memset(m_gsl_ode_Jacobian, 0, sizeof(double)*dim*dim);
+  // prepare for the memory
+  m_gsl_ode_Jacobian = new double [dim*dim];
+  memset(m_gsl_ode_Jacobian, 0, sizeof(double)*dim*dim);
+  
+  CVode(cvode_mem, t_end, y0, &t, CV_NORMAL);
 	
-	CVode(cvode_mem, t_end, y0, &t, CV_NORMAL);
 	
-	
-	//y = NV_DATA_S(y0);
+  //y = NV_DATA_S(y0);
 		
-	for ( i=0; i<m_nx; i++ ){ // x direction up to down
-		for ( j=0; j<m_ny; j++ ){ // y direction left to right	
-			m_grids[i*m_ny + j].m_concChem = NV_Ith_S(y0, i*m_ny+j); //y[i*m_ny + j];
-		}
-	}
-	
-	N_VDestroy_Serial(y0);  
-	CVodeFree(&cvode_mem);
-  	delete [] m_gsl_ode_Jacobian;
-	delete [] y;
+  for ( i=0; i<m_nx+m_nx_ve; i++ ){ // x direction up to down
+    for ( j=0; j<m_ny; j++ ){ // y direction left to right	
+      m_grids[i*m_ny + j].m_concChem = NV_Ith_S(y0, i*m_ny+j); //y[i*m_ny + j];
+    }
+  }
+  
+  N_VDestroy_Serial(y0);  
+  CVodeFree(&cvode_mem);
+  delete [] m_gsl_ode_Jacobian;
+  delete [] y;
 }
 
 
@@ -800,14 +887,57 @@ double Skin::compFlux_2sc()
 // Compute flux from stratum corneum to viable epidermis
 double Skin::compFlux_sc2ve()
 {
+  int j, idx, idx_down;
+  double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
+  Grid *gridThiis, *gridDown;
+  gridThiis = gridDown = NULL;
+
+  flux = 0;
+  idx = (m_nx-1)*m_ny;
+  mass_transfer_rate = total_area = 0;
+
+  //  printf("\n compflux_sc2ve\n");
+
+  for ( j=0; j<m_ny; j++ ) { // y direction left to right
+				
+    gridThiis = &m_grids[idx+j]; conc_this = gridThiis->m_concChem;
+
+    if ( m_nx_ve == 0 ) { // no viable epidermis simulated, thus gridDown is sink
+      conc_other = m_gridSink.m_concChem;
+      gridDown = &m_gridSink;
+    } else { // viable epidermis simulated
+      idx_down = m_nx*m_ny+j;
+      gridDown = &m_grids[idx_down];
+      conc_other = gridDown->m_concChem;
+    }
+
+    flux = compFlux( gridThiis, gridDown, conc_this, conc_other, 
+		     gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
+    area = gridThiis->m_dy*gridThiis->m_dz;
+
+    //    printf("mass=%e, area=%e\n", flux*area, area);
+
+    total_area += area;
+    mass_transfer_rate += flux*area;
+
+  }
+  flux = -mass_transfer_rate / total_area;
+  return flux;
+}
+
+// Compute flux from viable epidermis to skin
+double Skin::compFlux_ve2sk()
+{
   int j, idx;
   double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
   Grid *gridThiis = NULL;
 
   flux = 0;
-  idx = (m_nx-1)*m_ny;
+  idx = (m_nx+m_nx_ve-1)*m_ny;
   mass_transfer_rate = total_area = 0;
-  
+
+  //  printf("\n compflux_ve2sk\n");
+
   for ( j=0; j<m_ny; j++ ) { // y direction left to right
 				
     gridThiis = &m_grids[idx+j]; conc_this = gridThiis->m_concChem;
@@ -816,6 +946,8 @@ double Skin::compFlux_sc2ve()
     flux = compFlux( gridThiis,&m_gridSink, conc_this, conc_other, 
 		     gridThiis->m_dx/2, m_gridSink.m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
+
+    //    printf("mass=%e, area=%e\n", flux*area, area);
     
     total_area += area;
     mass_transfer_rate += flux*area;
@@ -860,24 +992,28 @@ void Skin::cpyPoint(struct Point& dst, struct Point& src)
 
 void Skin::displayGrids()
 {
-	assert( m_grids );
+  assert( m_grids );
 
-	int i, j, idx;
-	printf("# of grids: [x] %d, [y] %d\n", m_nx, m_ny);
+  int i, j, idx, gsl_errno;;
+  printf("# of grids: [x] %d, [y] %d\n", m_nx+m_nx_ve, m_ny);
 
-	for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
-		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
+  for ( i = 0; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
 
-			idx = i*m_ny + j;			
-			if ( !strcmp(m_grids[idx].m_name, "LP") )
-				printf("L ");
-			else
-				printf("C ");	
+      idx = i*m_ny + j;			
+      if ( !strcmp(m_grids[idx].m_name, "LP") )
+	printf("L ");
+      else if ( !strcmp(m_grids[idx].m_name, "CC") )
+	printf("C ");
+      else if ( !strcmp(m_grids[idx].m_name, "VE") )
+	printf("V ");
+      else
+	gsl_error ("subtype name unknown", __FILE__, __LINE__, gsl_errno); 
 				
-		} // for j
-		printf("\n");
-	} // for i
-	fflush(stdout);
+    } // for j
+    printf("\n");
+  } // for i
+  fflush(stdout);
 }
 
 void Skin::saveGrids(bool b_1st_time, const char fn[])
@@ -893,7 +1029,7 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
 	else 
 		file = fopen(fn, "a");
 	
-	for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+	for ( i = 0; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
 		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
 
 			idx = i*m_ny + j;
@@ -908,29 +1044,29 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
 
 void Skin::saveCoord(const char fn_x[], const char fn_y[])
 {
-	assert( m_grids );
+  assert( m_grids );
 
-	FILE *file_x, *file_y;
-	int i, j, idx;
+  FILE *file_x, *file_y;
+  int i, j, idx;
 
-	// save grids
-	file_x = fopen(fn_x, "w");
-	file_y = fopen(fn_y, "w");
+  // save grids
+  file_x = fopen(fn_x, "w");
+  file_y = fopen(fn_y, "w");
 
-	for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
-		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+  for ( i = 0; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
 
-			idx = i*m_ny + j;
-			fprintf(file_x, "%.5e\t", m_grids[idx].m_x_coord);
-			fprintf(file_y, "%.5e\t", m_grids[idx].m_y_coord);
+      idx = i*m_ny + j;
+      fprintf(file_x, "%.5e\t", m_grids[idx].m_x_coord);
+      fprintf(file_y, "%.5e\t", m_grids[idx].m_y_coord);
 			
-		} // for j
-		fprintf(file_x, "\n");
-		fprintf(file_y, "\n");
-	} // for i
+    } // for j
+    fprintf(file_x, "\n");
+    fprintf(file_y, "\n");
+  } // for i
 
-	fclose(file_x);
-	fclose(file_y);
+  fclose(file_x);
+  fclose(file_y);
 }
 /*  END <I/O functions>
 	------------------------------ */
