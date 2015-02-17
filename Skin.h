@@ -19,9 +19,11 @@ private:
     m_T, m_eta, // temperature, viscosity of water
     m_V_mortar, m_V_brick, m_V_all; // the volume of mortar, brick and sum (all) 
                                     //	in each element of stratum corneum dimensions
-  double m_dz, m_x_length, m_y_length; // the skin size in the z, x (verticle)
+  double m_dz, m_x_length, m_y_length, // the skin size in the z, x (verticle)
                                        //	and y (lateral) directions
-  int m_nx, m_ny, // number of grids at x and y directions
+    m_x_length_ve; // the depth of viable epidermis
+  int m_nx, m_ny, // number of grids at x and y directions for SC
+    m_nx_ve, // number of grids at x direction for viable epidermis (VE)
     m_nx_grids_lipid, m_nx_grids_cc, // number of grids for each lipid/corneocyte layer in the x direction
     m_ny_grids_lipid, m_ny_grids_cc_dh; // number of grids for each lipid/corneocyte layer in the y direction
   int m_boundary_cond;
@@ -39,12 +41,13 @@ public:
   void Release();
   
   void createGrids();
+  void createGridsVE(double, double, double, double, double, int, int);
   void diffuseMoL_cv(double t_start, double t_end); // method of lines using CVODE solver
   double compFlux(Grid*, Grid*, double, double, double, double, 
 		  double *deriv_this=NULL, double *deriv_other=NULL);
   double compFlux_2sc();
   double compFlux_sc2ve();
-
+  double compFlux_ve2sk();
 	
   // Functions needed for ODE solver
   // 	The prefix "gsl" is for historical reasons

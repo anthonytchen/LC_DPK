@@ -81,15 +81,11 @@ int main (int argc, char* argv[])
     _skin.displayGrids();	
 
 
-  double flux1, flux2;
+  double flux1, flux2, flux3;
   
   for ( t_simu=.0; t_simu<t_end; t_simu+=t_inv ){
     start = clock();
-
-    flux1 = _skin.compFlux_2sc();
-    flux2 = _skin.compFlux_sc2ve();    
-    printf("%e %e %e\n", t_simu, flux1, flux2);
-    
+   
     _skin.diffuseMoL_cv(t_simu, t_simu+t_inv);	
     _skin.saveGrids(b_1st_save, fn_conc);
     if ( b_1st_save )
@@ -99,9 +95,14 @@ int main (int argc, char* argv[])
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 		
     if ( nDis > 0 ) {
-      //printf("Simulation time is %e, cpu time = %e s \n", t_simu+t_inv, cpu_time_used);
+      printf("Simulation time is %e, cpu time = %e s \n", t_simu+t_inv, cpu_time_used);
       fflush(stdout);
     }
+
+    flux1 = _skin.compFlux_2sc();
+    flux2 = _skin.compFlux_sc2ve();
+    flux3 = _skin.compFlux_ve2sk();    
+    printf("Time %e flux = %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3);
   }
 
   _skin.Release();

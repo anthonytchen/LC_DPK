@@ -16,10 +16,10 @@
 //	      eta - water viscosity (default 0.0071 P at 36 deg C)
 //  TODO: Read information from configuration files, instead of hard-coding here
 void Grid::Init(const char name[], double mw, double mass_frac_water, double mass_frac_water_sat,
-		   double V_mortar_geometry, double V_brick_geometry, double V_all_geometry,
-		   double rou_lipid, double rou_keratin, double rou_water,
-		   double T, double eta, double K_ow, double x_coord, double y_coord,
-		   double dx, double dy, double dz)
+		double V_mortar_geometry, double V_brick_geometry, double V_all_geometry,
+		double rou_lipid, double rou_keratin, double rou_water,
+		double T, double eta, double K_ow, double x_coord, double y_coord,
+		double dx, double dy, double dz)
 {
 	strcpy(m_name, name);
 	m_concChem = 0;
@@ -53,7 +53,7 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
 	V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
 	V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
 
-	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
+	//	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
 	m_theta_b = V_water_brick / V_brick_geometry * V_all_geometry;
 
 
@@ -70,7 +70,7 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
 	V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
 	V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
 
-	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
+	//	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
 	m_phi_b = V_water_brick / V_brick_geometry * V_all_geometry;
 	
 	m_x_coord = x_coord; m_y_coord = y_coord;
@@ -120,81 +120,94 @@ void Grid::setConcFromDiffMass(void)
 // Computing diffusivity
 void Grid::compDiffusivity(double D_vehicle)
 {	
-	int gsl_errno;
-	double alpha, beta, lambda, gamma, k, S, phi_f, r_s_inA, r_f_inA;
+  int gsl_errno;
+  double alpha, beta, lambda, gamma, k, S, phi_f, r_s_inA, r_f_inA;
 	
-	if ( !strcmp(m_name, "LP") ) {	// lipid	
+  if ( !strcmp(m_name, "LP") ) {	// lipid	
+    
+    if (m_mw <= 380){		
+      r_s_inA = m_r_s*1e10; // unit in Angstrom
+      m_D = 2 * 1E-9 * exp(-0.46*r_s_inA*r_s_inA);
+    } else {
+      m_D = 3 * 1E-13;
+    }
+    //m_D = 9.6187e-12; // !!
 
-		if (m_mw <= 380){		
-			r_s_inA = m_r_s*1e10; // unit in Angstrom
-			m_D = 2 * 1E-9 * exp(-0.46*r_s_inA*r_s_inA);
-		} else {
-			m_D = 3 * 1E-13;
-		}
-		//m_D = 9.6187e-12; // !!
-
-	} else if ( !strcmp(m_name, "CC") ) { // corneocyte
+  } else if ( !strcmp(m_name, "CC") ) { // corneocyte
 		
-		// empirically fitted parameters
-		alpha = 9.47;
-		beta = 9.32 * 1E-8;
-		lambda = 1.09;
-		gamma = -1.17;
+    // empirically fitted parameters
+    alpha = 9.47;
+    beta = 9.32 * 1E-8;
+    lambda = 1.09;
+    gamma = -1.17;
 		
-		r_s_inA = m_r_s*1e10; // unit in A
-		r_f_inA = m_r_f*1e10; // unit in A
+    r_s_inA = m_r_s*1e10; // unit in A
+    r_f_inA = m_r_f*1e10; // unit in A
 		
-		phi_f = 1-m_theta_b;		
-		k = beta*r_f_inA*r_f_inA* pow(phi_f, gamma);
-		S = (r_s_inA+r_f_inA)/r_f_inA;
-		S = phi_f * S*S;
+    phi_f = 1-m_theta_b;		
+    k = beta*r_f_inA*r_f_inA* pow(phi_f, gamma);
+    S = (r_s_inA+r_f_inA)/r_f_inA;
+    S = phi_f * S*S;
 	
-		m_D = exp( -alpha*pow(S,lambda) ) / ( 1 + r_s_inA/sqrt(k) + r_s_inA*r_s_inA/3/k );
-		m_D *= m_Dw;
-		//m_D = 1.3824e-015; // !!
+    m_D = exp( -alpha*pow(S,lambda) ) / ( 1 + r_s_inA/sqrt(k) + r_s_inA*r_s_inA/3/k );
+    m_D *= m_Dw;
+    //m_D = 1.3824e-015; // !!
 			
-	} else if ( !strcmp(m_name, "SC") ) { // vehicle source
+  } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
+    // same as lipid
+    if (m_mw <= 380){		
+      r_s_inA = m_r_s*1e10; // unit in Angstrom
+      m_D = 2 * 1E-9 * exp(-0.46*r_s_inA*r_s_inA);
+    } else {
+      m_D = 3 * 1E-13;
+    }
+    // m_D = 1e-10;
+
+  } else if ( !strcmp(m_name, "SC") ) { // vehicle source
 	
-		assert( D_vehicle>0 ); // make sure some reasonable values are provided
-		m_D = D_vehicle;
+    assert( D_vehicle>0 ); // make sure some reasonable values are provided
+    m_D = D_vehicle;
 		
-	} else if ( !strcmp(m_name, "SK") ) { // infinite sink
+  } else if ( !strcmp(m_name, "SK") ) { // infinite sink
+    
+    m_D = 1; // very big value, essentially means anything in the sink can be quickly removed
+    
+  } else {
 	
-		m_D = 1; // very big value, essentially means anything in the sink can be quickly removed
-		
-	} else {
-	
-		gsl_error ("Grid name unknown", __FILE__, __LINE__, gsl_errno);
-		exit(-1);		
-		
-	} // end if - else if - else
+    gsl_error ("Grid name unknown", __FILE__, __LINE__, gsl_errno);
+    exit(-1);		
+    
+  } // end if - else if - else
 }
 
 
 // Compute partition coefficient between this grid and water
 void Grid::compKcoef()
 {
-	int gsl_errno;
-	double K_kw;
+  int gsl_errno;
+  double K_kw;
 	
-	if ( !strcmp(m_name, "LP") ) {	// lipid	
-	  m_Kw = pow(m_K_ow, 0.7);
-	  //m_Kw = 0.9*pow(m_K_ow,0.69);
-	} else if ( !strcmp(m_name, "CC") ) { // corneocyte
-	  if (m_K_ow>10)
-	    K_kw = 5.6 * pow(m_K_ow, 0.27);
-	  else 
-	    K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
-	  // K_kw = 1.37*4.2*pow(m_K_ow,0.31);
-	  m_Kw = (1-m_phi_b) * K_kw + m_theta_b;		
-	} else if ( !strcmp(m_name, "SC") ) { // vehicle source
-		m_Kw = 1.0;
-	} else if ( !strcmp(m_name, "SK") ) { // sink
-		m_Kw = 1.0;
-	} else {
-		gsl_error ("Grid name unknown", __FILE__, __LINE__, gsl_errno);
-		exit(-1);
-	}
+  if ( !strcmp(m_name, "LP") ) {	// lipid	
+    m_Kw = pow(m_K_ow, 0.7);
+    //m_Kw = 0.9*pow(m_K_ow,0.69);
+  } else if ( !strcmp(m_name, "CC") ) { // corneocyte
+    if (m_K_ow>10)
+      K_kw = 5.6 * pow(m_K_ow, 0.27);
+    else 
+      K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
+    // K_kw = 1.37*4.2*pow(m_K_ow,0.31);
+    m_Kw = (1-m_phi_b) * K_kw + m_theta_b;		
+  } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
+    // m_Kw = 1.0;
+    m_Kw = pow(m_K_ow, 0.7); // same as lipid
+  } else if ( !strcmp(m_name, "SC") ) { // vehicle source
+    m_Kw = 1.0;
+  } else if ( !strcmp(m_name, "SK") ) { // sink
+    m_Kw = 1.0;
+  } else {
+    gsl_error ("Grid name unknown", __FILE__, __LINE__, gsl_errno);
+    exit(-1);
+  }
 }
 
 /*  END <Functions to calculate model parameters>
