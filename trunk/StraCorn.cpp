@@ -43,6 +43,9 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
   m_T = 309; // temperature (Kelvin)
   m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
 
+  m_boundary_cond = 1; // boundary condition for left/right; 
+                       //  0: zero flux; 1: periodic
+
   /* ---- */
 
   m_grids = NULL;
@@ -56,6 +59,7 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
 
   m_geom_dm = m_w*(m_geom_d-m_geom_s)/(1+m_w);
   m_geom_dn = m_geom_d-m_geom_s-m_geom_dm;
+  m_dz = dz;
 	
   // Vertical direction, lipid layer is at both top and bottom of the stratum corneum
   m_nx = (m_nx_grids_lipid+m_nx_grids_cc)*n_layer_x + m_nx_grids_lipid; 	
@@ -72,19 +76,38 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
   m_offset_y =  offset_y;
 }
 
-void StraCorn::Release(void)
+void StraCorn::Release()
 {
-  if (!m_grids)
+  int i, j, idx;
+  if (!m_grids) {
+    for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+      for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+	idx = i*m_ny + j;
+	m_grids[idx].Release();
+      }
+    }
     delete [] m_grids;
+  }
+  m_gridBdyUp.Release();
+  m_gridBdyDown.Release();
+  m_gridBdyLeft.Release();
+  m_gridBdyRight.Release();
 }
 
 
-void StraCorn::createGrids(double MW, double Kow, double water_frac)
+void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc_vehicle)
 {
   bool bOffset = false;
   int i, j, idx, idx_x, idx_y, idx_y_offset, cc_subtype_offset, gsl_errno;
   int cc_subtype = 0; // 0 = d_n; 1 = s; 2 = d_m, 3 = s;
   double dx_lipid, dx_cc, dy_lipid, dy_cc, dy_offset, dy_dm, coord_x, coord_y;
+
+  // initialise boundary grids
+  m_gridBdyUp.Init("SC", conc_vehicle, Kow, 0, 0, m_dz); // infinite source, can be updated to diminishing vehicle by using updateBoundary()
+  m_gridBdyDown.Init("SK",  0,         Kow, 0, 0, m_dz); // infinite sink, can be updated to underlying viable epidermis by using updateBoundary()
+  m_gridBdyLeft.Init("SK",  0,         Kow, 0, 0, m_dz); // infinite sink
+  m_gridBdyRight.Init("SK", 0,         Kow, 0, 0, m_dz); // infinite sink
+
 	
   dx_lipid = m_geom_g/m_nx_grids_lipid;
   dx_cc = m_geom_t/m_nx_grids_cc;
@@ -320,6 +343,14 @@ void StraCorn::createGrids(double MW, double Kow, double water_frac)
 
 }
 
+void StraCorn::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right)
+{
+  if (up!=NULL) m_gridBdyUp.set(up);
+  if (down!=NULL) m_gridBdyDown.set(down);
+  if (left!=NULL) m_gridBdyLeft.set(left);
+  if (right!=NULL) m_gridBdyRight.set(right);
+}
+
 /* functions for computing the right-hand size of the odes */
 
 // todo: remove repeated calculation of mass transfer
@@ -390,14 +421,15 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
       conc_this = y[idx_this];
       volume_this = gridThiis->m_dx * gridThiis->m_dy * gridThiis->m_dz;
 			
-      // Setup the neighbouring grids
-      // 	and calculate the mass transfer rate.
+      // Setup the neighbouring grids and calculate the mass transfer rate.
       // If Jacobian required, calculate the Jacobian in the following order:
       //	up, left, self, right, down.
 			
-      if ( i==0 ) { // top layer, its top is source
-	gridUp = &m_gridSource;
-	conc_other = m_gridSource.m_concChem;
+      // diffusion from up
+
+      if ( i==0 ) { // topmost layer, its top is up boundary
+	gridUp = &m_gridBdyUp;
+	conc_other = m_gridBdyUp.m_concChem;
       } else {
 	idx_other = (i-1)*m_ny+j;
 	gridUp = &m_grids[idx_other];
@@ -405,11 +437,6 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
       }
       flux = gridThiis->compFlux( gridUp, conc_this, conc_other,
 				  gridThiis->m_dx/2, gridUp->m_dx/2, &deriv_this, &deriv_other);
-      /*
-      if ( i==m_nx )
-	printf("i=%d, j=%d, mass=%e\t", 
-	       i, j, gridThiis->m_dy*gridThiis->m_dz * flux);
-      */			
       mass_transfer_rate += gridThiis->m_dy*gridThiis->m_dz * flux;			
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum = deriv_this / gridThiis->m_dx;
@@ -417,11 +444,13 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 	  m_ode_Jacobian[ idx_this*dim + idx_other ] = deriv_other / gridThiis->m_dx;
       }
 
+      // diffusion from left
+
       if ( j==0 ) { // leftmost layer, its left is sink
 	
 	if ( m_boundary_cond == 0 ) {
-	  gridLeft = &m_gridSinkLeft;
-	  conc_other = m_gridSinkLeft.m_concChem;
+	  gridLeft = &m_gridBdyLeft;
+	  conc_other = m_gridBdyLeft.m_concChem;
 	  flux = 0; // left impermeable
 	} else if ( m_boundary_cond == 1 ) {
 	  idx_other = i*m_ny+m_ny-1;
@@ -438,10 +467,7 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 	flux = gridThiis->compFlux( gridLeft, conc_this, conc_other, 
 				    gridThiis->m_dy/2, gridLeft->m_dy/2, &deriv_this, &deriv_other);
       }	
-      /*
-      if ( i==m_nx )
-	printf("mass=%e\t", gridThiis->m_dx*gridThiis->m_dz * flux);
-      */
+      
 	
       mass_transfer_rate += gridThiis->m_dx*gridThiis->m_dz * flux;
       if (m_ode_Jacobian!=NULL) {
@@ -450,11 +476,13 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 	  m_ode_Jacobian[ idx_this*dim + idx_other ] = deriv_other / gridThiis->m_dy;
       }
 
+      // diffusion from right
+
       if ( j==m_ny-1 ) { // right layer, its right is sink
 
 	if ( m_boundary_cond == 0 ) {
-	  gridRight = &m_gridSinkRight;
-	  conc_other = m_gridSinkRight.m_concChem;
+	  gridRight = &m_gridBdyRight;
+	  conc_other = m_gridBdyRight.m_concChem;
 	  flux = 0; // left impermeable
 	} else if ( m_boundary_cond == 1 ) {
 	  idx_other = i*m_ny;
@@ -472,11 +500,6 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 				    gridThiis->m_dy/2, gridRight->m_dy/2, &deriv_this, &deriv_other);
       }	
 
-      /*
-      if ( i==m_nx )
-	printf("mass=%e\t", gridThiis->m_dx*gridThiis->m_dz * flux);
-      */
-
       mass_transfer_rate += gridThiis->m_dx*gridThiis->m_dz * flux;
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dy;
@@ -484,10 +507,12 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 	  m_ode_Jacobian[ idx_this*dim + idx_other ] = deriv_other / gridThiis->m_dy;
       }
 
+
+      // diffusion from down
 			
-      if ( i==m_nx-1 ) { // bottom layer, its down is sink
-	gridDown = &m_gridSink;
-	conc_other = m_gridSink.m_concChem;				
+      if ( i==m_nx-1 ) { // bottom layer, its down is down boundary
+	gridDown = &m_gridBdyDown;
+	conc_other = m_gridBdyDown.m_concChem;
       } else {
 	idx_other = (i+1)*m_ny+j;
 	gridDown = &m_grids[idx_other];
@@ -495,10 +520,6 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
       }
       flux = gridThiis->compFlux( gridDown, conc_this, conc_other, 
 				  gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
-      /*
-      if ( i==m_nx )
-	printf("mass=%e\n", gridThiis->m_dy*gridThiis->m_dz * flux);
-      */
 
       mass_transfer_rate += gridThiis->m_dy*gridThiis->m_dz * flux;
       if (m_ode_Jacobian!=NULL) {

@@ -7,7 +7,7 @@
 class Chemical
 {
  public:
-  dobule m_mw, // molecular weight
+  double m_mw, // molecular weight
     m_K_ow;	//partition coefficient between octanol and water
 
  public:
