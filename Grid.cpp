@@ -102,6 +102,30 @@ void Grid::Init(const char name[], double concChem, double K_ow,
 	Main functions
 	+++++++++++++++++++++++++++++++++++++++++++ */
 
+
+// Compute the flux of solute from <other> to <this> grid
+//  However, do not use concentration values in the Grid objects,
+//  instead use <conc_this> and <conc_other>
+double Grid::compFlux(Grid* other, double conc_this, double conc_other, 
+		      double dist_this, double dist_other, double *deriv_this, double *deriv_other)
+{
+  double flux, K_other2this, tmp1, tmp2;
+	
+  K_other2this = other->m_Kw / this->m_Kw;
+  flux = ( conc_other - K_other2this*conc_this );
+  tmp1 = dist_other/other->m_D + K_other2this*dist_this/this->m_D;
+  flux /= tmp1;
+	
+  if (deriv_this!=NULL)
+    *deriv_this = -K_other2this / tmp1;
+	
+  if (deriv_other!=NULL)
+    *deriv_other = 1 / tmp1;
+		
+  return flux;
+}
+
+
 // This is not really a main function ...
 void Grid::setConcFromDiffMass(void)
 {

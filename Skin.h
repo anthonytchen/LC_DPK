@@ -3,12 +3,6 @@
 
 #include "Grid.h"
 
-struct Point
-{
-  double x_coord, y_coord, dx, dy;
-  char x_type[3], y_type[3];
-};
-
 class Skin
 {
 private:
@@ -43,8 +37,10 @@ public:
   void createGrids();
   void createGridsVE(double, double, double, double, double, int, int);
   void diffuseMoL_cv(double t_start, double t_end); // method of lines using CVODE solver
+  /*
   double compFlux(Grid*, Grid*, double, double, double, double, 
 		  double *deriv_this=NULL, double *deriv_other=NULL);
+  */
   double compFlux_2sc();
   double compFlux_sc2ve();
   double compFlux_ve2sk();

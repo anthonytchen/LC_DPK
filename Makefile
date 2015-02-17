@@ -1,7 +1,7 @@
 
 include make.include
 
-all:	arg.o Grid.o Skin.o LCK Calib_LCK
+all:	arg.o Grid.o StraCorn.o Skin.o LCK Calib_LCK
 
 clean:
 	rm -f *.o *.lnk
@@ -22,6 +22,8 @@ arg.o: arg.h arg.c
 	$(CC) $(CFLAGS) arg.c -o arg.o
 Grid.o: Grid.h Grid.cpp
 	$(CC) $(CFLAGS) Grid.cpp $(INC) -o Grid.o
+StraCorn.o: StraCorn.h StraCorn.cpp
+	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
 Skin.o: Skin.h Skin.cpp
 	$(CC) $(CFLAGS) Skin.cpp $(INC) -o Skin.o
 
