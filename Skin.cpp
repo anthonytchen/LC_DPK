@@ -648,8 +648,8 @@ void Skin::gslODE (double t, const double y[], double f[],
 	gridUp = &m_grids[idx_other];
 	conc_other = y[idx_other];
       }
-      flux = gridThiis->compFlux( gridUp, conc_this, conc_other,
-				  gridThiis->m_dx/2, gridUp->m_dx/2, &deriv_this, &deriv_other);
+      flux = compFlux( gridThiis, gridUp, conc_this, conc_other, 
+		       gridThiis->m_dx/2, gridUp->m_dx/2, &deriv_this, &deriv_other);
       /*
       if ( i==m_nx )
 	printf("i=%d, j=%d, mass=%e\t", 
@@ -662,7 +662,7 @@ void Skin::gslODE (double t, const double y[], double f[],
 	  m_gsl_ode_Jacobian[ idx_this*dim + idx_other ] = deriv_other / gridThiis->m_dx;
       }
 
-      if ( j==0 ) { // leftmost layer, its left is sink
+      if ( j==0 ) { // left layer, its left is sink
 	
 	if ( m_boundary_cond == 0 ) {
 	  gridLeft = &m_gridSinkLeft;
@@ -672,16 +672,16 @@ void Skin::gslODE (double t, const double y[], double f[],
 	  idx_other = i*m_ny+m_ny-1;
 	  gridLeft = &m_grids[idx_other];
 	  conc_other = y[idx_other];
-	  flux = gridThiis->compFlux( gridLeft, conc_this, conc_other, 
-				      gridThiis->m_dy/2, gridLeft->m_dy/2, &deriv_this, &deriv_other);	  
+	  flux = compFlux( gridThiis, gridLeft, conc_this, conc_other, 
+			   gridThiis->m_dy/2, gridLeft->m_dy/2, &deriv_this, &deriv_other);	  
 	}
 	
       } else {
 	idx_other = i*m_ny+j-1;
 	gridLeft = &m_grids[idx_other];
 	conc_other = y[idx_other];
-	flux = gridThiis->compFlux( gridLeft, conc_this, conc_other, 
-				    gridThiis->m_dy/2, gridLeft->m_dy/2, &deriv_this, &deriv_other);
+	flux = compFlux( gridThiis, gridLeft, conc_this, conc_other, 
+			 gridThiis->m_dy/2, gridLeft->m_dy/2, &deriv_this, &deriv_other);
       }	
       /*
       if ( i==m_nx )
@@ -705,16 +705,16 @@ void Skin::gslODE (double t, const double y[], double f[],
 	  idx_other = i*m_ny;
 	  gridRight = &m_grids[idx_other];
 	  conc_other = y[idx_other];
-	  flux = gridThiis->compFlux( gridRight, conc_this, conc_other, 
-				      gridThiis->m_dy/2, gridRight->m_dy/2, &deriv_this, &deriv_other);
+	  flux = compFlux( gridThiis, gridRight, conc_this, conc_other, 
+			   gridThiis->m_dy/2, gridRight->m_dy/2, &deriv_this, &deriv_other);
 	}
 	
       } else {
 	idx_other = i*m_ny+j+1;
 	gridRight = &m_grids[idx_other];
 	conc_other = y[idx_other];
-	flux = gridThiis->compFlux( gridRight, conc_this, conc_other, 
-				    gridThiis->m_dy/2, gridRight->m_dy/2, &deriv_this, &deriv_other);
+	flux = compFlux( gridThiis, gridRight, conc_this, conc_other, 
+			 gridThiis->m_dy/2, gridRight->m_dy/2, &deriv_this, &deriv_other);
       }	
 
       /*
@@ -738,8 +738,8 @@ void Skin::gslODE (double t, const double y[], double f[],
 	gridDown = &m_grids[idx_other];
 	conc_other = y[idx_other];
       }
-      flux = gridThiis->compFlux( gridDown, conc_this, conc_other, 
-				  gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
+      flux = compFlux( gridThiis, gridDown, conc_this, conc_other, 
+		       gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
       /*
       if ( i==m_nx )
 	printf("mass=%e\n", gridThiis->m_dy*gridThiis->m_dz * flux);
@@ -813,8 +813,8 @@ void Skin::diffuseMoL_cv(double t_start, double t_end)
   // CVDlsSetDenseJacFn(cvode_mem, static_cvJacobian);
   
   // prepare for the memory
-  // m_gsl_ode_Jacobian = new double [dim*dim];
-  // memset(m_gsl_ode_Jacobian, 0, sizeof(double)*dim*dim);
+  m_gsl_ode_Jacobian = new double [dim*dim];
+  memset(m_gsl_ode_Jacobian, 0, sizeof(double)*dim*dim);
   
   CVode(cvode_mem, t_end, y0, &t, CV_NORMAL);
 	
@@ -829,8 +829,31 @@ void Skin::diffuseMoL_cv(double t_start, double t_end)
   
   N_VDestroy_Serial(y0);  
   CVodeFree(&cvode_mem);
-  //  delete [] m_gsl_ode_Jacobian;
+  delete [] m_gsl_ode_Jacobian;
   delete [] y;
+}
+
+
+// Compute the flux of solute from <other> to <this> grid
+//	However, do not use concentration values in the Grid objects,
+//	instead use <conc_this> and <conc_other>
+double Skin::compFlux(Grid* thiis, Grid* other, double conc_this, double conc_other, 
+		      double dist_this, double dist_other, double *deriv_this, double *deriv_other)
+{
+	double flux, K_other2this, tmp1, tmp2;
+	
+	K_other2this = other->m_Kw / thiis->m_Kw;	
+	flux = ( conc_other - K_other2this*conc_this );
+	tmp1 = dist_other/other->m_D + K_other2this*dist_this/thiis->m_D;
+	flux /= tmp1;
+	
+	if (deriv_this!=NULL)
+		*deriv_this = -K_other2this / tmp1;
+	
+	if (deriv_other!=NULL)
+		*deriv_other = 1 / tmp1;
+		
+	return flux;
 }
 
 // Compute flux into stratum corneum
@@ -847,8 +870,8 @@ double Skin::compFlux_2sc()
     gridThiis = &m_grids[j]; conc_this = gridThiis->m_concChem;
     conc_other = m_gridSource.m_concChem;
       
-    flux = gridThiis->compFlux( &m_gridSource, conc_this, conc_other, 
-				gridThiis->m_dx/2, m_gridSource.m_dx/2, &deriv_this, &deriv_other);
+    flux = compFlux( gridThiis,&m_gridSource, conc_this, conc_other, 
+		     gridThiis->m_dx/2, m_gridSource.m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
     
     total_area += area;
@@ -888,8 +911,8 @@ double Skin::compFlux_sc2ve()
       conc_other = gridDown->m_concChem;
     }
 
-    flux = gridThiis->compFlux( gridDown, conc_this, conc_other, 
-				gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
+    flux = compFlux( gridThiis, gridDown, conc_this, conc_other, 
+		     gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
 
     //    printf("mass=%e, area=%e\n", flux*area, area);
@@ -920,8 +943,8 @@ double Skin::compFlux_ve2sk()
     gridThiis = &m_grids[idx+j]; conc_this = gridThiis->m_concChem;
     conc_other = m_gridSink.m_concChem;
       
-    flux = gridThiis->compFlux( &m_gridSink, conc_this, conc_other, 
-				gridThiis->m_dx/2, m_gridSink.m_dx/2, &deriv_this, &deriv_other);
+    flux = compFlux( gridThiis,&m_gridSink, conc_this, conc_other, 
+		     gridThiis->m_dx/2, m_gridSink.m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
 
     //    printf("mass=%e, area=%e\n", flux*area, area);

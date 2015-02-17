@@ -95,25 +95,6 @@ void Grid::Init(const char name[], double concChem, double K_ow,
 	compDiffusivity(D_vehicle);
 	compKcoef();	
 }
-
-void Grid::InitVE(double mw, double Kow, double pKa,
-		  double x_coord, double y_coord, double dx, double dy, double dz)
-{
-  strcpy(m_name, "VE");
-  m_concChem = 0;
-  m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
-	
-  m_mw = mw;
-  m_K_ow = Kow;
-  m_pKa = pKa;
-
-  m_x_coord = x_coord; m_y_coord = y_coord;
-  m_dx = dx;	m_dy = dy;	m_dz = dz;
-
-  compDiffusivity();
-  compKcoef();
-}
-
 /*  END <Initiators>
 	--------------------------------------------- */
 
@@ -121,61 +102,14 @@ void Grid::InitVE(double mw, double Kow, double pKa,
 	Main functions
 	+++++++++++++++++++++++++++++++++++++++++++ */
 
-
-// Compute the flux of solute from <other> to <this> grid
-//  However, do not use concentration values in the Grid objects,
-//  instead use <conc_this> and <conc_other>
-double Grid::compFlux(Grid* other, double conc_this, double conc_other, 
-		      double dist_this, double dist_other, double *deriv_this, double *deriv_other)
-{
-  double flux, K_other2this, tmp1, tmp2;
-	
-  K_other2this = other->m_Kw / this->m_Kw;
-  flux = ( conc_other - K_other2this*conc_this );
-  tmp1 = dist_other/other->m_D + K_other2this*dist_this/this->m_D;
-  flux /= tmp1;
-	
-  if (deriv_this!=NULL)
-    *deriv_this = -K_other2this / tmp1;
-	
-  if (deriv_other!=NULL)
-    *deriv_other = 1 / tmp1;
-		
-  return flux;
-}
-
-
+// This is not really a main function ...
 void Grid::setConcFromDiffMass(void)
 {
-  double delConc;
-  delConc = m_mass_diffused.up+m_mass_diffused.left+m_mass_diffused.right+m_mass_diffused.down;	
+	double delConc;
+	delConc = m_mass_diffused.up+m_mass_diffused.left+m_mass_diffused.right+m_mass_diffused.down;	
 	
-  m_concChem += delConc / (m_dx*m_dy*m_dz) ;
+	m_concChem += delConc / (m_dx*m_dy*m_dz) ;
 }
-
-void Grid::set(Grid* other)
-{
-  m_Kw = other->m_Kw;
-  m_D = other->m_D;
-  m_Dw = other->m_Dw;
-  m_K_ow = other->m_K_ow;
-  m_mw = other->m_mw; 
-  m_phi_b = other->m_phi_b;
-  m_theta_b = other->m_theta_b;
-  m_mass_frac_water = other->m_mass_frac_water;
-  m_r_s = other->m_r_s;
-  m_r_f = other->m_r_f;
-
-  m_concChem = other->m_concChem;
-  m_concWater = other->m_concWater;
-  struct mass_diffused m_mass_diffused; // concentration of chemical
-  m_x_coord = other->m_x_coord;
-  m_y_coord = other->m_y_coord;
-  m_dx = other->m_dx;
-  m_dy = other->m_dy;
-  m_dz = other->m_dz;	
-}
-
 /*  END <Main functions>
 	--------------------------------------------- */
 
