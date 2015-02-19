@@ -16,7 +16,7 @@ struct pthread_struct {
 
 /*
  */
-void ViaEpd::Init(int x_length, int y_length, double dz, int n_layer_x)
+void ViaEpd::Init(int x_length, int y_length, double dz, int n_grids_x)
 {	
 
   /* set up some constant values */
@@ -38,7 +38,7 @@ void ViaEpd::Init(int x_length, int y_length, double dz, int n_layer_x)
   m_y_length = y_length;
   m_dz = dz;
 	
-  m_nx = n_layer_x;
+  m_nx = n_grids_x;
   m_ny = 1; // lateral direction only 1 grid
 }
 

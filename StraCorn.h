@@ -6,7 +6,7 @@
 
 class StraCorn
 {
- private:
+ public:
   double m_rou_lipid, m_rou_keratin, m_rou_water, // the density of lipid, keratin and water
     m_T, m_eta, // temperature, viscosity of water
     m_V_mortar, m_V_brick, m_V_all; // the volume of mortar, brick and sum (all) 
@@ -26,7 +26,7 @@ class StraCorn
 public:
   StraCorn(void) {};	
   ~StraCorn(void) {};
-  void Init(double, double, double, double, double, int, int, double);
+  void Init(double, double, double, double, double, int, int, double, int);
   void Release();
   
   void createGrids(double, double, double, double);

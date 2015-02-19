@@ -5,6 +5,28 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+/* functions relating to points for creating grids */
+
+void setPoint(struct Point& pt, double x_coord, double y_coord, double dx, double dy, const char x_type[], const char y_type[])
+{
+  pt.x_coord = x_coord;
+  pt.y_coord = y_coord;
+  pt.dx = dx;
+  pt.dy = dy;
+  strcpy(pt.x_type, x_type);
+  strcpy(pt.y_type, y_type);
+}
+void cpyPoint(struct Point& dst, struct Point& src)
+{
+  dst.x_coord = src.x_coord;
+  dst.y_coord = src.y_coord;
+  dst.dx = src.dx;
+  dst.dy = src.dy;
+  strcpy(dst.x_type, src.x_type);
+  strcpy(dst.y_type, src.y_type);
+}
+/* ------------ */
+
 
 /*  +++++++++++++++++++++++++++++++
 	Initiators
