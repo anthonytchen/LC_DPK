@@ -1,0 +1,46 @@
+# C-compiler
+CC=g++
+
+
+# libraries
+#LIBSPATH=/home/tc0008/sundials/lib
+LIBS=-L/usr/local/lib -lgsl -lgslcblas -lm -pthread -lsundials_cvode -lsundials_nvecserial
+INC=-I/usr/local/include/
+
+#CFLAGS=-O2 -ffast-math -Wno-deprecated -c
+#CFLAGS=-g -O0 -c -Wno-deprecated
+CFLAGS=-g -O0 -c -Wno-write-strings
+
+# linker
+LD=g++
+
+#LFLAGS=-O2 -ffast-math -Wno-deprecated
+#LFLAGS=-g -O0 -Wno-deprecated
+LFLAGS=-g -O0 -Wno-write-strings
+
+
+all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o LCK #Calib_LCK
+
+clean:
+	rm -f *.o *.lnk
+
+### executables ##
+LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
+	$(LD) $(LFLAGS)  LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o arg.o $(LIBS) $(INC) -o LCK
+Calib_LCK: Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
+	$(LD) $(LFLAGS)  Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o arg.o $(LIBS) $(INC) -o Calib_LCK
+
+
+### objective files ##
+arg.o: arg.h arg.c
+	$(CC) $(CFLAGS) arg.c $(INC) -o arg.o
+Chemical.o: Chemical.h Chemical.cpp
+	$(CC) $(CFLAGS) Chemical.cpp $(INC) -o Chemical.o
+Grid.o: Grid.h Grid.cpp
+	$(CC) $(CFLAGS) Grid.cpp $(INC) -o Grid.o
+StraCorn.o: StraCorn.h StraCorn.cpp
+	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
+ViaEpd.o: ViaEpd.h ViaEpd.cpp
+	$(CC) $(CFLAGS) ViaEpd.cpp $(INC) -o ViaEpd.o
+Skin.o: Skin.h Skin.cpp
+	$(CC) $(CFLAGS) Skin.cpp $(INC) -o Skin.o
