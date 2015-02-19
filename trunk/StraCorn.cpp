@@ -23,7 +23,7 @@ struct pthread_struct {
     dz: depth (perpendicular to x-y domain) of the simulation domain
  */
 void StraCorn::Init(double g, double d, double s, double t, double dz,
-		    int n_layer_x, int n_layer_y, double offset_y)
+		    int n_layer_x, int n_layer_y, double offset_y, int bdy_cond)
 {	
 
   /* set up some constant values */
@@ -43,8 +43,7 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
   m_T = 309; // temperature (Kelvin)
   m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
 
-  m_boundary_cond = 1; // boundary condition for left/right; 
-                       //  0: zero flux; 1: periodic
+  m_boundary_cond = bdy_cond; // boundary condition for left/right; 
 
   /* ---- */
 

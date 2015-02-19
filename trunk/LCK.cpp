@@ -3,15 +3,17 @@
 
 #include "stdafx.h"
 #include "arg.h"
-#include "skin.h"
+#include "Chemical.h"
+#include "Skin.h"
 
 
 int main (int argc, char* argv[])
 {
-  double g, d, s, t, concSource, K_ow, MW, DSource,
-    t_simu, t_end, t_inv, offset_y;
+  double MW, K_ow, pKa,
+    conc_vehicle, diffu_vehicle,
+    t_simu, t_end, t_inv, offset_y_sc;
   bool b_1st_save = true;
-  int i, n_layer_x, n_layer_y;
+  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve;
   char fn_coord_x[20], fn_coord_y[20];
 	
   static int nDis = 1;
@@ -19,15 +21,14 @@ int main (int argc, char* argv[])
   static char *pre_coord = "coord";
 	
   t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
-  g=0.075E-6; d=40E-6; s=0.075E-6; t=0.8E-6;
-  n_layer_x = 16; //16
-  n_layer_y = 2; // 2
-  offset_y = 0;
+  n_layer_x_sc = 16; //16
+  n_layer_y_sc = 2; // 2
+  offset_y_sc = 0;
   
-  K_ow = pow(10,1.6); // partition coefficient between octanol and water
   MW = 119.12;  // Da, i.e. g/mol
-  concSource = 0.11*1e3; // in mol/m3
-  DSource = 9.12e-10; // diffusivity of solute in vehicle
+  K_ow = pow(10,1.6); // partition coefficient between octanol and water
+  conc_vehicle = 0.11*1e3; // in mol/m3
+  diffu_vehicle = 9.12e-10; // diffusivity of solute in vehicle
 	
   // Provide a command line user interface
   static Config_t params[] = {
@@ -39,10 +40,10 @@ int main (int argc, char* argv[])
     "-tend", DOUBLE, (caddr_t)&t_end,  
 
     "offset_y", "Offset on the left boundary",
-    "-ofy", DOUBLE, (caddr_t)&offset_y,
+    "-ofy", DOUBLE, (caddr_t)&offset_y_sc,
     
     "n_layer_y", "Number of y (lateral) layers",
-    "-ny", INT, (caddr_t)&n_layer_y,
+    "-ny", INT, (caddr_t)&n_layer_y_sc,
 
     "fn_conc", "File name to store concentration",
     "-fn_conc", STRING, (caddr_t)&fn_conc,
@@ -68,10 +69,11 @@ int main (int argc, char* argv[])
   clock_t start, end;
   double cpu_time_used;
   
+  Chemical _chem;
   Skin _skin;
   
-  _skin.Init( g, d, s, t, K_ow, MW, concSource, DSource, n_layer_x, n_layer_y, t_inv, offset_y );
-  _skin.createGrids();
+  _chem.Init(MW, K_ow, pKa);
+  _skin.Init(_chem,  conc_vehicle, diffu_vehicle, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, offset_y_sc );
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x.txt");
   strcpy(fn_coord_y, pre_coord); strcat(fn_coord_y, "_y.txt");

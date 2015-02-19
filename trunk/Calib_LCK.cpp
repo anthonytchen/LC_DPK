@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "arg.h"
-#include "skin.h"
+#include "Skin.h"
 
 
 int main (int argc, char* argv[])
