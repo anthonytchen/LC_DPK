@@ -207,18 +207,19 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
   /* compute for stratum corneum */
   dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
-  m_StraCorn.updateBoundary(&m_gridVehicle, m_ViaEpd.m_grids, NULL, NULL);  // update top (vehicle) and bottom (ve) boundary grids
+  m_StraCorn.updateBoundary(&m_gridVehicle, m_ViaEpd.m_grids, NULL, NULL);  // update top (vehicle) and bottom (ve) boundary
   m_StraCorn.compODE_dydt(t, y+dim_vh, f+dim_vh);
 
   /* compute for viable epidermis */
   dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
-  m_ViaEpd.updateBoundary(&m_gridVehicle, m_ViaEpd.m_grids, NULL, NULL);  // update top (sc) and bottom (sink) boundary grids
+  m_ViaEpd.updateBoundary(NULL, &m_gridSink, NULL, NULL, m_StraCorn.m_mass_out); // update top (sc) and bottom (sink) boundary
   m_ViaEpd.compODE_dydt(t, y+dim_vh+dim_sc, f+dim_vh+dim_sc);
 
   return GSL_SUCCESS;	
 }
 
-void Skin::diffuseMoL_cv(double t_start, double t_end)
+/* Diffusion using method of lines (MoL) */
+void Skin::diffuseMoL(double t_start, double t_end)
 {		
   bool bJacobianRequired = false;
   int i, j, gsl_status, dim, dim_vh, dim_sc, dim_ve, flag;
@@ -325,11 +326,11 @@ double Skin::compFlux_2sc()
   
   for ( j=0; j<m_ny; j++ ) { // y direction left to right
 				
-    gridThiis = &m_grids[j]; conc_this = gridThiis->m_concChem;
-    conc_other = m_gridSource.m_concChem;
+    gridThiis = &m_StraCorn.m_grids[j]; conc_this = gridThiis->m_concChem;
+    conc_other = m_gridVehicle.m_concChem;
       
-    flux = gridThiis->compFlux( &m_gridSource, conc_this, conc_other, 
-				gridThiis->m_dx/2, m_gridSource.m_dx/2, &deriv_this, &deriv_other);
+    flux = gridThiis->compFlux( &m_gridVehicle, conc_this, conc_other, 
+				gridThiis->m_dx/2, m_gridVehicle.m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
     
     total_area += area;
@@ -338,80 +339,49 @@ double Skin::compFlux_2sc()
     
   }
   flux = mass_transfer_rate / total_area;
-  //exit(0);
   return flux;
 }
 
-// Compute flux from stratum corneum to viable epidermis
-double Skin::compFlux_sc2ve()
+// Compute flux from stratum corneum to the layer down (e.g. viable epidermis)
+double Skin::compFlux_sc2down()
 {
-  int j, idx, idx_down;
-  double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
-  Grid *gridThiis, *gridDown;
-  gridThiis = gridDown = NULL;
+  int j, idx;
+  double flux, area, total_area;
+  Grid *gridThiis = NULL;
 
-  flux = 0;
-  idx = (m_nx-1)*m_ny;
-  mass_transfer_rate = total_area = 0;
+  idx = (m_StraCorn.m_nx-1)*m_StraCorn.m_ny;
+  total_area = 0;
 
   //  printf("\n compflux_sc2ve\n");
 
   for ( j=0; j<m_ny; j++ ) { // y direction left to right
-				
-    gridThiis = &m_grids[idx+j]; conc_this = gridThiis->m_concChem;
-
-    if ( m_nx_ve == 0 ) { // no viable epidermis simulated, thus gridDown is sink
-      conc_other = m_gridSink.m_concChem;
-      gridDown = &m_gridSink;
-    } else { // viable epidermis simulated
-      idx_down = m_nx*m_ny+j;
-      gridDown = &m_grids[idx_down];
-      conc_other = gridDown->m_concChem;
-    }
-
-    flux = gridThiis->compFlux( gridDown, conc_this, conc_other, 
-				gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
+    gridThiis = &m_StraCorn.m_grids[idx+j];
     area = gridThiis->m_dy*gridThiis->m_dz;
-
-    //    printf("mass=%e, area=%e\n", flux*area, area);
-
     total_area += area;
-    mass_transfer_rate += flux*area;
-
   }
-  flux = -mass_transfer_rate / total_area;
+  flux = -m_StraCorn.m_mass_out / total_area;
   return flux;
 }
 
-// Compute flux from viable epidermis to skin
-double Skin::compFlux_ve2sk()
+// Compute flux from viable epidermis to the layer down (e.g. dermis)
+double Skin::compFlux_ve2down()
 {
   int j, idx;
-  double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
+  double flux, area, total_area;
   Grid *gridThiis = NULL;
 
-  flux = 0;
-  idx = (m_nx+m_nx_ve-1)*m_ny;
-  mass_transfer_rate = total_area = 0;
+  idx = (m_ViaEpd.m_nx-1)*m_StraCorn.m_ny;
+  total_area = 0;
 
   //  printf("\n compflux_ve2sk\n");
 
   for ( j=0; j<m_ny; j++ ) { // y direction left to right
 				
-    gridThiis = &m_grids[idx+j]; conc_this = gridThiis->m_concChem;
-    conc_other = m_gridSink.m_concChem;
-      
-    flux = gridThiis->compFlux( &m_gridSink, conc_this, conc_other, 
-				gridThiis->m_dx/2, m_gridSink.m_dx/2, &deriv_this, &deriv_other);
+    gridThiis = &m_ViaEpd.m_grids[idx+j];
     area = gridThiis->m_dy*gridThiis->m_dz;
-
-    //    printf("mass=%e, area=%e\n", flux*area, area);
-    
     total_area += area;
-    mass_transfer_rate += flux*area;
-
   }
-  flux = -mass_transfer_rate / total_area;
+  flux = -m_ViaEpd.m_mass_out / total_area;
   return flux;
 }
 
@@ -420,7 +390,7 @@ double Skin::compFlux_ve2sk()
 /*  ++++++++++++++++++++++++++++++++++
 	I/O functions
 	++++++++++++++++++++++++++++++++++ */
-
+#if 0
 void Skin::displayGrids()
 {
   assert( m_grids );
@@ -501,3 +471,4 @@ void Skin::saveCoord(const char fn_x[], const char fn_y[])
 }
 /*  END <I/O functions>
 	------------------------------ */
+#endif

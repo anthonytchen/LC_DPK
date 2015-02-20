@@ -16,6 +16,9 @@ class ViaEpd
   int m_nx, m_ny; // number of grids at x and y directions for SC
   int m_boundary_cond;
 
+  double m_mass_in, m_mass_out; // mass transferred in and out of VE
+  bool m_bUseBdyUp;
+
   double *m_ode_Jacobian; // Jacobian matrix needed for GSL ODE solver
 
   Grid *m_grids, m_gridBdyUp, m_gridBdyDown, m_gridBdyLeft, m_gridBdyRight;
@@ -27,7 +30,7 @@ public:
   void Release();
   
   void createGrids(double, double, double, double);
-  void updateBoundary(Grid*, Grid*, Grid*, Grid*);
+  void updateBoundary(Grid*, Grid*, Grid*, Grid*, double mass_in=0);
 	
   // Functions needed for computing ODE's right hand side (i.e. dy/dt)
   void compODE_dydt (double, const double[], double []);

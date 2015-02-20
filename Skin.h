@@ -17,15 +17,13 @@ private:
                                        //	and y (lateral) directions
     m_x_length_ve; // the depth of viable epidermis
   int m_nx, m_ny, // number of grids at x and y directions for SC
-    m_nx_ve, // number of grids at x direction for viable epidermis (VE)
-    m_nx_grids_lipid, m_nx_grids_cc, // number of grids for each lipid/corneocyte layer in the x direction
-    m_ny_grids_lipid, m_ny_grids_cc_dh; // number of grids for each lipid/corneocyte layer in the y direction
+    m_nx_ve; // number of grids at x direction for viable epidermis (VE)
+
   int m_boundary_cond;
 
   double *m_gsl_ode_Jacobian; // Jacobian matrix needed for GSL ODE solver
 
-  Grid *m_grids, m_gridSource, m_gridSink, m_gridSinkLeft, m_gridSinkRight;
-  Grid m_gridVehicle;
+  Grid m_gridVehicle, m_gridSink;
 
   // Chemical m_Chemical;
   StraCorn m_StraCorn;
@@ -37,10 +35,10 @@ public:
   void Init(Chemical, double, double, int, int, int, double);
   void Release();
   
-  void diffuseMoL_cv(double t_start, double t_end); // method of lines using CVODE solver
+  void diffuseMoL(double t_start, double t_end); // method of lines using CVODE solver
   double compFlux_2sc();
-  double compFlux_sc2ve();
-  double compFlux_ve2sk();
+  double compFlux_sc2down();
+  double compFlux_ve2down();
 	
   // Functions needed for ODE solver
   int compODE_dydt (double, const double[], double []);	
