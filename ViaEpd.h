@@ -26,7 +26,7 @@ class ViaEpd
 public:
   ViaEpd(void) {};	
   ~ViaEpd(void) {};
-  void Init(int, int, double, int);
+  void Init(double, double, double, int);
   void Release();
   
   void createGrids(double, double, double, double);

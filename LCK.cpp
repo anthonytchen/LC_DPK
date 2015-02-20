@@ -76,12 +76,12 @@ int main (int argc, char* argv[])
   _chem.Init(MW, K_ow, pKa);
   _skin.Init(_chem,  conc_vehicle, diffu_vehicle, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, offset_y_sc );
   
-  strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x.txt");
-  strcpy(fn_coord_y, pre_coord); strcat(fn_coord_y, "_y.txt");
-  //  _skin.saveCoord( fn_coord_x, fn_coord_y );
+  strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x");
+  strcpy(fn_coord_y, pre_coord); strcat(fn_coord_y, "_y");
+  _skin.saveCoord( fn_coord_x, fn_coord_y );
 	
-  //  if ( nDis > 1 )
-    //  _skin.displayGrids();	
+  if ( nDis > 1 )
+    _skin.displayGrids();	
 
 
   double flux1, flux2, flux3;

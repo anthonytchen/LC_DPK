@@ -2,7 +2,7 @@
 #include "StraCorn.h"
 
 /* Structure and definition for parallel computing */
-#define NTHREADS 1 // number of threads for parallel computing
+#define NTHREADS 2 // number of threads for parallel computing
 struct pthread_struct {
 	StraCorn *sc_obj;
 	double t;
@@ -94,7 +94,7 @@ void StraCorn::Release()
 }
 
 
-void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc_vehicle)
+void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc_vehicle, double diffu_vehicle)
 {
   bool bOffset = false;
   int i, j, idx, idx_x, idx_y, idx_y_offset, cc_subtype_offset, gsl_errno;
@@ -102,7 +102,7 @@ void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc
   double dx_lipid, dx_cc, dy_lipid, dy_cc, dy_offset, dy_dm, coord_x, coord_y;
 
   // initialise boundary grids
-  m_gridBdyUp.Init("SC", conc_vehicle, Kow, 0, 0, m_dz); // infinite source, can be updated to diminishing vehicle by using updateBoundary()
+  m_gridBdyUp.Init("SC", conc_vehicle, Kow, 0, 0, m_dz, diffu_vehicle); // infinite source, can be updated to diminishing vehicle by using updateBoundary()
   m_gridBdyDown.Init("SK",  0,         Kow, 0, 0, m_dz); // infinite sink, can be updated to underlying viable epidermis by using updateBoundary()
   m_gridBdyLeft.Init("SK",  0,         Kow, 0, 0, m_dz); // infinite sink
   m_gridBdyRight.Init("SK", 0,         Kow, 0, 0, m_dz); // infinite sink
@@ -552,7 +552,7 @@ void StraCorn::displayGrids()
   assert( m_grids );
 
   int i, j, idx, gsl_errno;;
-  printf("# of grids: [x] %d, [y] %d\n", m_nx, m_ny);
+  printf("# of grids: [x] %d, [y] %d in stratum corneum\n", m_nx, m_ny);
 
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
@@ -573,28 +573,28 @@ void StraCorn::displayGrids()
 
 void StraCorn::saveGrids(bool b_1st_time, const char fn[])
 {
-	assert( m_grids );
+  assert( m_grids );
 
-	FILE *file = NULL;
-	int i, j, idx;
+  FILE *file = NULL;
+  int i, j, idx;
 
-	// save grids
-	if ( b_1st_time )
-		file = fopen(fn, "w");
-	else 
-		file = fopen(fn, "a");
+  // save grids
+  if ( b_1st_time )
+    file = fopen(fn, "w");
+  else 
+    file = fopen(fn, "a");
 	
-	for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
-		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
 
-			idx = i*m_ny + j;
-			fprintf(file, "%.5e\t", m_grids[idx].getConcChem());
+      idx = i*m_ny + j;
+      fprintf(file, "%.5e\t", m_grids[idx].getConcChem());
 			
-		} // for j
-		fprintf(file, "\n");
-	} // for i
+    } // for j
+    fprintf(file, "\n");
+  } // for i
 
-	fclose(file);
+  fclose(file);
 }
 
 void StraCorn::saveCoord(const char fn_x[], const char fn_y[])
@@ -602,26 +602,27 @@ void StraCorn::saveCoord(const char fn_x[], const char fn_y[])
   assert( m_grids );
 
   FILE *file_x, *file_y;
+  char fn1[1024], fn2[1024];
   int i, j, idx;
 
   // save grids
-  file_x = fopen(fn_x, "w");
-  file_y = fopen(fn_y, "w");
+  strcpy(fn1, fn_x); strcat(fn1, ".sc");
+  strcpy(fn2, fn_y); strcat(fn2, ".sc");
+
+  file_x = fopen(fn1, "w");
+  file_y = fopen(fn2, "w");
 
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
-
       idx = i*m_ny + j;
       fprintf(file_x, "%.5e\t", m_grids[idx].m_x_coord);
-      fprintf(file_y, "%.5e\t", m_grids[idx].m_y_coord);
-			
-    } // for j
+      fprintf(file_y, "%.5e\t", m_grids[idx].m_y_coord);			
+    }
     fprintf(file_x, "\n");
     fprintf(file_y, "\n");
-  } // for i
+  }
 
   fclose(file_x);
   fclose(file_y);
 }
-/*  END <I/O functions>
-	------------------------------ */
+/*  ---- END <I/O functions> ---- */
