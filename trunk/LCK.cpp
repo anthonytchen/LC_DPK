@@ -23,6 +23,7 @@ int main (int argc, char* argv[])
   t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
   n_layer_x_sc = 16; //16
   n_layer_y_sc = 2; // 2
+  n_grids_x_ve = 10;
   offset_y_sc = 0;
   
   MW = 119.12;  // Da, i.e. g/mol
@@ -77,10 +78,10 @@ int main (int argc, char* argv[])
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x.txt");
   strcpy(fn_coord_y, pre_coord); strcat(fn_coord_y, "_y.txt");
-  _skin.saveCoord( fn_coord_x, fn_coord_y );
+  //  _skin.saveCoord( fn_coord_x, fn_coord_y );
 	
-  if ( nDis > 1 )
-    _skin.displayGrids();	
+  //  if ( nDis > 1 )
+    //  _skin.displayGrids();	
 
 
   double flux1, flux2, flux3;
@@ -88,8 +89,8 @@ int main (int argc, char* argv[])
   for ( t_simu=.0; t_simu<t_end; t_simu+=t_inv ){
     start = clock();
    
-    _skin.diffuseMoL_cv(t_simu, t_simu+t_inv);	
-    _skin.saveGrids(b_1st_save, fn_conc);
+    _skin.diffuseMoL(t_simu, t_simu+t_inv);	
+    //    _skin.saveGrids(b_1st_save, fn_conc);
     if ( b_1st_save )
       b_1st_save = !b_1st_save;
 		
@@ -102,8 +103,8 @@ int main (int argc, char* argv[])
     }
 
     flux1 = _skin.compFlux_2sc();
-    flux2 = _skin.compFlux_sc2ve();
-    flux3 = _skin.compFlux_ve2sk();    
+    flux2 = _skin.compFlux_sc2down();
+    flux3 = _skin.compFlux_ve2down();    
     printf("Time %e flux = %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3);
   }
 

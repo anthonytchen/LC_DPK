@@ -2,7 +2,7 @@
 #include "StraCorn.h"
 
 /* Structure and definition for parallel computing */
-#define NTHREADS 8 // number of threads for parallel computing
+#define NTHREADS 1 // number of threads for parallel computing
 struct pthread_struct {
 	StraCorn *sc_obj;
 	double t;
@@ -391,7 +391,7 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 				   int idx_x_start, int idx_x_end, int idx_y_start, int idx_y_end)
 {
   int i, j, idx_this, idx_other, dim;
-  double flux, mass_transfer_rate, conc_this, conc_other, deriv_this, deriv_other,
+  double flux, mass, mass_transfer_rate, conc_this, conc_other, deriv_this, deriv_other,
     deriv_this_sum, volume_this;
 	
   dim = m_nx*m_ny;
@@ -408,7 +408,8 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
   Grid *gridThiis, *gridUp, *gridLeft, *gridRight, *gridDown;
 	
   gridThiis = gridUp = gridLeft = gridRight = gridDown = NULL;
-	
+  if ( idx_x_end == m_nx ) m_mass_out = 0; // re-set mass transferred out of SC, ready for calculation
+
   // Calculate diffused mass
   for ( i=idx_x_start; i<idx_x_end; i++ ) { // x direction up to down
     for ( j=idx_y_start; j<idx_y_end; j++ ) { // y direction left to right
@@ -519,8 +520,10 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
       }
       flux = gridThiis->compFlux( gridDown, conc_this, conc_other, 
 				  gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
+      mass = gridThiis->m_dy*gridThiis->m_dz * flux;
 
-      mass_transfer_rate += gridThiis->m_dy*gridThiis->m_dz * flux;
+      if ( i==m_nx-1 ) m_mass_out += mass;
+      mass_transfer_rate += mass;
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dx;
 	if ( i!=m_nx-1 ) 

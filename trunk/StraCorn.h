@@ -19,6 +19,7 @@ class StraCorn
   int m_boundary_cond;
   double m_geom_g, m_geom_d, m_geom_s, m_geom_t, m_geom_dm, m_geom_dn, m_w, // geometry parameters
     m_offset_y; // offset at the left simulation boundary, relative to corneocyte
+  double m_mass_in, m_mass_out; // the mass transferred in and out of stratum corneum
   double *m_ode_Jacobian; // Jacobian matrix needed for GSL ODE solver
 
   Grid *m_grids, m_gridBdyUp, m_gridBdyDown, m_gridBdyLeft, m_gridBdyRight;
