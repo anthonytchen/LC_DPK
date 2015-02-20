@@ -27,7 +27,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
   water_frac = 0.55; // mass fraction of water in stratum corneum
 
   m_StraCorn.Init(g, d, s, t, m_dz, n_layer_x_sc, n_layer_y_sc, offset_y_sc, m_boundary_cond);
-  m_StraCorn.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, water_frac, conc_vehicle);
+  m_StraCorn.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, water_frac, conc_vehicle, diffu_vehicle);
 
 
   /* set up viable epidermis using fixed geometry */
@@ -45,7 +45,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
   double dx_vehicle;
   dx_vehicle = 1000e-6;
   m_gridVehicle.Init("SC", conc_vehicle, chemSolute.m_K_ow, dx_vehicle, y_len_ve, m_dz, diffu_vehicle);
-
+  m_gridSink.Init("SK", 0, chemSolute.m_K_ow, 0, 0, m_dz);
 
 }
 
@@ -243,13 +243,13 @@ void Skin::diffuseMoL(double t_start, double t_end)
   // from stratum corneum
   for ( i=0; i<m_StraCorn.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_StraCorn.m_ny; j++ ) // y direction left to right	
-      y[dim_vh + i*m_ny + j] = m_StraCorn.m_grids[i*m_StraCorn.m_ny + j].m_concChem;
+      y[dim_vh + i*m_StraCorn.m_ny + j] = m_StraCorn.m_grids[i*m_StraCorn.m_ny + j].m_concChem;
 
 
   // from viable epidermis
   for ( i=0; i<m_ViaEpd.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_ViaEpd.m_ny; j++ ) // y direction left to right	
-      y[dim_vh+dim_sc + i*m_ny + j] = m_ViaEpd.m_grids[i*m_ViaEpd.m_ny + j].m_concChem;
+      y[dim_vh+dim_sc + i*m_ViaEpd.m_ny + j] = m_ViaEpd.m_grids[i*m_ViaEpd.m_ny + j].m_concChem;
 
   /* ------------- */
 
@@ -298,13 +298,13 @@ void Skin::diffuseMoL(double t_start, double t_end)
   // for stratum corneum
   for ( i=0; i<m_StraCorn.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_StraCorn.m_ny; j++ ) // y direction left to right	
-      m_StraCorn.m_grids[i*m_StraCorn.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh + i*m_ny + j);
+      m_StraCorn.m_grids[i*m_StraCorn.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh + i*m_StraCorn.m_ny + j);
 
 
   // for viable epidermis
   for ( i=0; i<m_ViaEpd.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_ViaEpd.m_ny; j++ ) // y direction left to right	
-      m_ViaEpd.m_grids[i*m_ViaEpd.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh+dim_sc + i*m_ny + j);
+      m_ViaEpd.m_grids[i*m_ViaEpd.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh+dim_sc + i*m_ViaEpd.m_ny + j);
 
   /* ------------------------- */
   
@@ -324,7 +324,7 @@ double Skin::compFlux_2sc()
 
   mass_transfer_rate = total_area = 0;
   
-  for ( j=0; j<m_ny; j++ ) { // y direction left to right
+  for ( j=0; j<m_StraCorn.m_ny; j++ ) { // y direction left to right
 				
     gridThiis = &m_StraCorn.m_grids[j]; conc_this = gridThiis->m_concChem;
     conc_other = m_gridVehicle.m_concChem;
@@ -354,7 +354,7 @@ double Skin::compFlux_sc2down()
 
   //  printf("\n compflux_sc2ve\n");
 
-  for ( j=0; j<m_ny; j++ ) { // y direction left to right
+  for ( j=0; j<m_StraCorn.m_ny; j++ ) { // y direction left to right
     gridThiis = &m_StraCorn.m_grids[idx+j];
     area = gridThiis->m_dy*gridThiis->m_dz;
     total_area += area;
@@ -370,12 +370,12 @@ double Skin::compFlux_ve2down()
   double flux, area, total_area;
   Grid *gridThiis = NULL;
 
-  idx = (m_ViaEpd.m_nx-1)*m_StraCorn.m_ny;
+  idx = (m_ViaEpd.m_nx-1)*m_ViaEpd.m_ny;
   total_area = 0;
 
   //  printf("\n compflux_ve2sk\n");
 
-  for ( j=0; j<m_ny; j++ ) { // y direction left to right
+  for ( j=0; j<m_ViaEpd.m_ny; j++ ) { // y direction left to right
 				
     gridThiis = &m_ViaEpd.m_grids[idx+j];
     area = gridThiis->m_dy*gridThiis->m_dz;
@@ -390,85 +390,25 @@ double Skin::compFlux_ve2down()
 /*  ++++++++++++++++++++++++++++++++++
 	I/O functions
 	++++++++++++++++++++++++++++++++++ */
-#if 0
+
 void Skin::displayGrids()
 {
-  assert( m_grids );
-
-  int i, j, idx, gsl_errno;;
-  printf("# of grids: [x] %d, [y] %d\n", m_nx+m_nx_ve, m_ny);
-
-  for ( i = 0; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
-    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
-
-      idx = i*m_ny + j;			
-      if ( !strcmp(m_grids[idx].m_name, "LP") )
-	printf("L ");
-      else if ( !strcmp(m_grids[idx].m_name, "CC") )
-	printf("C ");
-      else if ( !strcmp(m_grids[idx].m_name, "VE") )
-	printf("V ");
-      else
-	gsl_error ("subtype name unknown", __FILE__, __LINE__, gsl_errno); 
-				
-    } // for j
-    printf("\n");
-  } // for i
+  m_StraCorn.displayGrids();
+  m_ViaEpd.displayGrids();
   fflush(stdout);
 }
 
+
 void Skin::saveGrids(bool b_1st_time, const char fn[])
 {
-	assert( m_grids );
-
-	FILE *file = NULL;
-	int i, j, idx;
-
-	// save grids
-	if ( b_1st_time )
-		file = fopen(fn, "w");
-	else 
-		file = fopen(fn, "a");
-	
-	for ( i = 0; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
-		for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
-
-			idx = i*m_ny + j;
-			fprintf(file, "%.5e\t", m_grids[idx].getConcChem());
-			
-		} // for j
-		fprintf(file, "\n");
-	} // for i
-
-	fclose(file);
+  m_StraCorn.saveGrids(b_1st_time, fn);
+  m_ViaEpd.saveGrids(FALSE, fn);
 }
 
 void Skin::saveCoord(const char fn_x[], const char fn_y[])
 {
-  assert( m_grids );
-
-  FILE *file_x, *file_y;
-  int i, j, idx;
-
-  // save grids
-  file_x = fopen(fn_x, "w");
-  file_y = fopen(fn_y, "w");
-
-  for ( i = 0; i < m_nx+m_nx_ve; i++ ){ // verticle direction up to down
-    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
-
-      idx = i*m_ny + j;
-      fprintf(file_x, "%.5e\t", m_grids[idx].m_x_coord);
-      fprintf(file_y, "%.5e\t", m_grids[idx].m_y_coord);
-			
-    } // for j
-    fprintf(file_x, "\n");
-    fprintf(file_y, "\n");
-  } // for i
-
-  fclose(file_x);
-  fclose(file_y);
+  m_StraCorn.saveCoord(fn_x, fn_y);
+  m_ViaEpd.saveCoord(fn_x, fn_y); 
 }
 /*  END <I/O functions>
 	------------------------------ */
-#endif

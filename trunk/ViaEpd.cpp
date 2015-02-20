@@ -16,7 +16,7 @@ struct pthread_struct {
 
 /*
  */
-void ViaEpd::Init(int x_length, int y_length, double dz, int n_grids_x)
+void ViaEpd::Init(double x_length, double y_length, double dz, int n_grids_x)
 {	
 
   /* set up some constant values */
@@ -72,7 +72,7 @@ void ViaEpd::createGrids(double MW, double Kow, double pKa, double coord_x_now)
   double dx, dy, coord_x, coord_y;
 
   // initialise boundary grids
-  m_gridBdyUp.Init("SC",    0, Kow, 0, 0, m_dz); // infinite source, can be updated to diminishing vehicle by using updateBoundary()
+  m_gridBdyUp.Init("SC",    0, Kow, 0, 0, m_dz, 1); // infinite source, can be updated to diminishing vehicle by using updateBoundary()
   m_gridBdyDown.Init("SK",  0, Kow, 0, 0, m_dz); // infinite sink, can be updated to underlying viable epidermis by using updateBoundary()
   m_gridBdyLeft.Init("SK",  0, Kow, 0, 0, m_dz); // infinite sink
   m_gridBdyRight.Init("SK", 0, Kow, 0, 0, m_dz); // infinite sink
@@ -372,21 +372,25 @@ void ViaEpd::saveCoord(const char fn_x[], const char fn_y[])
   assert( m_grids );
 
   FILE *file_x, *file_y;
+  char fn1[1024], fn2[1024];
   int i, j, idx;
-
+  
   // save grids
-  file_x = fopen(fn_x, "w");
-  file_y = fopen(fn_y, "w");
+  strcpy(fn1, fn_x); strcat(fn1, ".ve");
+  strcpy(fn2, fn_y); strcat(fn2, ".ve");
+
+  file_x = fopen(fn1, "w");
+  file_y = fopen(fn2, "w");
 
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
       idx = i*m_ny + j;
       fprintf(file_x, "%.5e\t", m_grids[idx].m_x_coord);
       fprintf(file_y, "%.5e\t", m_grids[idx].m_y_coord);
-    } // for j
+    }
     fprintf(file_x, "\n");
     fprintf(file_y, "\n");
-  } // for i
+  }
 
   fclose(file_x);
   fclose(file_y);

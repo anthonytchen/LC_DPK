@@ -16,8 +16,6 @@ private:
   double m_dz, m_x_length, m_y_length, // the skin size in the z, x (verticle)
                                        //	and y (lateral) directions
     m_x_length_ve; // the depth of viable epidermis
-  int m_nx, m_ny, // number of grids at x and y directions for SC
-    m_nx_ve; // number of grids at x direction for viable epidermis (VE)
 
   int m_boundary_cond;
 

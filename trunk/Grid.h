@@ -52,7 +52,7 @@ public:
   Grid(void) { };
   virtual ~Grid(void) {};
 	
-  void Init(const char[], double, double, double, double, double, double D_vehicle=-1);
+  void Init(const char[], double, double, double, double, double, double D_vehicle=1);
   void Init(const char[], double, double, double, double, double, double, 
 	    double, double, double, double, double, double, double, double, double, double, double);
   void InitVE(double, double, double, double, double, double, double, double); // Initialisation for a viable epidermis grid
