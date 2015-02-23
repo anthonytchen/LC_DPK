@@ -26,8 +26,11 @@ int main (int argc, char* argv[])
   n_grids_x_ve = 10;
   offset_y_sc = 0;
   
+  // 4-Cyanophenol
   MW = 119.12;  // Da, i.e. g/mol
   K_ow = pow(10,1.6); // partition coefficient between octanol and water
+  pKa = 7.8; 
+
   conc_vehicle = 0.11*1e3; // in mol/m3
   diffu_vehicle = 9.12e-10; // diffusivity of solute in vehicle
 	
@@ -73,7 +76,7 @@ int main (int argc, char* argv[])
   Chemical _chem;
   Skin _skin;
   
-  _chem.Init(MW, K_ow, pKa);
+  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
   _skin.Init(_chem,  conc_vehicle, diffu_vehicle, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, offset_y_sc );
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x");

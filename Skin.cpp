@@ -38,7 +38,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
   y_len_ve = n_layer_y_sc*(d+s); // depends on the setup for stratum corneum
 
   m_ViaEpd.Init(x_len_ve, y_len_ve, m_dz, n_grids_x_ve);
-  m_ViaEpd.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, x_len_sc);
+  m_ViaEpd.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc);
 
   
   /* set up vehicle using fixed geometry */
