@@ -34,6 +34,9 @@ public:
     m_K_ow, // partition coefficient of the chemical between octanol and water
     m_mw, // solute molecular weight
     m_pKa, // solute ionisation
+    m_ve_fu, // the fraction of unbound in a 2.7% albumin solution at pH 7.4
+    m_ve_fnon, // the fraction of solute non-ionised at pH 7.4
+    m_ve_binding_factor, // the binding factor
     m_phi_b, // volume fraction of water in corneocyte at saturation
     m_theta_b, // volume fraction of water in corneocyte
     m_mass_frac_water, // mass fraction of water in this grid
@@ -55,7 +58,7 @@ public:
   void Init(const char[], double, double, double, double, double, double D_vehicle=1);
   void Init(const char[], double, double, double, double, double, double, 
 	    double, double, double, double, double, double, double, double, double, double, double);
-  void InitVE(double, double, double, double, double, double, double, double); // Initialisation for a viable epidermis grid
+  void InitVE(double, double, double, char, double, double, double, double, double); // Initialisation for a viable epidermis grid
   void Release() {};
 	
 

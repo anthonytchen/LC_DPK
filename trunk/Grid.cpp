@@ -43,84 +43,86 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
 		double T, double eta, double K_ow, double x_coord, double y_coord,
 		double dx, double dy, double dz)
 {
-	strcpy(m_name, name);
-	m_concChem = 0;
-	m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
+  strcpy(m_name, name);
+  m_concChem = 0;
+  m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
 	
-	double K;
+  double K;
 	
-	K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
-	m_r_f = 3.5e-9; // keratin microfibril radius, 3.5 nm
+  K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
+  m_r_f = 3.5e-9; // keratin microfibril radius, 3.5 nm
 
-	m_mw = mw;
-	m_mass_frac_water = mass_frac_water;
-	m_r_s = pow( 0.9087 * mw * 3/4/M_PI, 1.0/3 )*1e-10; // from A to meter
-	m_Dw = K*T/6/M_PI/eta/m_r_s;
+  m_mw = mw;
+  m_mass_frac_water = mass_frac_water;
+  m_r_s = pow( 0.9087 * mw * 3/4/M_PI, 1.0/3 )*1e-10; // from A to meter
+  m_Dw = K*T/6/M_PI/eta/m_r_s;
 
-	// calulcate various mass/volume fractions needed
-	double f_l, f_k, mass_lipid, mass_keratin;
-	double V_all, V_lipid, V_keratin, V_water_mortar, V_water_brick;
+  // calulcate various mass/volume fractions needed
+  double f_l, f_k, mass_lipid, mass_keratin;
+  double V_all, V_lipid, V_keratin, V_water_mortar, V_water_brick;
 	
-	f_l = 0.125; // dry mass fraction of SC lipid and keratin
-	f_k = 1 - f_l;
+  f_l = 0.125; // dry mass fraction of SC lipid and keratin
+  f_k = 1 - f_l;
 
-	// mass fraction of lipid and keratin
-	mass_lipid = (1 - mass_frac_water) * f_l;
-	mass_keratin = (1 - mass_frac_water) * f_k;
+  // mass fraction of lipid and keratin
+  mass_lipid = (1 - mass_frac_water) * f_l;
+  mass_keratin = (1 - mass_frac_water) * f_k;
 
-	V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
-	V_lipid = mass_lipid/rou_lipid / V_all;
-	V_keratin = mass_keratin/rou_keratin / V_all;
+  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
+  V_lipid = mass_lipid/rou_lipid / V_all;
+  V_keratin = mass_keratin/rou_keratin / V_all;
 
-	V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
-	V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
+  V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
+  V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
 
-	//	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
-	m_theta_b = V_water_brick / V_brick_geometry * V_all_geometry;
+  //	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
+  m_theta_b = V_water_brick / V_brick_geometry * V_all_geometry;
 
 
-	// do the same for saturated water
-	//	TODO: move this part to a separate function
-	// mass fraction of lipid and keratin
-	mass_lipid = (1 - mass_frac_water_sat) * f_l;
-	mass_keratin = (1 - mass_frac_water_sat) * f_k;
+  // do the same for saturated water
+  //	TODO: move this part to a separate function
+  // mass fraction of lipid and keratin
+  mass_lipid = (1 - mass_frac_water_sat) * f_l;
+  mass_keratin = (1 - mass_frac_water_sat) * f_k;
 
-	V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
-	V_lipid = mass_lipid/rou_lipid / V_all;
-	V_keratin = mass_keratin/rou_keratin / V_all;
+  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
+  V_lipid = mass_lipid/rou_lipid / V_all;
+  V_keratin = mass_keratin/rou_keratin / V_all;
 
-	V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
-	V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
+  V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
+  V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
 
-	//	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
-	m_phi_b = V_water_brick / V_brick_geometry * V_all_geometry;
+  //	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
+  m_phi_b = V_water_brick / V_brick_geometry * V_all_geometry;
 	
-	m_x_coord = x_coord; m_y_coord = y_coord;
-	m_dx = dx;	m_dy = dy;	m_dz = dz;
+  m_x_coord = x_coord; m_y_coord = y_coord;
+  m_dx = dx;	m_dy = dy;	m_dz = dz;
 	
-	m_K_ow = K_ow;
-	compDiffusivity();
-	compKcoef();
+  m_K_ow = K_ow;
+  compDiffusivity();
+  compKcoef();
 }
 
 void Grid::Init(const char name[], double concChem, double K_ow, 
 		double dx, double dy, double dz, double D_vehicle)
 {
-	strcpy(m_name, name);
-	m_concChem = concChem;
+  strcpy(m_name, name);
+  m_concChem = concChem;
 
-	m_dx = dx;
-	m_dy = dy;
-	m_dz = dz;
+  m_dx = dx;
+  m_dy = dy;
+  m_dz = dz;
 	
-	m_K_ow = K_ow;
-	compDiffusivity(D_vehicle);
-	compKcoef();	
+  m_K_ow = K_ow;
+  compDiffusivity(D_vehicle);
+  compKcoef();	
 }
 
-void Grid::InitVE(double mw, double Kow, double pKa,
+void Grid::InitVE(double mw, double Kow, double pKa, char acid_base,
 		  double x_coord, double y_coord, double dx, double dy, double dz)
 {
+  int gsl_errno;
+
   strcpy(m_name, "VE");
   m_concChem = 0;
   m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
@@ -131,6 +133,27 @@ void Grid::InitVE(double mw, double Kow, double pKa,
 
   m_x_coord = x_coord; m_y_coord = y_coord;
   m_dx = dx;	m_dy = dy;	m_dz = dz;
+
+  // calculate the fraction of solute non-ionised at pH 7.4 (m_ve_fnon)
+  //       and the fraction of unbound in a 2.7% albumin solution at pH 7.4 (m_ve_fu)
+  // thus to calculate the binding factor in VE
+  // Refs: 
+  //     Florence AT, Attwood D (2006). Physicochemical Principles of Pharmacy, Pharmaceutical Press, London, p. 77.
+  //     Yamazaki K, Kanaoka M (2004). Journal of Pharmaceutical Sciences, 93: 1480.
+  switch (acid_base) {
+  case 'A' : // weak acid
+    m_ve_fnon = 1 / ( 1 + pow(10, 7.4-pKa) );
+    m_ve_fu = ( 0.7936 * exp(log10(m_K_ow)) + 0.2239 ) / ( 0.7936 * exp(log10(m_K_ow)) + 1.2239 );
+    break;
+  case 'B' : // weak base
+    m_ve_fnon = 1 / ( 1 + pow(10, pKa-7.4) );
+    m_ve_fu = ( 0.5578 * exp(log10(m_K_ow)) + 0.0188 ) / ( 0.5578 * exp(log10(m_K_ow)) + 1.0188 );
+    break;
+  default :
+    gsl_error ("Needs to provide whether it's acid or base", __FILE__, __LINE__, gsl_errno);
+    exit(-1);
+  }
+  m_ve_binding_factor = 0.68 + 0.32/m_ve_fu + 0.025*m_ve_fnon*pow(m_K_ow, 0.7);
 
   compDiffusivity();
   compKcoef();
@@ -201,15 +224,13 @@ void Grid::set(Grid* other)
 /*  END <Main functions>
 	--------------------------------------------- */
 
-/*  +++++++++++++++++++++++++++++++++++++++
-	Functions to calculate model parameters
-	+++++++++++++++++++++++++++++++++++++++ */
+/*  ++++ Functions to calculate model parameters ++++ */
 
-// Computing diffusivity
 void Grid::compDiffusivity(double D_vehicle)
 {	
   int gsl_errno;
-  double alpha, beta, lambda, gamma, k, S, phi_f, r_s_inA, r_f_inA;
+  double alpha, beta, lambda, gamma, k, S, phi_f, r_s_inA, r_f_inA, 
+    D_free, D_binding_factor;
 	
   if ( !strcmp(m_name, "LP") ) {	// lipid	
     
@@ -242,14 +263,10 @@ void Grid::compDiffusivity(double D_vehicle)
     //m_D = 1.3824e-015; // !!
 			
   } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
-    // same as lipid
-    if (m_mw <= 380){		
-      r_s_inA = m_r_s*1e10; // unit in Angstrom
-      m_D = 2 * 1E-9 * exp(-0.46*r_s_inA*r_s_inA);
-    } else {
-      m_D = 3 * 1E-13;
-    }
-    // m_D = 1e-10;
+
+    // c.f. L. Chen's Phar. Res. paper; -8.15 should be -4.15 c.f. Kasting's original paper
+    D_free = pow(10, -4.15-0.655*log10(m_mw));
+    m_D = D_free / m_ve_binding_factor;
 
   } else if ( !strcmp(m_name, "SC") ) { // vehicle source
 	
@@ -286,8 +303,7 @@ void Grid::compKcoef()
     // K_kw = 1.37*4.2*pow(m_K_ow,0.31);
     m_Kw = (1-m_phi_b) * K_kw + m_theta_b;		
   } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
-    // m_Kw = 1.0;
-    m_Kw = pow(m_K_ow, 0.7); // same as lipid
+    m_Kw = 0.7 * m_ve_binding_factor;
   } else if ( !strcmp(m_name, "SC") ) { // vehicle source
     m_Kw = 1.0;
   } else if ( !strcmp(m_name, "SK") ) { // sink

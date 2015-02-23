@@ -2,7 +2,7 @@
 #include "StraCorn.h"
 
 /* Structure and definition for parallel computing */
-#define NTHREADS 2 // number of threads for parallel computing
+#define NTHREADS 1 // number of threads for parallel computing
 struct pthread_struct {
 	StraCorn *sc_obj;
 	double t;

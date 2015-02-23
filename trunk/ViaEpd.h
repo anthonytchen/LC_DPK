@@ -29,7 +29,7 @@ public:
   void Init(double, double, double, int);
   void Release();
   
-  void createGrids(double, double, double, double);
+  void createGrids(double, double, double, char, double);
   void updateBoundary(Grid*, Grid*, Grid*, Grid*, double mass_in=0);
 	
   // Functions needed for computing ODE's right hand side (i.e. dy/dt)

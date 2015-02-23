@@ -9,12 +9,13 @@ class Chemical
   double m_mw, // molecular weight
     m_K_ow,	//partition coefficient between octanol and water
     m_pKa; // ionisation
+  char m_acid_base; // whether it's acid ('A') or base ('B')
 
  public:
   Chemical(void) {};
   ~Chemical(void) {};
 
-  void Init(double, double, double);
+  void Init(double, double, double, char);
 };
 
 #endif
