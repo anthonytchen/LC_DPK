@@ -35,10 +35,10 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
 
   // dimension related; c.f. Readme.docx for more details
   m_w = 8.0; // offset ratio, 8.0
-  m_nx_grids_lipid = 2; // # of x-grids for lipid layer
-  m_nx_grids_cc = 4; // # of x-grids for corneocyte layer
-  m_ny_grids_lipid = 2; // # of y-grids for lipid layer
-  m_ny_grids_cc_dn = 2; // # of y-grids for dn-part of the offset corneocyte layer
+  m_nx_grids_lipid = 1; // # of x-grids for lipid layer, 2
+  m_nx_grids_cc = 1; // # of x-grids for corneocyte layer, 4
+  m_ny_grids_lipid = 1; // # of y-grids for lipid layer, 2
+  m_ny_grids_cc_dn = 1; // # of y-grids for dn-part of the offset corneocyte layer, 2
 
   m_T = 309; // temperature (Kelvin)
   m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
@@ -522,7 +522,7 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
 				  gridThiis->m_dx/2, gridDown->m_dx/2, &deriv_this, &deriv_other);
       mass = gridThiis->m_dy*gridThiis->m_dz * flux;
 
-      if ( i==m_nx-1 ) m_mass_out += mass;
+      if ( i==m_nx-1 ) m_mass_out += -mass;
       mass_transfer_rate += mass;
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dx;

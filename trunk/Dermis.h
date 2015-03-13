@@ -1,13 +1,12 @@
-/* The header file for viable epidermis  */
-#ifndef _H_VIAEPD_
-#define _H_VIAEPD_
+/* The header file for dermis  */
+#ifndef _H_DERMIS_
+#define _H_DERMIS_
 
 #include "Grid.h"
 
-class ViaEpd
+class Dermis
 {
  public:
-  double m_T, m_eta; // temperature, viscosity of water    
   double m_dz, m_x_length, m_y_length; // the skin size in the z, x (verticle)
                                        //	and y (lateral) directions
   int m_nx, m_ny; // number of grids at x and y directions
@@ -21,8 +20,8 @@ class ViaEpd
   Grid *m_grids, m_gridBdyUp, m_gridBdyDown, m_gridBdyLeft, m_gridBdyRight;
 
 public:
-  ViaEpd(void) {};	
-  ~ViaEpd(void) {};
+  Dermis(void) {};	
+  ~Dermis(void) {};
   void Init(double, double, double, int);
   void Release();
   

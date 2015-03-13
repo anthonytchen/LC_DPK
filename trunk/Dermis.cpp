@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "ViaEpd.h"
+#include "Dermis.h"
 
 /* Structure and definition for parallel computing */
 #define NTHREADS 1 // number of threads for parallel computing
 struct pthread_struct {
-	ViaEpd *ve_obj;
+	Dermis *de_obj;
 	double t;
 	const double *y;
 	double *f;
@@ -16,7 +16,7 @@ struct pthread_struct {
 
 /*
  */
-void ViaEpd::Init(double x_length, double y_length, double dz, int n_grids_x)
+void Dermis::Init(double x_length, double y_length, double dz, int n_grids_x)
 {	
 
   /* set up some constant values */
@@ -37,7 +37,7 @@ void ViaEpd::Init(double x_length, double y_length, double dz, int n_grids_x)
   m_ny = 1; // lateral direction only 1 grid
 }
 
-void ViaEpd::Release()
+void Dermis::Release()
 {
   int i, j, idx;
   if (!m_grids) {
@@ -61,7 +61,7 @@ void ViaEpd::Release()
     Kow: partition coefficient between octanol and water
     pKa: the ionisation of the chemical
  */
-void ViaEpd::createGrids(double MW, double Kow, double pKa, char acid_base, double coord_x_now)
+void Dermis::createGrids(double MW, double Kow, double pKa, char acid_base, double coord_x_now)
 {
   int i, j, idx, idx_x, idx_y, gsl_errno;
   double dx, dy, coord_x, coord_y;
@@ -88,6 +88,7 @@ void ViaEpd::createGrids(double MW, double Kow, double pKa, char acid_base, doub
 			
       idx = i*m_ny + j;
 
+      // For now, diffusion and partition coefficients in dermis are the same as those in viable epidermis
       m_grids[idx].InitVE(MW, Kow, pKa, acid_base, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz);
 
       // update current_point
@@ -97,19 +98,19 @@ void ViaEpd::createGrids(double MW, double Kow, double pKa, char acid_base, doub
 	coord_y += dy;
       }
 
-      setPoint(current_point, coord_x, coord_y, dx, dy, "VE", "VE");
+      setPoint(current_point, coord_x, coord_y, dx, dy, "DE", "DE");
       
     } // for j
   } // for i
 
 }
 
-void ViaEpd::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right, double mass_in)
+void Dermis::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right, double mass_in)
 {
   if (up!=NULL){
     m_gridBdyUp.set(up); // use "up" grid to calculate mass transfer in
     m_bUseBdyUp = TRUE;
-  } else {
+  } else { // use mass_in as mass transfer in from top
     m_bUseBdyUp = FALSE;
     m_mass_in = mass_in;
   }
@@ -122,7 +123,7 @@ void ViaEpd::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right, doubl
 /* functions for computing the right-hand size of the odes */
 
 // todo: remove repeated calculation of mass transfer
-void ViaEpd::compODE_dydt (double t, const double y[], double f[])
+void Dermis::compODE_dydt (double t, const double y[], double f[])
 {
   int i, rc;
 	
@@ -133,7 +134,7 @@ void ViaEpd::compODE_dydt (double t, const double y[], double f[])
     pthread_t threads[NTHREADS];
 			
     for ( i=0; i < NTHREADS; i++ ) {
-      p[i].ve_obj = this;
+      p[i].de_obj = this;
       p[i].t=t; p[i].y=y; p[i].f=f;			
       p[i].y_start=0; p[i].y_end=m_ny;
 			
@@ -149,14 +150,14 @@ void ViaEpd::compODE_dydt (double t, const double y[], double f[])
 }
 
 // the static container function needed for using multipe threads
-void* ViaEpd::static_compODE_dydt_block_threads(void *paras)
+void* Dermis::static_compODE_dydt_block_threads(void *paras)
 {
   struct pthread_struct p = *((struct pthread_struct *) paras);
-  p.ve_obj->compODE_dydt_block (p.t, p.y, p.f, p.x_start, p.x_end, p.y_start, p.y_end);
+  p.de_obj->compODE_dydt_block (p.t, p.y, p.f, p.x_start, p.x_end, p.y_start, p.y_end);
 }
 
 // the actual funtion to calculate dy/dy
-void ViaEpd::compODE_dydt_block (double t, const double y[], double f[], 
+void Dermis::compODE_dydt_block (double t, const double y[], double f[], 
 				 int idx_x_start, int idx_x_end, int idx_y_start, int idx_y_end)
 {
   int i, j, idx_this, idx_other, dim;
@@ -177,7 +178,7 @@ void ViaEpd::compODE_dydt_block (double t, const double y[], double f[],
   Grid *gridThiis, *gridUp, *gridLeft, *gridRight, *gridDown;
 	
   gridThiis = gridUp = gridLeft = gridRight = gridDown = NULL;
-  if ( idx_x_end == m_nx ) m_mass_out = 0; // re-set mass transferred out of VE, ready for calculation
+  if ( idx_x_end == m_nx ) m_mass_out = 0; // re-set mass transferred out of DE, ready for calculation
 	
   // Calculate diffused mass
   for ( i=idx_x_start; i<idx_x_end; i++ ) { // x direction up to down
@@ -322,7 +323,7 @@ void ViaEpd::compODE_dydt_block (double t, const double y[], double f[],
 	
 /*  +++  I/O functions +++++++++ */
 
-void ViaEpd::displayGrids()
+void Dermis::displayGrids()
 {
   assert( m_grids );
 
@@ -338,7 +339,7 @@ void ViaEpd::displayGrids()
   fflush(stdout);
 }
 
-void ViaEpd::saveGrids(bool b_1st_time, const char fn[])
+void Dermis::saveGrids(bool b_1st_time, const char fn[])
 {
   assert( m_grids );
 
@@ -362,7 +363,7 @@ void ViaEpd::saveGrids(bool b_1st_time, const char fn[])
   fclose(file);
 }
 
-void ViaEpd::saveCoord(const char fn_x[], const char fn_y[])
+void Dermis::saveCoord(const char fn_x[], const char fn_y[])
 {
   assert( m_grids );
 
@@ -371,8 +372,8 @@ void ViaEpd::saveCoord(const char fn_x[], const char fn_y[])
   int i, j, idx;
   
   // save grids
-  strcpy(fn1, fn_x); strcat(fn1, ".ve");
-  strcpy(fn2, fn_y); strcat(fn2, ".ve");
+  strcpy(fn1, fn_x); strcat(fn1, ".de");
+  strcpy(fn2, fn_y); strcat(fn2, ".de");
 
   file_x = fopen(fn1, "w");
   file_y = fopen(fn2, "w");

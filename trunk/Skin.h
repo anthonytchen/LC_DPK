@@ -4,6 +4,7 @@
 #include "Chemical.h"
 #include "StraCorn.h"
 #include "ViaEpd.h"
+#include "Dermis.h"
 
 class Skin
 {
@@ -26,17 +27,19 @@ private:
   // Chemical m_Chemical;
   StraCorn m_StraCorn;
   ViaEpd m_ViaEpd;
+  Dermis m_Dermis;
 
 public:
   Skin(void) {};	
   ~Skin(void) {};
-  void Init(Chemical, double, double, int, int, int, double);
+  void Init(Chemical, double, double, int, int, int, int, double);
   void Release();
   
   void diffuseMoL(double t_start, double t_end); // method of lines using CVODE solver
   double compFlux_2sc();
   double compFlux_sc2down();
   double compFlux_ve2down();
+  double compFlux_de2down();
 	
   // Functions needed for ODE solver
   int compODE_dydt (double, const double[], double []);	

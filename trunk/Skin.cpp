@@ -12,7 +12,7 @@ struct pthread_struct {
 };
 
 void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
-		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, double offset_y_sc)
+		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc)
 {
 
   m_dz = 0.01; // fixing dz, the dimension perpendicular to x-y domain
@@ -39,6 +39,15 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
 
   m_ViaEpd.Init(x_len_ve, y_len_ve, m_dz, n_grids_x_ve);
   m_ViaEpd.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc);
+
+  /* set up dermis using fixed geometry */
+
+  double x_len_de, y_len_de;
+  x_len_de = 100e-6;
+  y_len_de = y_len_ve; // depends on the setup for ve (thus also on stratum corneum)
+
+  m_Dermis.Init(x_len_de, y_len_de, m_dz, n_grids_x_de);
+  m_Dermis.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc+x_len_ve);
 
   
   /* set up vehicle using fixed geometry */
@@ -196,7 +205,7 @@ int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
 
 int Skin::compODE_dydt (double t, const double y[], double f[])
 {
-  int i, j, dim_vh, dim_sc, dim_ve;
+  int i, j, dim_vh, dim_sc, dim_ve, dim_de;
 
   /* y and f are organised as:
      vehicle (1 grid), sc (row dominant), ve (row dominant) */
@@ -212,8 +221,13 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
   /* compute for viable epidermis */
   dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
-  m_ViaEpd.updateBoundary(NULL, &m_gridSink, NULL, NULL, m_StraCorn.m_mass_out); // update top (sc) and bottom (sink) boundary
+  m_ViaEpd.updateBoundary(NULL, m_Dermis.m_grids, NULL, NULL, m_StraCorn.m_mass_out); // update top (sc) and bottom (de) boundary
   m_ViaEpd.compODE_dydt(t, y+dim_vh+dim_sc, f+dim_vh+dim_sc);
+
+  /* compute for dermis */
+  dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
+  m_Dermis.updateBoundary(NULL, &m_gridSink, NULL, NULL, m_ViaEpd.m_mass_out); // update top (ve) and bottom (sink) boundary
+  m_Dermis.compODE_dydt(t, y+dim_vh+dim_sc+dim_ve, f+dim_vh+dim_sc+dim_ve);
 
   return GSL_SUCCESS;	
 }
@@ -222,7 +236,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 void Skin::diffuseMoL(double t_start, double t_end)
 {		
   bool bJacobianRequired = false;
-  int i, j, gsl_status, dim, dim_vh, dim_sc, dim_ve, flag;
+  int i, j, gsl_status, dim, dim_vh, dim_sc, dim_ve, dim_de, flag;
   double reltol, abstol, t;
   double *y = NULL;
   N_Vector y0;
@@ -231,7 +245,8 @@ void Skin::diffuseMoL(double t_start, double t_end)
   dim_vh = 1;
   dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
   dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
-  dim = dim_vh + dim_sc + dim_ve;
+  dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
+  dim = dim_vh + dim_sc + dim_ve + dim_de;
 
   /* get current concentration, and set as initial conditions */
 
@@ -250,6 +265,11 @@ void Skin::diffuseMoL(double t_start, double t_end)
   for ( i=0; i<m_ViaEpd.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_ViaEpd.m_ny; j++ ) // y direction left to right	
       y[dim_vh+dim_sc + i*m_ViaEpd.m_ny + j] = m_ViaEpd.m_grids[i*m_ViaEpd.m_ny + j].m_concChem;
+
+  // from dermis
+  for ( i=0; i<m_Dermis.m_nx; i++ ) // x direction up to down
+    for ( j=0; j<m_Dermis.m_ny; j++ ) // y direction left to right	
+      y[dim_vh+dim_sc+dim_ve + i*m_Dermis.m_ny + j] = m_Dermis.m_grids[i*m_Dermis.m_ny + j].m_concChem;
 
   /* ------------- */
 
@@ -306,6 +326,11 @@ void Skin::diffuseMoL(double t_start, double t_end)
     for ( j=0; j<m_ViaEpd.m_ny; j++ ) // y direction left to right	
       m_ViaEpd.m_grids[i*m_ViaEpd.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh+dim_sc + i*m_ViaEpd.m_ny + j);
 
+  // for viable epidermis
+  for ( i=0; i<m_Dermis.m_nx; i++ ) // x direction up to down
+    for ( j=0; j<m_Dermis.m_ny; j++ ) // y direction left to right	
+      m_Dermis.m_grids[i*m_Dermis.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh+dim_sc+dim_ve + i*m_Dermis.m_ny + j);
+
   /* ------------------------- */
   
 
@@ -326,7 +351,8 @@ double Skin::compFlux_2sc()
   
   for ( j=0; j<m_StraCorn.m_ny; j++ ) { // y direction left to right
 				
-    gridThiis = &m_StraCorn.m_grids[j]; conc_this = gridThiis->m_concChem;
+    gridThiis = &m_StraCorn.m_grids[j]; 
+    conc_this = gridThiis->m_concChem;
     conc_other = m_gridVehicle.m_concChem;
       
     flux = gridThiis->compFlux( &m_gridVehicle, conc_this, conc_other, 
@@ -338,11 +364,46 @@ double Skin::compFlux_2sc()
     //printf("j %d, area %e, total area %e\n", j, area, total_area);
     
   }
+
+  printf("\t total area 2sc %e\n", total_area);
+
   flux = mass_transfer_rate / total_area;
   return flux;
 }
 
 // Compute flux from stratum corneum to the layer down (e.g. viable epidermis)
+double Skin::compFlux_sc2down()
+{
+  int j, idx;
+  double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
+  Grid *gridThiis, *gridOther;
+
+  idx = (m_StraCorn.m_nx-1)*m_StraCorn.m_ny;
+  mass_transfer_rate = total_area = 0;
+
+  //  printf("\n compflux_sc2ve\n");
+  assert(m_ViaEpd.m_ny==1);
+  gridOther = m_ViaEpd.m_grids;
+  conc_other = gridOther->m_concChem;
+
+  for ( j=0; j<m_StraCorn.m_ny; j++ ) { // y direction left to right
+    gridThiis = &m_StraCorn.m_grids[idx+j]; 
+    conc_this = gridThiis->m_concChem;   
+
+    flux = gridThiis->compFlux( gridThiis, conc_this, conc_other, 
+				gridThiis->m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
+    area = gridThiis->m_dy*gridThiis->m_dz;
+
+    total_area += area;
+    mass_transfer_rate += flux*area;
+  }
+
+  printf("\t total area sc2down %e\n", total_area);
+
+  flux = -mass_transfer_rate / total_area;
+  return flux;
+}
+/*
 double Skin::compFlux_sc2down()
 {
   int j, idx;
@@ -359,12 +420,42 @@ double Skin::compFlux_sc2down()
     area = gridThiis->m_dy*gridThiis->m_dz;
     total_area += area;
   }
-  flux = -m_StraCorn.m_mass_out / total_area;
+  flux = m_StraCorn.m_mass_out / total_area;
   return flux;
-}
+  }*/
 
 // Compute flux from viable epidermis to the layer down (e.g. dermis)
 double Skin::compFlux_ve2down()
+{
+  int j, idx;
+  double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
+  Grid *gridThiis, *gridOther;
+
+  idx = (m_ViaEpd.m_nx-1)*m_ViaEpd.m_ny;
+  mass_transfer_rate = total_area = 0;
+
+  //  printf("\n compflux_ve2sk\n");
+  assert(m_Dermis.m_ny==1);
+  gridOther = m_Dermis.m_grids;
+  conc_other = gridOther->m_concChem;
+
+  for ( j=0; j<m_ViaEpd.m_ny; j++ ) { // y direction left to right				
+    gridThiis = &m_ViaEpd.m_grids[idx+j];
+    conc_this = gridThiis->m_concChem;
+
+    flux = gridThiis->compFlux( gridThiis, conc_this, conc_other, 
+				gridThiis->m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
+    area = gridThiis->m_dy*gridThiis->m_dz;
+
+    total_area += area;
+    mass_transfer_rate += flux*area;
+  }
+  printf("\t total area ve2down %e\n", total_area);
+
+  flux = -mass_transfer_rate / total_area;
+  return flux;
+}
+/*double Skin::compFlux_ve2down()
 {
   int j, idx;
   double flux, area, total_area;
@@ -381,10 +472,60 @@ double Skin::compFlux_ve2down()
     area = gridThiis->m_dy*gridThiis->m_dz;
     total_area += area;
   }
-  flux = -m_ViaEpd.m_mass_out / total_area;
+  flux = m_ViaEpd.m_mass_out / total_area;
   return flux;
 }
+*/
 
+// Compute flux from dermis to the layer down (e.g. deep tissue)
+double Skin::compFlux_de2down()
+{
+  int j, idx;
+  double flux, conc_this, conc_other, deriv_this, deriv_other, mass_transfer_rate, area, total_area;
+  Grid *gridThiis, *gridOther;
+
+  idx = (m_Dermis.m_nx-1)*m_Dermis.m_ny;
+  mass_transfer_rate = total_area = 0;
+
+  assert(m_Dermis.m_ny==1);
+  gridOther = &m_gridSink;
+  conc_other = gridOther->m_concChem;
+
+  for ( j=0; j<m_Dermis.m_ny; j++ ) { // y direction left to right				
+    gridThiis = &m_Dermis.m_grids[idx+j];
+    conc_this = gridThiis->m_concChem;
+
+    flux = gridThiis->compFlux( gridThiis, conc_this, conc_other, 
+				gridThiis->m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
+    area = gridThiis->m_dy*gridThiis->m_dz;
+
+    total_area += area;
+    mass_transfer_rate += flux*area;  
+  }
+
+  printf("\t total area de2down %e\n", total_area);
+
+  flux = -mass_transfer_rate / total_area;
+  return flux;
+}
+/*double Skin::compFlux_de2down()
+{
+  int j, idx;
+  double flux, area, total_area;
+  Grid *gridThiis = NULL;
+
+  idx = (m_Dermis.m_nx-1)*m_Dermis.m_ny;
+  total_area = 0;
+
+  for ( j=0; j<m_Dermis.m_ny; j++ ) { // y direction left to right
+				
+    gridThiis = &m_Dermis.m_grids[idx+j];
+    area = gridThiis->m_dy*gridThiis->m_dz;
+    total_area += area;
+  }
+  flux = m_Dermis.m_mass_out / total_area;
+  return flux;
+}*/
 
 	
 /*  ++++++++++++++++++++++++++++++++++
@@ -395,6 +536,7 @@ void Skin::displayGrids()
 {
   m_StraCorn.displayGrids();
   m_ViaEpd.displayGrids();
+  m_Dermis.displayGrids();
   fflush(stdout);
 }
 
@@ -403,12 +545,14 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
 {
   m_StraCorn.saveGrids(b_1st_time, fn);
   m_ViaEpd.saveGrids(FALSE, fn);
+  m_Dermis.saveGrids(FALSE, fn);
 }
 
 void Skin::saveCoord(const char fn_x[], const char fn_y[])
 {
   m_StraCorn.saveCoord(fn_x, fn_y);
   m_ViaEpd.saveCoord(fn_x, fn_y); 
+  m_Dermis.saveCoord(fn_x, fn_y); 
 }
 /*  END <I/O functions>
 	------------------------------ */
