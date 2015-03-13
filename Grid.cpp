@@ -143,11 +143,11 @@ void Grid::InitVE(double mw, double Kow, double pKa, char acid_base,
   switch (acid_base) {
   case 'A' : // weak acid
     m_ve_fnon = 1 / ( 1 + pow(10, 7.4-pKa) );
-    m_ve_fu = ( 0.7936 * exp(log10(m_K_ow)) + 0.2239 ) / ( 0.7936 * exp(log10(m_K_ow)) + 1.2239 );
+    m_ve_fu = 1 - ( 0.7936 * exp(log10(m_K_ow)) + 0.2239 ) / ( 0.7936 * exp(log10(m_K_ow)) + 1.2239 );
     break;
   case 'B' : // weak base
     m_ve_fnon = 1 / ( 1 + pow(10, pKa-7.4) );
-    m_ve_fu = ( 0.5578 * exp(log10(m_K_ow)) + 0.0188 ) / ( 0.5578 * exp(log10(m_K_ow)) + 1.0188 );
+    m_ve_fu = 1 - ( 0.5578 * exp(log10(m_K_ow)) + 0.0188 ) / ( 0.5578 * exp(log10(m_K_ow)) + 1.0188 );
     break;
   default :
     gsl_error ("Needs to provide whether it's acid or base", __FILE__, __LINE__, gsl_errno);

@@ -13,7 +13,7 @@ int main (int argc, char* argv[])
     conc_vehicle, diffu_vehicle,
     t_simu, t_end, t_inv, offset_y_sc;
   bool b_1st_save = true;
-  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve;
+  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de;
   char fn_coord_x[20], fn_coord_y[20];
 	
   static int nDis = 1;
@@ -24,6 +24,7 @@ int main (int argc, char* argv[])
   n_layer_x_sc = 16; //16
   n_layer_y_sc = 2; // 2
   n_grids_x_ve = 10;
+  n_grids_x_de = 10;
   offset_y_sc = 0;
   
   // 4-Cyanophenol
@@ -77,7 +78,7 @@ int main (int argc, char* argv[])
   Skin _skin;
   
   _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
-  _skin.Init(_chem,  conc_vehicle, diffu_vehicle, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, offset_y_sc );
+  _skin.Init(_chem,  conc_vehicle, diffu_vehicle, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc );
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x");
   strcpy(fn_coord_y, pre_coord); strcat(fn_coord_y, "_y");
@@ -87,13 +88,14 @@ int main (int argc, char* argv[])
     _skin.displayGrids();	
 
 
-  double flux1, flux2, flux3;
+  double flux1, flux2, flux3, flux4;
   
   for ( t_simu=.0; t_simu<t_end; t_simu+=t_inv ){
     start = clock();
    
     _skin.diffuseMoL(t_simu, t_simu+t_inv);	
-    //    _skin.saveGrids(b_1st_save, fn_conc);
+    _skin.saveGrids(b_1st_save, fn_conc);
+
     if ( b_1st_save )
       b_1st_save = !b_1st_save;
 		
@@ -107,8 +109,9 @@ int main (int argc, char* argv[])
 
     flux1 = _skin.compFlux_2sc();
     flux2 = _skin.compFlux_sc2down();
-    flux3 = _skin.compFlux_ve2down();    
-    printf("Time %e flux = %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3);
+    flux3 = _skin.compFlux_ve2down();
+    flux4 =  _skin.compFlux_de2down();
+    printf("Time %e flux = %e %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3, flux4);
   }
 
   _skin.Release();

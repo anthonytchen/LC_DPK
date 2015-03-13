@@ -19,16 +19,16 @@ LD=g++
 LFLAGS=-g -O0 -Wno-write-strings
 
 
-all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o LCK #Calib_LCK
+all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o LCK #Calib_LCK
 
 clean:
 	rm -f *.o *.lnk
 
 ### executables ##
-LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
-	$(LD) $(LFLAGS)  LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o arg.o $(LIBS) $(INC) -o LCK
+LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o
+	$(LD) $(LFLAGS)  LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o arg.o $(LIBS) $(INC) -o LCK
 Calib_LCK: Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
-	$(LD) $(LFLAGS)  Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o arg.o $(LIBS) $(INC) -o Calib_LCK
+	$(LD) $(LFLAGS)  Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o arg.o $(LIBS) $(INC) -o Calib_LCK
 
 
 ### objective files ##
@@ -42,5 +42,9 @@ StraCorn.o: StraCorn.h StraCorn.cpp
 	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
 ViaEpd.o: ViaEpd.h ViaEpd.cpp
 	$(CC) $(CFLAGS) ViaEpd.cpp $(INC) -o ViaEpd.o
+Dermis.o: Dermis.h Dermis.cpp
+	$(CC) $(CFLAGS) Dermis.cpp $(INC) -o Dermis.o
 Skin.o: Skin.h Skin.cpp
 	$(CC) $(CFLAGS) Skin.cpp $(INC) -o Skin.o
+Blood.o: Blood.h Blood.cpp
+	$(CC) $(CFLAGS) Blood.cpp $(INC) -o Blood.o
