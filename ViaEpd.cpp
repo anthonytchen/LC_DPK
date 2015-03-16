@@ -315,6 +315,8 @@ void ViaEpd::compODE_dydt_block (double t, const double y[], double f[],
     } // for j
     //printf("\n");
   } // for i
+
+  //  printf("Mass out = %e, conc_ve = %e, conc_de = %e", m_mass_out, m_gridBdyDown.m_concChem);
 	
 }
 /* ----------------- */

@@ -205,6 +205,10 @@ void Grid::set(Grid* other)
   m_Dw = other->m_Dw;
   m_K_ow = other->m_K_ow;
   m_mw = other->m_mw; 
+  m_pKa = other->m_pKa;
+  m_ve_fu = other->m_ve_fu;
+  m_ve_fnon = other->m_ve_fnon;
+  m_ve_binding_factor = other->m_ve_binding_factor; 
   m_phi_b = other->m_phi_b;
   m_theta_b = other->m_theta_b;
   m_mass_frac_water = other->m_mass_frac_water;
@@ -213,7 +217,7 @@ void Grid::set(Grid* other)
 
   m_concChem = other->m_concChem;
   m_concWater = other->m_concWater;
-  struct mass_diffused m_mass_diffused; // concentration of chemical
+  m_mass_diffused = other->m_mass_diffused;
   m_x_coord = other->m_x_coord;
   m_y_coord = other->m_y_coord;
   m_dx = other->m_dx;

@@ -206,6 +206,7 @@ int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
 int Skin::compODE_dydt (double t, const double y[], double f[])
 {
   int i, j, dim_vh, dim_sc, dim_ve, dim_de;
+  Grid gridUp, gridDown;
 
   /* y and f are organised as:
      vehicle (1 grid), sc (row dominant), ve (row dominant) */
@@ -216,17 +217,21 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
   /* compute for stratum corneum */
   dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
-  m_StraCorn.updateBoundary(&m_gridVehicle, m_ViaEpd.m_grids, NULL, NULL);  // update top (vehicle) and bottom (ve) boundary
+  gridUp.set(&m_gridVehicle);  gridUp.m_concChem = y[0];
+  gridDown.set(m_ViaEpd.m_grids); gridDown.m_concChem = y[dim_vh+dim_sc];
+  m_StraCorn.updateBoundary(&gridUp, &gridDown, NULL, NULL);  // update top (vehicle) and bottom (ve) boundary
   m_StraCorn.compODE_dydt(t, y+dim_vh, f+dim_vh);
 
   /* compute for viable epidermis */
   dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
-  m_ViaEpd.updateBoundary(NULL, m_Dermis.m_grids, NULL, NULL, m_StraCorn.m_mass_out); // update top (sc) and bottom (de) boundary
+  gridDown.set(m_Dermis.m_grids); gridDown.m_concChem = y[dim_vh+dim_sc+dim_ve];
+  m_ViaEpd.updateBoundary(NULL, &gridDown, NULL, NULL, m_StraCorn.m_mass_out); // update top (sc) and bottom (de) boundary
   m_ViaEpd.compODE_dydt(t, y+dim_vh+dim_sc, f+dim_vh+dim_sc);
 
   /* compute for dermis */
   dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
-  m_Dermis.updateBoundary(NULL, &m_gridSink, NULL, NULL, m_ViaEpd.m_mass_out); // update top (ve) and bottom (sink) boundary
+  gridDown.set(&m_gridSink);
+  m_Dermis.updateBoundary(NULL, &gridDown, NULL, NULL, m_ViaEpd.m_mass_out); // update top (ve) and bottom (sink) boundary
   m_Dermis.compODE_dydt(t, y+dim_vh+dim_sc+dim_ve, f+dim_vh+dim_sc+dim_ve);
 
   return GSL_SUCCESS;	
@@ -287,7 +292,7 @@ void Skin::diffuseMoL(double t_start, double t_end)
 
   // Call CVodeSStolerances to specify the scalar relative tolerance
   //	 and scalar absolute tolerance.
-  reltol=1e-4; abstol=1e-5;
+  reltol=1e-6; abstol=1e-10;
   CVodeSStolerances(cvode_mem, reltol, abstol);
 	
   // Set the pointer to user-defined data
@@ -365,7 +370,7 @@ double Skin::compFlux_2sc()
     
   }
 
-  printf("\t total area 2sc %e\n", total_area);
+  // printf("\t total area 2sc %e\n", total_area);
 
   flux = mass_transfer_rate / total_area;
   return flux;
@@ -390,7 +395,7 @@ double Skin::compFlux_sc2down()
     gridThiis = &m_StraCorn.m_grids[idx+j]; 
     conc_this = gridThiis->m_concChem;   
 
-    flux = gridThiis->compFlux( gridThiis, conc_this, conc_other, 
+    flux = gridThiis->compFlux( gridOther, conc_this, conc_other, 
 				gridThiis->m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
 
@@ -398,7 +403,7 @@ double Skin::compFlux_sc2down()
     mass_transfer_rate += flux*area;
   }
 
-  printf("\t total area sc2down %e\n", total_area);
+  //  printf("\t total area sc2down %e\n", total_area);
 
   flux = -mass_transfer_rate / total_area;
   return flux;
@@ -443,14 +448,14 @@ double Skin::compFlux_ve2down()
     gridThiis = &m_ViaEpd.m_grids[idx+j];
     conc_this = gridThiis->m_concChem;
 
-    flux = gridThiis->compFlux( gridThiis, conc_this, conc_other, 
+    flux = gridThiis->compFlux( gridOther, conc_this, conc_other, 
 				gridThiis->m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
 
     total_area += area;
     mass_transfer_rate += flux*area;
   }
-  printf("\t total area ve2down %e\n", total_area);
+  //  printf("\t total area ve2down %e\n", total_area);
 
   flux = -mass_transfer_rate / total_area;
   return flux;
@@ -495,7 +500,7 @@ double Skin::compFlux_de2down()
     gridThiis = &m_Dermis.m_grids[idx+j];
     conc_this = gridThiis->m_concChem;
 
-    flux = gridThiis->compFlux( gridThiis, conc_this, conc_other, 
+    flux = gridThiis->compFlux( gridOther, conc_this, conc_other, 
 				gridThiis->m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
     area = gridThiis->m_dy*gridThiis->m_dz;
 
@@ -503,7 +508,7 @@ double Skin::compFlux_de2down()
     mass_transfer_rate += flux*area;  
   }
 
-  printf("\t total area de2down %e\n", total_area);
+  // printf("\t total area de2down %e\n", total_area);
 
   flux = -mass_transfer_rate / total_area;
   return flux;
