@@ -23,6 +23,7 @@ void Dermis::Init(double x_length, double y_length, double dz, int n_grids_x)
 
   m_boundary_cond = 1; // boundary condition for left/right; 
                        //  0: zero flux; 1: periodic
+  m_bToBlood = true; // whether dermis is connected to blood
 
   /* ---- */
 
@@ -35,6 +36,17 @@ void Dermis::Init(double x_length, double y_length, double dz, int n_grids_x)
 	
   m_nx = n_grids_x;
   m_ny = 1; // lateral direction only 1 grid
+}
+
+void Dermis::InitDermisBlood(double bld_skin_flow, double bld_fu, double par_de2blood, double bld_concChem, double skin_area)
+{
+  assert(m_bToBlood);
+
+  m_bld_skin_flow = bld_skin_flow; // total blood flow rate in skin
+  m_bld_fu = bld_fu; // fraction of unbounded solute in blood
+  m_par_de2blood = par_de2blood; // partition coefficient from dermis to blood
+  m_bld_concChem = bld_concChem; // initial concentration in blood
+  m_dermis_totalV = m_x_length*skin_area; // total volume of dermis
 }
 
 void Dermis::Release()
@@ -120,6 +132,11 @@ void Dermis::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right, doubl
   if (right!=NULL) m_gridBdyRight.set(right);
 }
 
+void Dermis::updateBlood(double concChem)
+{
+  m_bld_concChem = concChem;
+}
+
 /* functions for computing the right-hand size of the odes */
 
 // todo: remove repeated calculation of mass transfer
@@ -163,6 +180,11 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
   int i, j, idx_this, idx_other, dim;
   double flux, mass, mass_transfer_rate, conc_this, conc_other, deriv_this, deriv_other,
     deriv_this_sum, volume_this;
+
+  // these variables are for calculating diffusion/advection into blood
+  double flow_this_grid, fin, fout; 
+  if (m_bToBlood)
+    m_mass_into_dermis = m_mass_outof_dermis = .0;
 	
   dim = m_nx*m_ny;
 	
@@ -310,6 +332,17 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
 
 			
       f[idx_this] = mass_transfer_rate / volume_this;
+      if (m_bToBlood) {
+	flow_this_grid = m_bld_skin_flow * volume_this/m_dermis_totalV;
+	fin = flow_this_grid * m_bld_concChem;
+	fout = flow_this_grid * conc_this * (gridThiis->m_ve_fu/m_bld_fu) / m_par_de2blood;
+
+	f[idx_this] += (fin-fout)/volume_this;
+
+	m_mass_into_dermis += fin;
+	m_mass_outof_dermis += fout;
+      }
+
       if (m_ode_Jacobian!=NULL) 
 	m_ode_Jacobian[ idx_this*dim + idx_this ] = deriv_this_sum;
 

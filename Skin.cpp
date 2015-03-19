@@ -33,7 +33,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
   /* set up viable epidermis using fixed geometry */
 
   double x_len_sc, x_len_ve, y_len_ve;
-  x_len_ve = 100e-6;
+  x_len_ve = 20e-6;
   x_len_sc = n_layer_x_sc*(g+t) + g;
   y_len_ve = n_layer_y_sc*(d+s); // depends on the setup for stratum corneum
 
@@ -43,13 +43,17 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
   /* set up dermis using fixed geometry */
 
   double x_len_de, y_len_de;
-  x_len_de = 100e-6;
+  x_len_de = 900e-6;
   y_len_de = y_len_ve; // depends on the setup for ve (thus also on stratum corneum)
 
   m_Dermis.Init(x_len_de, y_len_de, m_dz, n_grids_x_de);
   m_Dermis.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc+x_len_ve);
 
-  
+  /* set up blood compartment, then set up the blood properties in dermis */
+  m_Blood.Init(m_Dermis.m_grids->m_ve_fu);
+  double par_de2blood = 1/pow(10, 0.04); // log_P blood:skin is 0.04 for nicotine
+  m_Dermis.InitDermisBlood(m_Blood.m_flow_capil, m_Blood.m_f_unbound, par_de2blood);
+
   /* set up vehicle using fixed geometry */
   double dx_vehicle;
   dx_vehicle = 1000e-6;
@@ -232,7 +236,18 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
   dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
   gridDown.set(&m_gridSink);
   m_Dermis.updateBoundary(NULL, &gridDown, NULL, NULL, m_ViaEpd.m_mass_out); // update top (ve) and bottom (sink) boundary
+  m_Dermis.updateBlood(y[dim_vh+dim_sc+dim_ve+dim_de]);
   m_Dermis.compODE_dydt(t, y+dim_vh+dim_sc+dim_ve, f+dim_vh+dim_sc+dim_ve);
+
+  /* compute for blood */
+
+  // simulation is for a small skin area, but needs to multiple
+  //  the mass transport due to blood flow by the actual
+  //  topical application area (now assuming 1 cm^2 = 0.01*0.01 m^2)
+  double factor = 30e-2*1e-2 / (m_Dermis.m_y_length*m_Dermis.m_dz);
+
+  m_Blood.updateMassInOutDermis(m_Dermis.m_mass_into_dermis, m_Dermis.m_mass_outof_dermis, factor);
+  m_Blood.compODE_dydt(t, y+dim_vh+dim_sc+dim_ve+dim_de, f+dim_vh+dim_sc+dim_ve+dim_de);
 
   return GSL_SUCCESS;	
 }
@@ -241,7 +256,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 void Skin::diffuseMoL(double t_start, double t_end)
 {		
   bool bJacobianRequired = false;
-  int i, j, gsl_status, dim, dim_vh, dim_sc, dim_ve, dim_de, flag;
+  int i, j, gsl_status, dim, dim_vh, dim_sc, dim_ve, dim_de, dim_bld, flag;
   double reltol, abstol, t;
   double *y = NULL;
   N_Vector y0;
@@ -251,7 +266,8 @@ void Skin::diffuseMoL(double t_start, double t_end)
   dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
   dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
   dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
-  dim = dim_vh + dim_sc + dim_ve + dim_de;
+  dim_bld = 1;
+  dim = dim_vh + dim_sc + dim_ve + dim_de + dim_bld;
 
   /* get current concentration, and set as initial conditions */
 
@@ -275,6 +291,9 @@ void Skin::diffuseMoL(double t_start, double t_end)
   for ( i=0; i<m_Dermis.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_Dermis.m_ny; j++ ) // y direction left to right	
       y[dim_vh+dim_sc+dim_ve + i*m_Dermis.m_ny + j] = m_Dermis.m_grids[i*m_Dermis.m_ny + j].m_concChem;
+
+  // from blood
+  y[dim_vh+dim_sc+dim_ve+dim_de] = m_Blood.m_concChem;
 
   /* ------------- */
 
@@ -335,6 +354,9 @@ void Skin::diffuseMoL(double t_start, double t_end)
   for ( i=0; i<m_Dermis.m_nx; i++ ) // x direction up to down
     for ( j=0; j<m_Dermis.m_ny; j++ ) // y direction left to right	
       m_Dermis.m_grids[i*m_Dermis.m_ny + j].m_concChem = NV_Ith_S(y0, dim_vh+dim_sc+dim_ve + i*m_Dermis.m_ny + j);
+
+  // for blood
+  m_Blood.m_concChem = NV_Ith_S(y0, dim_vh+dim_sc+dim_ve+dim_de);
 
   /* ------------------------- */
   
@@ -542,6 +564,8 @@ void Skin::displayGrids()
   m_StraCorn.displayGrids();
   m_ViaEpd.displayGrids();
   m_Dermis.displayGrids();
+  m_Blood.displayGrids();
+
   fflush(stdout);
 }
 
@@ -551,6 +575,7 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
   m_StraCorn.saveGrids(b_1st_time, fn);
   m_ViaEpd.saveGrids(FALSE, fn);
   m_Dermis.saveGrids(FALSE, fn);
+  m_Blood.saveConc(FALSE, fn);
 }
 
 void Skin::saveCoord(const char fn_x[], const char fn_y[])

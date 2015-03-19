@@ -21,18 +21,25 @@ int main (int argc, char* argv[])
   static char *pre_coord = "coord";
 	
   t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
-  n_layer_x_sc = 16; //16
+  n_layer_x_sc = 5; //16
   n_layer_y_sc = 2; // 2
   n_grids_x_ve = 10;
   n_grids_x_de = 10;
   offset_y_sc = 0;
   
   // 4-Cyanophenol
+  /*
   MW = 119.12;  // Da, i.e. g/mol
   K_ow = pow(10,1.6); // partition coefficient between octanol and water
   pKa = 7.8; 
+  */
 
-  conc_vehicle = 0.11*1e3; // in mol/m3
+  // Nicotine
+  MW = 162.23156;
+  K_ow = pow(10, 1.17);
+  pKa = 3.12; // a base
+
+  conc_vehicle = 1.01*1e3*1e3 /MW; // in mol/m3
   diffu_vehicle = 9.12e-10; // diffusivity of solute in vehicle
 	
   // Provide a command line user interface
@@ -77,7 +84,9 @@ int main (int argc, char* argv[])
   Chemical _chem;
   Skin _skin;
   
-  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
+  //  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
+  _chem.Init(MW, K_ow, pKa, 'B'); // the last letter denotes acid (A) or base (B)
+
   _skin.Init(_chem,  conc_vehicle, diffu_vehicle, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc );
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x");

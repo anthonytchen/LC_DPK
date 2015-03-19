@@ -1,7 +1,7 @@
 
 include make.include
 
-all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o LCK
+all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o LCK
 
 clean:
 	rm -f *.o *.lnk
@@ -11,8 +11,8 @@ clean:
 
 
 ### executables ##
-LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o
-	$(LD) $(LFLAGS) LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o arg.o $(LIBS) $(INC) $(LIBSPATH)/libsundials_cvode.a $(LIBSPATH)/libsundials_nvecserial.a -o LCK
+LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o
+	$(LD) $(LFLAGS) LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o $(LIBS) $(INC) $(LIBSPATH)/libsundials_cvode.a $(LIBSPATH)/libsundials_nvecserial.a -o LCK
 Calib_LCK: Calib_LCK.cpp Grid.o Skin.o
 	$(LD) $(LFLAGS)  Calib_LCK.cpp Grid.o Skin.o arg.o $(LIBS) $(INC) $(LIBSPATH)/libsundials_cvode.a $(LIBSPATH)/libsundials_nvecserial.a -o Calib_LCK
 

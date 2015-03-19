@@ -153,6 +153,8 @@ void Grid::InitVE(double mw, double Kow, double pKa, char acid_base,
     gsl_error ("Needs to provide whether it's acid or base", __FILE__, __LINE__, gsl_errno);
     exit(-1);
   }
+  m_ve_fnon = 0.31; // for nicotine
+  m_ve_fu = 0.95; // for nicotine
   m_ve_binding_factor = 0.68 + 0.32/m_ve_fu + 0.025*m_ve_fnon*pow(m_K_ow, 0.7);
 
   compDiffusivity();

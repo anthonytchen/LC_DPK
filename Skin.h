@@ -5,6 +5,7 @@
 #include "StraCorn.h"
 #include "ViaEpd.h"
 #include "Dermis.h"
+#include "Blood.h"
 
 class Skin
 {
@@ -28,6 +29,7 @@ private:
   StraCorn m_StraCorn;
   ViaEpd m_ViaEpd;
   Dermis m_Dermis;
+  Blood m_Blood;
 
 public:
   Skin(void) {};	
