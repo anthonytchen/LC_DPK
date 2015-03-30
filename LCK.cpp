@@ -35,11 +35,11 @@ int main (int argc, char* argv[])
   */
 
   // Nicotine
-  MW = 162.23156;
+  MW = 162.23;
   K_ow = pow(10, 1.17);
   pKa = 3.12; // a base
 
-  conc_vehicle = 1.01*1e3*1e3 /MW; // in mol/m3
+  conc_vehicle = 25.0/30*10; // 25mg in 30 cm2 patch, with patch thickness 0.1cm; in kg/m3
   diffu_vehicle = 9.12e-10; // diffusivity of solute in vehicle
 	
   // Provide a command line user interface

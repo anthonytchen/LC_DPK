@@ -28,7 +28,7 @@ void Blood::Init(double frac_unbound, double body_mass, char gender)
   m_vol_blood_body = frac_blood * body_mass / blood_density;
 
   m_concChem = .0;
-  m_k_clear = .0;
+  m_k_clear = 20e-6; // .0;
   m_f_unbound = frac_unbound;
 
 }
@@ -51,7 +51,7 @@ void Blood::updateMassInOutDermis(double massIn, double massOut, double factor)
 void Blood::compODE_dydt (double t, const double y[], double f[])
 {
   f[0] = (-m_mass_into_dermis + m_mass_outfrom_dermis)/m_vol_blood_body;
-  f[0] -= m_k_clear * y[0];
+  f[0] -= m_k_clear * y[0] / m_vol_blood_body;
 }
 
 /* ----------------- */

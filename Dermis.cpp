@@ -323,7 +323,12 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
       mass =  gridThiis->m_dy*gridThiis->m_dz * flux;
 
       if ( i ==m_nx-1 ) m_mass_out += -mass;
-      mass_transfer_rate += mass;
+
+      if (m_bToBlood) { // if clearance into blood, then do not use infinite source as boundary condition
+	if ( i !=m_nx-1 ) mass_transfer_rate += mass;
+      } else 
+	mass_transfer_rate += mass;
+
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dx;
 	if ( i!=m_nx-1 ) 
