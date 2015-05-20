@@ -324,7 +324,7 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
 
       if ( i ==m_nx-1 ) m_mass_out += -mass;
 
-      if (m_bToBlood) { // if clearance into blood, then do not use infinite source as boundary condition
+      if (m_bToBlood) { // if clearance into blood, then do not use infinite sink as boundary condition
 	if ( i !=m_nx-1 ) mass_transfer_rate += mass;
       } else 
 	mass_transfer_rate += mass;
@@ -377,6 +377,22 @@ void Dermis::displayGrids()
   fflush(stdout);
 }
 
+
+void Dermis::getGridsConc(double *fGridsConc, int dim)
+{
+  // Return concentration at the grids in fGridsConc
+  assert( m_grids && fGridsConc && dim==m_nx*m_ny);
+
+  int i, j, idx;
+	
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+       fGridsConc[idx] = m_grids[idx].getConcChem();
+     }
+  } // for i
+}
+
 void Dermis::saveGrids(bool b_1st_time, const char fn[])
 {
   assert( m_grids );
@@ -399,6 +415,36 @@ void Dermis::saveGrids(bool b_1st_time, const char fn[])
   } // for i
 
   fclose(file);
+}
+
+void Dermis::getXCoord(double *coord_x, int dim)
+{
+  assert( m_grids && coord_x && dim==m_nx*m_ny );
+
+  int i, j, idx;
+
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+      idx = i*m_ny + j;
+      coord_x[idx] = m_grids[idx].m_x_coord;
+    }
+  }
+
+}
+
+void Dermis::getYCoord(double *coord_y, int dim)
+{
+  assert( m_grids && coord_y && dim==m_nx*m_ny );
+
+  int i, j, idx;
+
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+      idx = i*m_ny + j;
+      coord_y[idx] = m_grids[idx].m_y_coord;
+    }
+  }
+
 }
 
 void Dermis::saveCoord(const char fn_x[], const char fn_y[])

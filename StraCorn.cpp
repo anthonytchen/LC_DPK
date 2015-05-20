@@ -73,6 +73,14 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
   m_V_all = m_V_mortar + m_V_brick;
 
   m_offset_y =  offset_y;
+
+  // setup the array for 1D concentration and coordinates
+  m_conc1D = new double [n_layer_x];
+  m_coord1D = new double [n_layer_x];
+  for ( int i = 0; i < n_layer_x-1; i ++ )
+    m_coord1D[i] = 0.5*( i*(g+t) + (i+1)*(g+t) );
+  m_coord1D[n_layer_x-1] = 0.5*( (n_layer_x-1)*(g+t) + n_layer_x*(g+t)+g );
+  m_n_layer_x = n_layer_x;
 }
 
 void StraCorn::Release()
@@ -87,6 +95,9 @@ void StraCorn::Release()
     }
     delete [] m_grids;
   }
+  delete [] m_conc1D;
+  delete [] m_coord1D;
+
   m_gridBdyUp.Release();
   m_gridBdyDown.Release();
   m_gridBdyLeft.Release();
@@ -408,6 +419,7 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
   Grid *gridThiis, *gridUp, *gridLeft, *gridRight, *gridDown;
 	
   gridThiis = gridUp = gridLeft = gridRight = gridDown = NULL;
+  if ( idx_x_start == 0 ) m_mass_in = 0; // re-set mass transferred into SC, ready for calculation
   if ( idx_x_end == m_nx ) m_mass_out = 0; // re-set mass transferred out of SC, ready for calculation
 
   // Calculate diffused mass
@@ -437,7 +449,10 @@ void StraCorn::compODE_dydt_block (double t, const double y[], double f[],
       }
       flux = gridThiis->compFlux( gridUp, conc_this, conc_other,
 				  gridThiis->m_dx/2, gridUp->m_dx/2, &deriv_this, &deriv_other);
-      mass_transfer_rate += gridThiis->m_dy*gridThiis->m_dz * flux;			
+      mass = gridThiis->m_dy*gridThiis->m_dz * flux;
+
+      if ( i==0 ) m_mass_in += mass;
+      mass_transfer_rate +=  mass;
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum = deriv_this / gridThiis->m_dx;
 	if ( i!=0 ) 
@@ -571,6 +586,65 @@ void StraCorn::displayGrids()
   fflush(stdout);
 }
 
+void StraCorn::getGridsConc(double *fGridsConc, int dim)
+{
+  // Return concentration at the grids in fGridsConc
+  assert( m_grids && fGridsConc && dim==m_nx*m_ny);
+
+  int i, j, idx;
+	
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+       fGridsConc[idx] = m_grids[idx].getConcChem();
+     }
+  } // for i
+}
+
+void StraCorn::comp1DConc()
+{
+  int i, j, idx, nx_grids_lipid, nx_grids_cc, idx_conc1D;
+  double conc_sum, area, area_sum;
+
+  assert( m_n_layer_x > 1 );
+
+  idx_conc1D = 0;
+
+  conc_sum = 0; area_sum = 0;
+  nx_grids_lipid = m_nx_grids_lipid;
+  nx_grids_cc = m_nx_grids_cc;
+
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+
+       idx = i*m_ny + j;
+
+       area = m_grids[idx].m_dx * m_grids[idx].m_dy;
+       conc_sum += m_grids[idx].getConcChem() * area;
+       area_sum += area;
+
+    } // for j
+
+    if ( nx_grids_lipid > 0 )
+      nx_grids_lipid --;
+    else
+      nx_grids_cc --;
+
+    if ( !nx_grids_lipid && !nx_grids_cc ) { // finished calculation for 1 lipid and 1 corneocyte layer
+      m_conc1D[idx_conc1D] = conc_sum / area_sum;
+      idx_conc1D ++;
+      conc_sum = 0; area_sum = 0;
+      if ( idx_conc1D == m_n_layer_x-1 )
+	nx_grids_lipid = m_nx_grids_lipid * 2; // also count the botton lipid layer
+      else 
+	nx_grids_lipid = m_nx_grids_lipid;
+      nx_grids_cc = m_nx_grids_cc;
+    }
+
+  } // for i
+
+}
+
 void StraCorn::saveGrids(bool b_1st_time, const char fn[])
 {
   assert( m_grids );
@@ -595,6 +669,36 @@ void StraCorn::saveGrids(bool b_1st_time, const char fn[])
   } // for i
 
   fclose(file);
+}
+
+void StraCorn::getXCoord(double *coord_x, int dim)
+{
+  assert( m_grids && coord_x && dim==m_nx*m_ny );
+
+  int i, j, idx;
+
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+      idx = i*m_ny + j;
+      coord_x[idx] = m_grids[idx].m_x_coord;
+    }
+  }
+
+}
+
+void StraCorn::getYCoord(double *coord_y, int dim)
+{
+  assert( m_grids && coord_y && dim==m_nx*m_ny );
+
+  int i, j, idx;
+
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+      idx = i*m_ny + j;
+      coord_y[idx] = m_grids[idx].m_y_coord;
+    }
+  }
+
 }
 
 void StraCorn::saveCoord(const char fn_x[], const char fn_y[])

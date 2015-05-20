@@ -155,6 +155,8 @@ void Grid::InitVE(double mw, double Kow, double pKa, char acid_base,
   }
   m_ve_fnon = 0.31; // for nicotine
   m_ve_fu = 0.95; // for nicotine
+  // m_ve_fnon = 1; // for DEET which is non-polar
+  //  m_ve_fu = 0.95; // for DEET
   m_ve_binding_factor = 0.68 + 0.32/m_ve_fu + 0.025*m_ve_fnon*pow(m_K_ow, 0.7);
 
   compDiffusivity();

@@ -11,8 +11,9 @@ struct pthread_struct {
 	int x_start, x_end, y_start, y_end;
 };
 
-void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
-		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc)
+void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	double dx_vehicle, double area_vehicle, 
+		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc,
+		bool bInfSrc)
 {
 
   m_dz = 0.01; // fixing dz, the dimension perpendicular to x-y domain
@@ -55,10 +56,18 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,
   m_Dermis.InitDermisBlood(m_Blood.m_flow_capil, m_Blood.m_f_unbound, par_de2blood);
 
   /* set up vehicle using fixed geometry */
-  double dx_vehicle;
-  dx_vehicle = 1000e-6;
+  m_Vehicle_area = area_vehicle;
   m_gridVehicle.Init("SC", conc_vehicle, chemSolute.m_K_ow, dx_vehicle, y_len_ve, m_dz, diffu_vehicle);
   m_gridSink.Init("SK", 0, chemSolute.m_K_ow, 0, 0, m_dz);
+  m_bInfSrc = bInfSrc; // whether the vehicle is a infinite source
+
+  // setup the dimensions
+  m_dim_vh = 1;
+  m_dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
+  m_dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
+  m_dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
+  m_dim_bd = 1;
+  m_dim_all =  m_dim_vh + m_dim_sc + m_dim_ve + m_dim_de +  m_dim_bd;
 
 }
 
@@ -66,136 +75,10 @@ void Skin::Release(void)
 {
   m_StraCorn.Release();
   m_ViaEpd.Release();
+  m_Dermis.Release();
+  m_Blood.Release();
 }
 
-#if 0
-
-int Skin::static_cvJacobian (long int N, double t, 
-		N_Vector y, N_Vector dydt, DlsMat Jac, void *paras,
-		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
-{
-	int i, j, k, left, right, nx, ny;
-	double *p_y, *p_dydt, *p_fy, *kthCol;
-	
-	p_fy = new double[N];
-	
-	p_y = NV_DATA_S(y);
-	p_dydt = NV_DATA_S(dydt);
-	
-	// todo: a lot of repeated calculations; to be improved
-	((Skin*)paras)->gslODE(t, p_y, p_fy); // p_fy here is a dummy place holder
-	/*	
-	for ( i = 0; i < N; i ++ ) {
-		for ( j = 0; j < N; j ++ ) {
-			printf("%e\t", BAND_ELEM(Jac, i, j));
-		}
-		printf("\n");
-	}
-	printf("============ \n ===========");
-	*/
-	for ( i = 0; i < N; i ++ ) {
-/*
-		for ( j=left; j<=right; j++ ) {
-			BAND_ELEM(Jac, i, j) = ((Skin*)paras)->m_gsl_ode_Jacobian[i*N + j];
-			if (i == 0)
-				printf("i=%d, j=%d, %e\n", i, j, BAND_ELEM(Jac, i, j));
-		}
-*/		
-		for ( j = 0; j < N; j ++ ) {
-			DENSE_ELEM(Jac, i, j) = ((Skin*)paras)->m_gsl_ode_Jacobian[i*N + j];
-			//printf("%e\t", BAND_ELEM(Jac, i, j));
-		}
-		//printf("\n");
-	}
-	
-	printf("------ ---- \n");
-	for ( i = 0; i < N; i ++ ) {
-		for ( j = 0; j < N; j ++ ) {
-			printf("%e\t", DENSE_ELEM(Jac, i, j));
-		}
-		printf("\n");
-	}
-	
-	printf("------ ---- \n");
-	
-	for ( i = 0; i < N; i ++ ) {
-		for ( j = 0; j < N; j ++ ) {
-			printf("%e\t", ((Skin*)paras)->m_gsl_ode_Jacobian[i*N + j]);
-		}
-		printf("\n");
-	}
-
-	
-	delete [] p_fy;
-	// exit(0);
-}
-
-int Skin::static_cvJacobian (long int N, long int mupper, long int mlower, double t, 
-		N_Vector y, N_Vector dydt, DlsMat Jac, void *paras,
-		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
-{
-	int i, j, k, left, right, nx, ny;
-	double *p_y, *p_dydt, *p_fy, *kthCol;
-	
-	p_fy = new double[N];
-	
-	p_y = NV_DATA_S(y);
-	p_dydt = NV_DATA_S(dydt);
-	
-	// todo: a lot of repeated calculations; to be improved
-	((Skin*)paras)->gslODE(t, p_y, p_fy); // p_fy here is a dummy place holder
-	nx = ((Skin*)paras)->m_nx;
-	ny = ((Skin*)paras)->m_nx;
-	/*	
-	for ( i = 0; i < N; i ++ ) {
-		for ( j = 0; j < N; j ++ ) {
-			printf("%e\t", BAND_ELEM(Jac, i, j));
-		}
-		printf("\n");
-	}
-	printf("============ \n ===========");
-	*/
-	for ( i = 0; i < N; i ++ ) {
-		left = i-mlower;
-		if ( left < 0 ) left = 0;
-		right = i+mupper;
-		if ( right > N-1 ) right = N-1;
-/*
-		for ( j=left; j<=right; j++ ) {
-			BAND_ELEM(Jac, i, j) = ((Skin*)paras)->m_gsl_ode_Jacobian[i*N + j];
-			if (i == 0)
-				printf("i=%d, j=%d, %e\n", i, j, BAND_ELEM(Jac, i, j));
-		}
-*/		
-		for ( j = 0; j < N; j ++ ) {
-			BAND_ELEM(Jac, i, j) = ((Skin*)paras)->m_gsl_ode_Jacobian[i*N + j];
-			//printf("%e\t", BAND_ELEM(Jac, i, j));
-		}
-		//printf("\n");
-	}
-/*	
-	printf("------ ---- \n");
-	for ( i = 0; i < N; i ++ ) {
-		for ( j = 0; j < N; j ++ ) {
-			printf("%e\t", BAND_ELEM(Jac, i, j));
-		}
-		printf("\n");
-	}
-	
-	printf("------ ---- \n");
-	
-	for ( i = 0; i < N; i ++ ) {
-		for ( j = 0; j < N; j ++ ) {
-			printf("%e\t", ((Skin*)paras)->m_gsl_ode_Jacobian[i*N + j]);
-		}
-		printf("\n");
-	}
-*/
-	
-	delete [] p_fy;
-	// exit(0);
-}
-#endif
 
 int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
 {
@@ -209,45 +92,44 @@ int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
 
 int Skin::compODE_dydt (double t, const double y[], double f[])
 {
-  int i, j, dim_vh, dim_sc, dim_ve, dim_de;
+  int i, j;
   Grid gridUp, gridDown;
 
   /* y and f are organised as:
      vehicle (1 grid), sc (row dominant), ve (row dominant) */
 
-  /* compute for vehicle */
-  dim_vh = 1;
-  f[0] = 0; // infinite source, concentration does not change
-
   /* compute for stratum corneum */
-  dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
   gridUp.set(&m_gridVehicle);  gridUp.m_concChem = y[0];
-  gridDown.set(m_ViaEpd.m_grids); gridDown.m_concChem = y[dim_vh+dim_sc];
+  gridDown.set(m_ViaEpd.m_grids); gridDown.m_concChem = y[m_dim_vh+m_dim_sc];
   m_StraCorn.updateBoundary(&gridUp, &gridDown, NULL, NULL);  // update top (vehicle) and bottom (ve) boundary
-  m_StraCorn.compODE_dydt(t, y+dim_vh, f+dim_vh);
+  m_StraCorn.compODE_dydt(t, y+m_dim_vh, f+m_dim_vh);
+
+  /* compute for vehicle */
+  //     this is after the computation for SC because mass transfer from vehicle to SC is calculated in the SC
+  if (m_bInfSrc)
+    f[0] = 0; // infinite source, concentration does not change
+  else
+    f[0] = -m_StraCorn.m_mass_in/(m_gridVehicle.m_dx*m_gridVehicle.m_dy*m_gridVehicle.m_dz);
 
   /* compute for viable epidermis */
-  dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
-  gridDown.set(m_Dermis.m_grids); gridDown.m_concChem = y[dim_vh+dim_sc+dim_ve];
+  gridDown.set(m_Dermis.m_grids); gridDown.m_concChem = y[m_dim_vh+m_dim_sc+m_dim_ve];
   m_ViaEpd.updateBoundary(NULL, &gridDown, NULL, NULL, m_StraCorn.m_mass_out); // update top (sc) and bottom (de) boundary
-  m_ViaEpd.compODE_dydt(t, y+dim_vh+dim_sc, f+dim_vh+dim_sc);
+  m_ViaEpd.compODE_dydt(t, y+m_dim_vh+m_dim_sc, f+m_dim_vh+m_dim_sc);
 
   /* compute for dermis */
-  dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
   gridDown.set(&m_gridSink);
   m_Dermis.updateBoundary(NULL, &gridDown, NULL, NULL, m_ViaEpd.m_mass_out); // update top (ve) and bottom (sink) boundary
-  m_Dermis.updateBlood(y[dim_vh+dim_sc+dim_ve+dim_de]);
-  m_Dermis.compODE_dydt(t, y+dim_vh+dim_sc+dim_ve, f+dim_vh+dim_sc+dim_ve);
+  m_Dermis.updateBlood(y[m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de]);
+  m_Dermis.compODE_dydt(t, y+m_dim_vh+m_dim_sc+m_dim_ve, f+m_dim_vh+m_dim_sc+m_dim_ve);
 
   /* compute for blood */
 
   // simulation is for a small skin area, but needs to multiple
-  //  the mass transport due to blood flow by the actual
-  //  topical application area (now assuming 1 cm^2 = 0.01*0.01 m^2)
-  double factor = 30e-2*1e-2 / (m_Dermis.m_y_length*m_Dermis.m_dz);
+  //  the mass transport due to blood flow by the actual topical application area
+  double factor = m_Vehicle_area / (m_Dermis.m_y_length*m_Dermis.m_dz);
 
   m_Blood.updateMassInOutDermis(m_Dermis.m_mass_into_dermis, m_Dermis.m_mass_outof_dermis, factor);
-  m_Blood.compODE_dydt(t, y+dim_vh+dim_sc+dim_ve+dim_de, f+dim_vh+dim_sc+dim_ve+dim_de);
+  m_Blood.compODE_dydt(t, y+m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de, f+m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de);
 
   return GSL_SUCCESS;	
 }
@@ -559,6 +441,36 @@ double Skin::compFlux_de2down()
 	I/O functions
 	++++++++++++++++++++++++++++++++++ */
 
+void Skin::getGridsConc(double *fGridsConc, int dim)
+{
+  assert( fGridsConc && dim==m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de+m_dim_bd );
+
+  // extracting concentration values from the various compartments
+  fGridsConc[0] = m_gridVehicle.getConcChem();
+  m_StraCorn.getGridsConc( fGridsConc+m_dim_vh, m_dim_sc );
+  m_ViaEpd.getGridsConc( fGridsConc+m_dim_vh+m_dim_sc, m_dim_ve );
+  m_Dermis.getGridsConc( fGridsConc+m_dim_vh+m_dim_sc+m_dim_ve, m_dim_de );
+  fGridsConc[m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de] = m_Blood.getConcChem();
+
+}
+
+void Skin::get1DConcSC(double *ret, int dim_ret)
+{
+  assert( dim_ret == m_StraCorn.m_n_layer_x );
+  m_StraCorn.comp1DConc();
+  for ( int i = 0; i < dim_ret; i ++ )
+    ret[i] = m_StraCorn.m_conc1D[i];
+}
+
+
+void Skin::get1DCoordSC(double *ret, int dim_ret)
+{
+  assert( dim_ret == m_StraCorn.m_n_layer_x );
+  for ( int i = 0; i < dim_ret; i ++ )
+    ret[i] = m_StraCorn.m_coord1D[i];
+}
+
+
 void Skin::displayGrids()
 {
   m_StraCorn.displayGrids();
@@ -572,10 +484,60 @@ void Skin::displayGrids()
 
 void Skin::saveGrids(bool b_1st_time, const char fn[])
 {
-  m_StraCorn.saveGrids(b_1st_time, fn);
-  m_ViaEpd.saveGrids(FALSE, fn);
-  m_Dermis.saveGrids(FALSE, fn);
-  m_Blood.saveConc(FALSE, fn);
+  char fn_tmp[1024];
+
+  strcpy(fn_tmp, fn); strcat(fn_tmp, "_vh.txt");
+  saveVehicle(b_1st_time, fn_tmp);
+
+  strcpy(fn_tmp, fn); strcat(fn_tmp, "_sc.txt");
+  m_StraCorn.saveGrids(b_1st_time, fn_tmp);
+
+  strcpy(fn_tmp, fn); strcat(fn_tmp, "_ve.txt");
+  m_ViaEpd.saveGrids(b_1st_time, fn_tmp);
+
+  strcpy(fn_tmp, fn); strcat(fn_tmp, "_de.txt");
+  m_Dermis.saveGrids(b_1st_time, fn_tmp);
+
+  strcpy(fn_tmp, fn); strcat(fn_tmp, "_bd.txt");
+  m_Blood.saveConc(b_1st_time, fn_tmp);
+}
+
+void Skin::saveVehicle(bool b_1st_time, const char fn[])
+{
+  FILE *file = NULL;
+  if ( b_1st_time )
+    file = fopen(fn, "w");
+  else 
+    file = fopen(fn, "a");
+	
+  fprintf(file, "%.5e\n", m_gridVehicle.getConcChem());
+  fclose(file);
+}
+
+void Skin::getXCoord(double *coord_x, int dim)
+{
+  assert( coord_x && dim==m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de+m_dim_bd );
+
+  // extracting X coordinates from the various compartments
+
+  coord_x[0] = -1e10; // vehicle
+  m_StraCorn.getXCoord( coord_x+m_dim_vh, m_dim_sc );
+  m_ViaEpd.getXCoord( coord_x+m_dim_vh+m_dim_sc, m_dim_ve );
+  m_Dermis.getXCoord( coord_x+m_dim_vh+m_dim_sc+m_dim_ve, m_dim_de );
+  coord_x[m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de] = 1e10; // blood
+}
+
+void Skin::getYCoord(double *coord_y, int dim)
+{
+  assert( coord_y && dim==m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de+m_dim_bd );
+
+  // extracting Y coordinates from the various compartments
+
+  coord_y[0] = 0; // vehicle
+  m_StraCorn.getYCoord( coord_y+m_dim_vh, m_dim_sc );
+  m_ViaEpd.getYCoord( coord_y+m_dim_vh+m_dim_sc, m_dim_ve );
+  m_Dermis.getYCoord( coord_y+m_dim_vh+m_dim_sc+m_dim_ve, m_dim_de );
+  coord_y[m_dim_vh+m_dim_sc+m_dim_ve+m_dim_de] = 0; // blood
 }
 
 void Skin::saveCoord(const char fn_x[], const char fn_y[])

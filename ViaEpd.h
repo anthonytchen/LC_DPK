@@ -35,8 +35,11 @@ public:
   void compODE_dydt_block (double, const double[], double [], int, int, int, int);
   
   // I/O functions
+  void getGridsConc(double*, int);
   void displayGrids();
   void saveGrids(bool, const char []);
+  void getXCoord(double*, int);
+  void getYCoord(double*, int);
   void saveCoord(const char [], const char []);
 };
 

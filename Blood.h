@@ -30,6 +30,7 @@ public:
   void compODE_dydt (double, const double[], double []);	
 	
   // I/O functions
+  double getConcChem() { return m_concChem; };
   void displayGrids();
   void saveConc(bool, const char []);
 };

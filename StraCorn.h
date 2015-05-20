@@ -15,12 +15,15 @@ class StraCorn
                                        //	and y (lateral) directions
   int m_nx, m_ny, // number of grids at x and y directions for SC
     m_nx_grids_lipid, m_nx_grids_cc, // number of grids for each lipid/corneocyte layer in the x direction
-    m_ny_grids_lipid, m_ny_grids_cc_dn; // number of grids for each lipid/corneocyte layer in the y direction
+    m_ny_grids_lipid, m_ny_grids_cc_dn, // number of grids for each lipid/corneocyte layer in the y direction
+    m_n_layer_x; // number of layers in the x direction
   int m_boundary_cond;
   double m_geom_g, m_geom_d, m_geom_s, m_geom_t, m_geom_dm, m_geom_dn, m_w, // geometry parameters
     m_offset_y; // offset at the left simulation boundary, relative to corneocyte
   double m_mass_in, m_mass_out; // the mass transferred in and out of stratum corneum
-  double *m_ode_Jacobian; // Jacobian matrix needed for GSL ODE solver
+  double *m_conc1D, *m_coord1D; // 1-d concentration and corresponding coordinates
+
+  double *m_ode_Jacobian;
 
   Grid *m_grids, m_gridBdyUp, m_gridBdyDown, m_gridBdyLeft, m_gridBdyRight;
 
@@ -40,7 +43,11 @@ public:
   
   // I/O functions
   void displayGrids();
+  void getGridsConc(double*, int);
+  void comp1DConc();
   void saveGrids(bool, const char []);
+  void getXCoord(double*, int);
+  void getYCoord(double*, int);
   void saveCoord(const char [], const char []);
 };
 

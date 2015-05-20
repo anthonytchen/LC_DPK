@@ -45,7 +45,10 @@ public:
   
   // I/O functions
   void displayGrids();
+  void getGridsConc(double*, int);
   void saveGrids(bool, const char []);
+  void getXCoord(double*, int);
+  void getYCoord(double*, int);
   void saveCoord(const char [], const char []);
 };
 
