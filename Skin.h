@@ -38,10 +38,13 @@ public:
 public:
   Skin(void) {};	
   ~Skin(void) {};
-  void Init(Chemical, double, double, double, double, int, int, int, int, double, bool);
+  void Init(Chemical, double, double, double, double, double, int, int, int, int, double, bool);
   void Release();
   
   void diffuseMoL(double t_start, double t_end); // method of lines using CVODE solver
+  void resetVehicle(double, double, double); // reset vehicle concentration, partition coefficient, diffusivity
+  void removeVehicle(); 
+
   double compFlux_2sc();
   double compFlux_sc2down();
   double compFlux_ve2down();

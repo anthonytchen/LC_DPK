@@ -11,7 +11,8 @@ struct pthread_struct {
 	int x_start, x_end, y_start, y_end;
 };
 
-void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	double dx_vehicle, double area_vehicle, 
+void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	double partition_vehicle, 
+		double dx_vehicle, double area_vehicle, 
 		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc,
 		bool bInfSrc)
 {
@@ -51,13 +52,13 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	
   m_Dermis.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc+x_len_ve);
 
   /* set up blood compartment, then set up the blood properties in dermis */
-  m_Blood.Init(m_Dermis.m_grids->m_ve_fu);
+  m_Blood.Init(m_Dermis.m_grids->m_ve_fu, 70, 'M');
   double par_de2blood = 1/pow(10, 0.04); // log_P blood:skin is 0.04 for nicotine
   m_Dermis.InitDermisBlood(m_Blood.m_flow_capil, m_Blood.m_f_unbound, par_de2blood);
 
   /* set up vehicle using fixed geometry */
   m_Vehicle_area = area_vehicle;
-  m_gridVehicle.Init("SC", conc_vehicle, chemSolute.m_K_ow, dx_vehicle, y_len_ve, m_dz, diffu_vehicle);
+  m_gridVehicle.Init("SC", conc_vehicle, chemSolute.m_K_ow, dx_vehicle, y_len_ve, m_dz, diffu_vehicle, partition_vehicle);
   m_gridSink.Init("SK", 0, chemSolute.m_K_ow, 0, 0, m_dz);
   m_bInfSrc = bInfSrc; // whether the vehicle is a infinite source
 
@@ -247,6 +248,18 @@ void Skin::diffuseMoL(double t_start, double t_end)
   CVodeFree(&cvode_mem);
   //  delete [] m_gsl_ode_Jacobian;
   delete [] y;
+}
+
+ // reset vehicle concentration, partition coefficient, diffusivity
+void Skin::resetVehicle(double concChem, double partition_coef, double diffu_coef)
+{
+  m_gridVehicle.Init("SC", concChem, m_gridVehicle.m_K_ow, m_gridVehicle.m_dx, m_gridVehicle.m_dy, m_gridVehicle.m_dz, 
+		     diffu_coef, partition_coef);
+}
+
+void Skin::removeVehicle()
+{
+  resetVehicle(m_gridVehicle.m_concChem, 1e10, 1e-100);
 }
 
 // Compute flux into stratum corneum

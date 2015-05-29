@@ -55,7 +55,7 @@ public:
   Grid(void) { };
   virtual ~Grid(void) {};
 	
-  void Init(const char[], double, double, double, double, double, double D_vehicle=1);
+  void Init(const char[], double, double, double, double, double, double D_vehicle=1, double K_vehicle=1);
   void Init(const char[], double, double, double, double, double, double, 
 	    double, double, double, double, double, double, double, double, double, double, double);
   void InitVE(double, double, double, char, double, double, double, double, double); // Initialisation for a viable epidermis grid
@@ -70,8 +70,8 @@ public:
   double compFlux(Grid*, double, double, double, double, double*, double*);
 
   // Functions to calculate model parameters
-  void compDiffusivity(double D_vehicle=-1);
-  void compKcoef(void);
+  void compDiffusivity(double D_vehicle=1);
+  void compKcoef(double K_vehicle=1);
 };
 
 #endif

@@ -1,1 +1,9 @@
-* TODO complete the return value matrix, using the numpy swig interface 
+* TODO simulate the scenario with dose withdrawn after certain time
+* The way to build the programme is by using
+  python setup.py build_ext --inplace
+* The way to use the python modules
+  import runDPK
+  import calibDPK
+  reload(runDPK)
+  reload(calibDPK)
+

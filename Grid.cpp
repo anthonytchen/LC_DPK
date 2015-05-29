@@ -104,7 +104,7 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
 }
 
 void Grid::Init(const char name[], double concChem, double K_ow, 
-		double dx, double dy, double dz, double D_vehicle)
+		double dx, double dy, double dz, double D_vehicle, double K_vehicle)
 {
   strcpy(m_name, name);
   m_concChem = concChem;
@@ -115,7 +115,7 @@ void Grid::Init(const char name[], double concChem, double K_ow,
 	
   m_K_ow = K_ow;
   compDiffusivity(D_vehicle);
-  compKcoef();	
+  compKcoef(K_vehicle);	
 }
 
 void Grid::InitVE(double mw, double Kow, double pKa, char acid_base,
@@ -295,7 +295,7 @@ void Grid::compDiffusivity(double D_vehicle)
 
 
 // Compute partition coefficient between this grid and water
-void Grid::compKcoef()
+void Grid::compKcoef(double K_vehicle)
 {
   int gsl_errno;
   double K_kw;
@@ -313,7 +313,7 @@ void Grid::compKcoef()
   } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
     m_Kw = 0.7 * m_ve_binding_factor;
   } else if ( !strcmp(m_name, "SC") ) { // vehicle source
-    m_Kw = 1.0;
+    m_Kw = K_vehicle;
   } else if ( !strcmp(m_name, "SK") ) { // sink
     m_Kw = 1.0;
   } else {

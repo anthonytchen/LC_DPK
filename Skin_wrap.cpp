@@ -5378,12 +5378,13 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   double arg4 ;
   double arg5 ;
   double arg6 ;
-  int arg7 ;
+  double arg7 ;
   int arg8 ;
   int arg9 ;
   int arg10 ;
-  double arg11 ;
-  bool arg12 ;
+  int arg11 ;
+  double arg12 ;
+  bool arg13 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 ;
@@ -5396,7 +5397,7 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   int ecode5 = 0 ;
   double val6 ;
   int ecode6 = 0 ;
-  int val7 ;
+  double val7 ;
   int ecode7 = 0 ;
   int val8 ;
   int ecode8 = 0 ;
@@ -5404,10 +5405,12 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   int ecode9 = 0 ;
   int val10 ;
   int ecode10 = 0 ;
-  double val11 ;
+  int val11 ;
   int ecode11 = 0 ;
-  bool val12 ;
+  double val12 ;
   int ecode12 = 0 ;
+  bool val13 ;
+  int ecode13 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -5420,8 +5423,9 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   PyObject * obj9 = 0 ;
   PyObject * obj10 = 0 ;
   PyObject * obj11 = 0 ;
+  PyObject * obj12 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOO:Skin_Init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOO:Skin_Init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Skin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Skin_Init" "', argument " "1"" of type '" "Skin *""'"); 
@@ -5460,11 +5464,11 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Skin_Init" "', argument " "6"" of type '" "double""'");
   } 
   arg6 = static_cast< double >(val6);
-  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  ecode7 = SWIG_AsVal_double(obj6, &val7);
   if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Skin_Init" "', argument " "7"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Skin_Init" "', argument " "7"" of type '" "double""'");
   } 
-  arg7 = static_cast< int >(val7);
+  arg7 = static_cast< double >(val7);
   ecode8 = SWIG_AsVal_int(obj7, &val8);
   if (!SWIG_IsOK(ecode8)) {
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Skin_Init" "', argument " "8"" of type '" "int""'");
@@ -5480,17 +5484,22 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Skin_Init" "', argument " "10"" of type '" "int""'");
   } 
   arg10 = static_cast< int >(val10);
-  ecode11 = SWIG_AsVal_double(obj10, &val11);
+  ecode11 = SWIG_AsVal_int(obj10, &val11);
   if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "Skin_Init" "', argument " "11"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "Skin_Init" "', argument " "11"" of type '" "int""'");
   } 
-  arg11 = static_cast< double >(val11);
-  ecode12 = SWIG_AsVal_bool(obj11, &val12);
+  arg11 = static_cast< int >(val11);
+  ecode12 = SWIG_AsVal_double(obj11, &val12);
   if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Skin_Init" "', argument " "12"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Skin_Init" "', argument " "12"" of type '" "double""'");
   } 
-  arg12 = static_cast< bool >(val12);
-  (arg1)->Init(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+  arg12 = static_cast< double >(val12);
+  ecode13 = SWIG_AsVal_bool(obj12, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "Skin_Init" "', argument " "13"" of type '" "bool""'");
+  } 
+  arg13 = static_cast< bool >(val13);
+  (arg1)->Init(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5551,6 +5560,75 @@ SWIGINTERN PyObject *_wrap_Skin_diffuseMoL(PyObject *SWIGUNUSEDPARM(self), PyObj
   } 
   arg3 = static_cast< double >(val3);
   (arg1)->diffuseMoL(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Skin_resetVehicle(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Skin *arg1 = (Skin *) 0 ;
+  double arg2 ;
+  double arg3 ;
+  double arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  double val3 ;
+  int ecode3 = 0 ;
+  double val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:Skin_resetVehicle",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Skin, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Skin_resetVehicle" "', argument " "1"" of type '" "Skin *""'"); 
+  }
+  arg1 = reinterpret_cast< Skin * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Skin_resetVehicle" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  ecode3 = SWIG_AsVal_double(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Skin_resetVehicle" "', argument " "3"" of type '" "double""'");
+  } 
+  arg3 = static_cast< double >(val3);
+  ecode4 = SWIG_AsVal_double(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Skin_resetVehicle" "', argument " "4"" of type '" "double""'");
+  } 
+  arg4 = static_cast< double >(val4);
+  (arg1)->resetVehicle(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Skin_removeVehicle(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Skin *arg1 = (Skin *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Skin_removeVehicle",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Skin, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Skin_removeVehicle" "', argument " "1"" of type '" "Skin *""'"); 
+  }
+  arg1 = reinterpret_cast< Skin * >(argp1);
+  (arg1)->removeVehicle();
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6296,6 +6374,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Skin_Init", _wrap_Skin_Init, METH_VARARGS, NULL},
 	 { (char *)"Skin_Release", _wrap_Skin_Release, METH_VARARGS, NULL},
 	 { (char *)"Skin_diffuseMoL", _wrap_Skin_diffuseMoL, METH_VARARGS, NULL},
+	 { (char *)"Skin_resetVehicle", _wrap_Skin_resetVehicle, METH_VARARGS, NULL},
+	 { (char *)"Skin_removeVehicle", _wrap_Skin_removeVehicle, METH_VARARGS, NULL},
 	 { (char *)"Skin_compFlux_2sc", _wrap_Skin_compFlux_2sc, METH_VARARGS, NULL},
 	 { (char *)"Skin_compFlux_sc2down", _wrap_Skin_compFlux_sc2down, METH_VARARGS, NULL},
 	 { (char *)"Skin_compFlux_ve2down", _wrap_Skin_compFlux_ve2down, METH_VARARGS, NULL},
