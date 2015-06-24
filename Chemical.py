@@ -84,6 +84,12 @@ class Chemical(_object):
     __swig_setmethods__["m_pKa"] = _Chemical.Chemical_m_pKa_set
     __swig_getmethods__["m_pKa"] = _Chemical.Chemical_m_pKa_get
     if _newclass:m_pKa = _swig_property(_Chemical.Chemical_m_pKa_get, _Chemical.Chemical_m_pKa_set)
+    __swig_setmethods__["m_frac_non_ion"] = _Chemical.Chemical_m_frac_non_ion_set
+    __swig_getmethods__["m_frac_non_ion"] = _Chemical.Chemical_m_frac_non_ion_get
+    if _newclass:m_frac_non_ion = _swig_property(_Chemical.Chemical_m_frac_non_ion_get, _Chemical.Chemical_m_frac_non_ion_set)
+    __swig_setmethods__["m_frac_unbound"] = _Chemical.Chemical_m_frac_unbound_set
+    __swig_getmethods__["m_frac_unbound"] = _Chemical.Chemical_m_frac_unbound_get
+    if _newclass:m_frac_unbound = _swig_property(_Chemical.Chemical_m_frac_unbound_get, _Chemical.Chemical_m_frac_unbound_set)
     __swig_setmethods__["m_acid_base"] = _Chemical.Chemical_m_acid_base_set
     __swig_getmethods__["m_acid_base"] = _Chemical.Chemical_m_acid_base_get
     if _newclass:m_acid_base = _swig_property(_Chemical.Chemical_m_acid_base_get, _Chemical.Chemical_m_acid_base_set)

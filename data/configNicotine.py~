@@ -1,0 +1,10 @@
+def configDPK():
+    '''Function to prepare the input parameters for dermatokinetic simulation. One function needs to be implemented for each simulation scenario and/or solute'''
+
+    from collections import namedtuple
+
+    Point = namedtuple('Point', 'x y')
+    pt1 = Point(1.0, 5.0)
+    pt1.x = 2.0
+
+    return pt1

@@ -10,7 +10,7 @@
 int main (int argc, char* argv[])
 {
   double MW, K_ow, pKa,
-    conc_vehicle, diffu_vehicle, area_vehicle,
+    conc_vehicle, diffu_vehicle, partition_vehicle, area_vehicle,
     t_simu, t_end, t_inv, offset_y_sc, dx_vehicle;
   bool b_1st_save = true;
   int b_inf_src = 0;
@@ -22,7 +22,7 @@ int main (int argc, char* argv[])
   static char *pre_coord = "coord";
 	
   t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
-  n_layer_x_sc = 16; //16
+  n_layer_x_sc = 16+5; //16
   n_layer_y_sc = 2; // 2
   n_grids_x_ve = 10;
   n_grids_x_de = 10;
@@ -55,8 +55,9 @@ int main (int argc, char* argv[])
 
   dx_vehicle = 1e-4; // thickness of vehicle in meter
   area_vehicle = 3.5*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 30.0*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
-  diffu_vehicle = 5e-14; // diffusivity of solute in vehicle
+  conc_vehicle = 15.0*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
+  diffu_vehicle = 1e-13; // diffusivity of solute in vehicle
+  partition_vehicle = 1;
   
 	
   // Provide a command line user interface
@@ -107,7 +108,7 @@ int main (int argc, char* argv[])
   //  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
   _chem.Init(MW, K_ow, pKa, 'B'); // the last letter denotes acid (A) or base (B)
 
-  _skin.Init(_chem, conc_vehicle, diffu_vehicle, dx_vehicle, area_vehicle, 
+  _skin.Init(_chem, conc_vehicle, diffu_vehicle, partition_vehicle, dx_vehicle, area_vehicle, 
 	     n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc, b_inf_src);
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x");
@@ -142,6 +143,8 @@ int main (int argc, char* argv[])
     flux3 = _skin.compFlux_ve2down();
     flux4 =  _skin.compFlux_de2down();
     printf("Time %e flux = %e %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3, flux4);
+
+    // _skin.resetVehicle(conc_vehicle, partition_vehicle, diffu_vehicle);
   }
 
   _skin.Release();

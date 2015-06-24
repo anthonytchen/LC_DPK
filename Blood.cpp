@@ -3,7 +3,7 @@
 
 /*
  */
-void Blood::Init(double frac_unbound, double body_mass, char gender)
+void Blood::Init(double frac_unbound, double k_clear, double body_mass, char gender)
 {	
   double cardiac_output, frac_skin, frac_blood, blood_density, vol_blood_per_kg;
 
@@ -38,7 +38,7 @@ void Blood::Init(double frac_unbound, double body_mass, char gender)
   m_vol_blood_body = vol_blood_per_kg * body_mass;
 
   m_concChem = .0;
-  m_k_clear = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s
+  m_k_clear = k_clear;
   m_f_unbound = frac_unbound;
 
 }

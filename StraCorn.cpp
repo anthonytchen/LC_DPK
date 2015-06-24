@@ -105,7 +105,7 @@ void StraCorn::Release()
 }
 
 
-void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc_vehicle, double diffu_vehicle)
+void StraCorn::createGrids(double MW, double Kow, double water_frac_surface, double conc_vehicle, double diffu_vehicle)
 {
   bool bOffset = false;
   int i, j, idx, idx_x, idx_y, idx_y_offset, cc_subtype_offset, gsl_errno;
@@ -158,12 +158,19 @@ void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc
 
   struct Point current_point;
   setPoint(current_point, 0, 0, dx_lipid, dy_offset, "LP", "LP"); // starting from lipid on the top layer
+
+  double water_frac, water_frac_sat = 0.55; // saturated water content (w/w)
+  double water_increment_per_x = (water_frac_sat - water_frac_surface) / m_x_length;
     
   idx_x = 0; idx_y = idx_y_offset;
   coord_x = coord_y = 0;
   cc_subtype = cc_subtype_offset;
 
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    
+    water_frac = water_frac_surface + current_point.x_coord * water_increment_per_x;
+    // printf("water fraction %lf at %.3e\n", water_frac, current_point.x_coord);
+
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
 			
       idx = i*m_ny + j;
@@ -171,11 +178,11 @@ void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc
       // assign type
       if ( !strcmp(current_point.x_type, "LP") || !strcmp(current_point.y_type, "LP") ) { 
 	// entire lipid layer (1st strcmp) or lateral lipid between two coreneocytes
-	m_grids[idx].Init("LP", MW, water_frac, water_frac, m_V_mortar, m_V_brick, m_V_all,
+	m_grids[idx].Init("LP", MW, water_frac, water_frac_sat, m_V_mortar, m_V_brick, m_V_all,
 			  m_rou_lipid, m_rou_keratin, m_rou_water, m_T, m_eta, Kow, 
 			  current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz);
       } else {
-	m_grids[idx].Init("CC", MW, water_frac, water_frac, m_V_mortar, m_V_brick, m_V_all,
+	m_grids[idx].Init("CC", MW, water_frac, water_frac_sat, m_V_mortar, m_V_brick, m_V_all,
 			  m_rou_lipid, m_rou_keratin, m_rou_water, m_T, m_eta, Kow, 
 			  current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz);
       }
@@ -350,7 +357,7 @@ void StraCorn::createGrids(double MW, double Kow, double water_frac, double conc
       
     } // for j
   } // for i
-
+  //  exit(0);
 }
 
 void StraCorn::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right)

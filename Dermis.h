@@ -34,7 +34,7 @@ public:
   void InitDermisBlood(double, double, double, double bld_concChem=0, double skin_area=1.8);
   void Release();
   
-  void createGrids(double, double, double, char, double);
+  void createGrids(double, double, double, double, double, char, double);
   void updateBoundary(Grid*, Grid*, Grid*, Grid*, double mass_in=0);
   void updateBlood(double);
 	

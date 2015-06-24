@@ -12,7 +12,9 @@ struct pthread_struct {
 };
 
 void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	double partition_vehicle, 
+		double par_dermis2blood, double blood_k_clear,
 		double dx_vehicle, double area_vehicle, 
+		double x_len_ve, double x_len_de,
 		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc,
 		bool bInfSrc)
 {
@@ -26,7 +28,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	
 
   double g, d, s, t, water_frac;
   g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-  water_frac = 0.55; // mass fraction of water in stratum corneum
+  water_frac = 0.20; // mass fraction of water in stratum corneum
 
   m_StraCorn.Init(g, d, s, t, m_dz, n_layer_x_sc, n_layer_y_sc, offset_y_sc, m_boundary_cond);
   m_StraCorn.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, water_frac, conc_vehicle, diffu_vehicle);
@@ -34,27 +36,24 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	
 
   /* set up viable epidermis using fixed geometry */
 
-  double x_len_sc, x_len_ve, y_len_ve;
-  x_len_ve = 20e-6;
+  double x_len_sc, y_len_ve;
   x_len_sc = n_layer_x_sc*(g+t) + g;
   y_len_ve = n_layer_y_sc*(d+s); // depends on the setup for stratum corneum
 
   m_ViaEpd.Init(x_len_ve, y_len_ve, m_dz, n_grids_x_ve);
-  m_ViaEpd.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc);
+  m_ViaEpd.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_frac_non_ion, chemSolute.m_frac_unbound, chemSolute.m_acid_base, x_len_sc);
 
   /* set up dermis using fixed geometry */
 
-  double x_len_de, y_len_de;
-  x_len_de = 900e-6;
+  double y_len_de;
   y_len_de = y_len_ve; // depends on the setup for ve (thus also on stratum corneum)
 
   m_Dermis.Init(x_len_de, y_len_de, m_dz, n_grids_x_de);
-  m_Dermis.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_acid_base, x_len_sc+x_len_ve);
+  m_Dermis.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, chemSolute.m_pKa, chemSolute.m_frac_non_ion, chemSolute.m_frac_unbound, chemSolute.m_acid_base, x_len_sc+x_len_ve);
 
   /* set up blood compartment, then set up the blood properties in dermis */
-  m_Blood.Init(m_Dermis.m_grids->m_ve_fu, 70, 'M');
-  double par_de2blood = 1/pow(10, 0.04); // log_P blood:skin is 0.04 for nicotine
-  m_Dermis.InitDermisBlood(m_Blood.m_flow_capil, m_Blood.m_f_unbound, par_de2blood);
+  m_Blood.Init(m_Dermis.m_grids->m_ve_fu, blood_k_clear, 70, 'M');
+  m_Dermis.InitDermisBlood(m_Blood.m_flow_capil, m_Blood.m_f_unbound, par_dermis2blood);
 
   /* set up vehicle using fixed geometry */
   m_Vehicle_area = area_vehicle;
@@ -255,6 +254,7 @@ void Skin::resetVehicle(double concChem, double partition_coef, double diffu_coe
 {
   m_gridVehicle.Init("SC", concChem, m_gridVehicle.m_K_ow, m_gridVehicle.m_dx, m_gridVehicle.m_dy, m_gridVehicle.m_dz, 
 		     diffu_coef, partition_coef);
+  m_StraCorn.updateBoundary(&m_gridVehicle, NULL, NULL, NULL);  // update top (vehicle) boundary for stratum corneum
 }
 
 void Skin::removeVehicle()

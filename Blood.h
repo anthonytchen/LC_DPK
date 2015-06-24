@@ -21,7 +21,7 @@ public:
 public:
   Blood(void) {};	
   ~Blood(void) {};
-  void Init(double frac_unbound, double body_mass=70, char gender='M');
+  void Init(double frac_unbound, double k_clear, double body_mass=70, char gender='M');
   void Release();
   
   void updateMassInOutDermis(double, double, double);

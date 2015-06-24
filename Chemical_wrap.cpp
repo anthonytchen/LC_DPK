@@ -3487,6 +3487,110 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Chemical_m_frac_non_ion_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Chemical *arg1 = (Chemical *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_frac_non_ion_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_non_ion_set" "', argument " "1"" of type '" "Chemical *""'"); 
+  }
+  arg1 = reinterpret_cast< Chemical * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_frac_non_ion_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_frac_non_ion = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Chemical_m_frac_non_ion_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Chemical *arg1 = (Chemical *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_frac_non_ion_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_non_ion_get" "', argument " "1"" of type '" "Chemical *""'"); 
+  }
+  arg1 = reinterpret_cast< Chemical * >(argp1);
+  result = (double) ((arg1)->m_frac_non_ion);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Chemical_m_frac_unbound_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Chemical *arg1 = (Chemical *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_frac_unbound_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_unbound_set" "', argument " "1"" of type '" "Chemical *""'"); 
+  }
+  arg1 = reinterpret_cast< Chemical * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_frac_unbound_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_frac_unbound = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Chemical_m_frac_unbound_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Chemical *arg1 = (Chemical *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_frac_unbound_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_unbound_get" "', argument " "1"" of type '" "Chemical *""'"); 
+  }
+  arg1 = reinterpret_cast< Chemical * >(argp1);
+  result = (double) ((arg1)->m_frac_unbound);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Chemical_m_acid_base_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   Chemical *arg1 = (Chemical *) 0 ;
@@ -3579,7 +3683,9 @@ SWIGINTERN PyObject *_wrap_Chemical_Init(PyObject *SWIGUNUSEDPARM(self), PyObjec
   double arg2 ;
   double arg3 ;
   double arg4 ;
-  char arg5 ;
+  double arg5 ;
+  double arg6 ;
+  char arg7 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   double val2 ;
@@ -3588,15 +3694,21 @@ SWIGINTERN PyObject *_wrap_Chemical_Init(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int ecode3 = 0 ;
   double val4 ;
   int ecode4 = 0 ;
-  char val5 ;
+  double val5 ;
   int ecode5 = 0 ;
+  double val6 ;
+  int ecode6 = 0 ;
+  char val7 ;
+  int ecode7 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:Chemical_Init",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:Chemical_Init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_Init" "', argument " "1"" of type '" "Chemical *""'"); 
@@ -3617,12 +3729,22 @@ SWIGINTERN PyObject *_wrap_Chemical_Init(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Chemical_Init" "', argument " "4"" of type '" "double""'");
   } 
   arg4 = static_cast< double >(val4);
-  ecode5 = SWIG_AsVal_char(obj4, &val5);
+  ecode5 = SWIG_AsVal_double(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Chemical_Init" "', argument " "5"" of type '" "char""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Chemical_Init" "', argument " "5"" of type '" "double""'");
   } 
-  arg5 = static_cast< char >(val5);
-  (arg1)->Init(arg2,arg3,arg4,arg5);
+  arg5 = static_cast< double >(val5);
+  ecode6 = SWIG_AsVal_double(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Chemical_Init" "', argument " "6"" of type '" "double""'");
+  } 
+  arg6 = static_cast< double >(val6);
+  ecode7 = SWIG_AsVal_char(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Chemical_Init" "', argument " "7"" of type '" "char""'");
+  } 
+  arg7 = static_cast< char >(val7);
+  (arg1)->Init(arg2,arg3,arg4,arg5,arg6,arg7);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3645,6 +3767,10 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Chemical_m_K_ow_get", _wrap_Chemical_m_K_ow_get, METH_VARARGS, NULL},
 	 { (char *)"Chemical_m_pKa_set", _wrap_Chemical_m_pKa_set, METH_VARARGS, NULL},
 	 { (char *)"Chemical_m_pKa_get", _wrap_Chemical_m_pKa_get, METH_VARARGS, NULL},
+	 { (char *)"Chemical_m_frac_non_ion_set", _wrap_Chemical_m_frac_non_ion_set, METH_VARARGS, NULL},
+	 { (char *)"Chemical_m_frac_non_ion_get", _wrap_Chemical_m_frac_non_ion_get, METH_VARARGS, NULL},
+	 { (char *)"Chemical_m_frac_unbound_set", _wrap_Chemical_m_frac_unbound_set, METH_VARARGS, NULL},
+	 { (char *)"Chemical_m_frac_unbound_get", _wrap_Chemical_m_frac_unbound_get, METH_VARARGS, NULL},
 	 { (char *)"Chemical_m_acid_base_set", _wrap_Chemical_m_acid_base_set, METH_VARARGS, NULL},
 	 { (char *)"Chemical_m_acid_base_get", _wrap_Chemical_m_acid_base_get, METH_VARARGS, NULL},
 	 { (char *)"new_Chemical", _wrap_new_Chemical, METH_VARARGS, NULL},

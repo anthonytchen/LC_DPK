@@ -61,7 +61,7 @@ void ViaEpd::Release()
     Kow: partition coefficient between octanol and water
     pKa: the ionisation of the chemical
  */
-void ViaEpd::createGrids(double MW, double Kow, double pKa, char acid_base, double coord_x_now)
+void ViaEpd::createGrids(double MW, double Kow, double pKa, double frac_non_ion, double frac_unbound, char acid_base, double coord_x_now)
 {
   int i, j, idx, idx_x, idx_y, gsl_errno;
   double dx, dy, coord_x, coord_y;
@@ -88,7 +88,7 @@ void ViaEpd::createGrids(double MW, double Kow, double pKa, char acid_base, doub
 			
       idx = i*m_ny + j;
 
-      m_grids[idx].InitVE(MW, Kow, pKa, acid_base, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz);
+      m_grids[idx].InitVE(MW, Kow, pKa, frac_non_ion, frac_unbound, acid_base, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz);
 
       // update current_point
       if (j==m_ny-1) { // last element in the lateral direction, move down

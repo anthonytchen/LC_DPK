@@ -1,4 +1,4 @@
-* TODO simulate the scenario with dose withdrawn after certain time
+* TODO simulate the scenario with multiple doses
 * The way to build the programme is by using
   python setup.py build_ext --inplace
 * The way to use the python modules

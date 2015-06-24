@@ -1,0 +1,18 @@
+class DPKInputParas:
+    '''Class definition for the input parameters for DPK simulation'''
+
+    # define input parameters and assign default values
+    def __init__(self):       
+        
+        # geometric parameters
+        self.n_layer_x_sc = 16
+        self.n_layer_y_sc = 1
+        self.n_grids_x_ve = 10
+        self.n_grids_x_de = 10
+        self.offset_y_sc = 0
+        self.b_inf_src = 0
+
+        # solute parameters
+        self.MW = []
+        self.K_ow = []
+        self.pKa = []

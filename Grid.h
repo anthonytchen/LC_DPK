@@ -58,7 +58,7 @@ public:
   void Init(const char[], double, double, double, double, double, double D_vehicle=1, double K_vehicle=1);
   void Init(const char[], double, double, double, double, double, double, 
 	    double, double, double, double, double, double, double, double, double, double, double);
-  void InitVE(double, double, double, char, double, double, double, double, double); // Initialisation for a viable epidermis grid
+  void InitVE(double, double, double, double, double, char, double, double, double, double, double); // Initialisation for a viable epidermis grid
   void Release() {};
 	
 

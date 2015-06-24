@@ -5379,12 +5379,16 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   double arg5 ;
   double arg6 ;
   double arg7 ;
-  int arg8 ;
-  int arg9 ;
-  int arg10 ;
-  int arg11 ;
-  double arg12 ;
-  bool arg13 ;
+  double arg8 ;
+  double arg9 ;
+  double arg10 ;
+  double arg11 ;
+  int arg12 ;
+  int arg13 ;
+  int arg14 ;
+  int arg15 ;
+  double arg16 ;
+  bool arg17 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 ;
@@ -5399,18 +5403,26 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   int ecode6 = 0 ;
   double val7 ;
   int ecode7 = 0 ;
-  int val8 ;
+  double val8 ;
   int ecode8 = 0 ;
-  int val9 ;
+  double val9 ;
   int ecode9 = 0 ;
-  int val10 ;
+  double val10 ;
   int ecode10 = 0 ;
-  int val11 ;
+  double val11 ;
   int ecode11 = 0 ;
-  double val12 ;
+  int val12 ;
   int ecode12 = 0 ;
-  bool val13 ;
+  int val13 ;
   int ecode13 = 0 ;
+  int val14 ;
+  int ecode14 = 0 ;
+  int val15 ;
+  int ecode15 = 0 ;
+  double val16 ;
+  int ecode16 = 0 ;
+  bool val17 ;
+  int ecode17 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -5424,8 +5436,12 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   PyObject * obj10 = 0 ;
   PyObject * obj11 = 0 ;
   PyObject * obj12 = 0 ;
+  PyObject * obj13 = 0 ;
+  PyObject * obj14 = 0 ;
+  PyObject * obj15 = 0 ;
+  PyObject * obj16 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOO:Skin_Init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOO:Skin_Init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Skin, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Skin_Init" "', argument " "1"" of type '" "Skin *""'"); 
@@ -5469,37 +5485,57 @@ SWIGINTERN PyObject *_wrap_Skin_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Skin_Init" "', argument " "7"" of type '" "double""'");
   } 
   arg7 = static_cast< double >(val7);
-  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  ecode8 = SWIG_AsVal_double(obj7, &val8);
   if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Skin_Init" "', argument " "8"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Skin_Init" "', argument " "8"" of type '" "double""'");
   } 
-  arg8 = static_cast< int >(val8);
-  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  arg8 = static_cast< double >(val8);
+  ecode9 = SWIG_AsVal_double(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Skin_Init" "', argument " "9"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Skin_Init" "', argument " "9"" of type '" "double""'");
   } 
-  arg9 = static_cast< int >(val9);
-  ecode10 = SWIG_AsVal_int(obj9, &val10);
+  arg9 = static_cast< double >(val9);
+  ecode10 = SWIG_AsVal_double(obj9, &val10);
   if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Skin_Init" "', argument " "10"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Skin_Init" "', argument " "10"" of type '" "double""'");
   } 
-  arg10 = static_cast< int >(val10);
-  ecode11 = SWIG_AsVal_int(obj10, &val11);
+  arg10 = static_cast< double >(val10);
+  ecode11 = SWIG_AsVal_double(obj10, &val11);
   if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "Skin_Init" "', argument " "11"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "Skin_Init" "', argument " "11"" of type '" "double""'");
   } 
-  arg11 = static_cast< int >(val11);
-  ecode12 = SWIG_AsVal_double(obj11, &val12);
+  arg11 = static_cast< double >(val11);
+  ecode12 = SWIG_AsVal_int(obj11, &val12);
   if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Skin_Init" "', argument " "12"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Skin_Init" "', argument " "12"" of type '" "int""'");
   } 
-  arg12 = static_cast< double >(val12);
-  ecode13 = SWIG_AsVal_bool(obj12, &val13);
+  arg12 = static_cast< int >(val12);
+  ecode13 = SWIG_AsVal_int(obj12, &val13);
   if (!SWIG_IsOK(ecode13)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "Skin_Init" "', argument " "13"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "Skin_Init" "', argument " "13"" of type '" "int""'");
   } 
-  arg13 = static_cast< bool >(val13);
-  (arg1)->Init(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
+  arg13 = static_cast< int >(val13);
+  ecode14 = SWIG_AsVal_int(obj13, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "Skin_Init" "', argument " "14"" of type '" "int""'");
+  } 
+  arg14 = static_cast< int >(val14);
+  ecode15 = SWIG_AsVal_int(obj14, &val15);
+  if (!SWIG_IsOK(ecode15)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode15), "in method '" "Skin_Init" "', argument " "15"" of type '" "int""'");
+  } 
+  arg15 = static_cast< int >(val15);
+  ecode16 = SWIG_AsVal_double(obj15, &val16);
+  if (!SWIG_IsOK(ecode16)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "Skin_Init" "', argument " "16"" of type '" "double""'");
+  } 
+  arg16 = static_cast< double >(val16);
+  ecode17 = SWIG_AsVal_bool(obj16, &val17);
+  if (!SWIG_IsOK(ecode17)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "Skin_Init" "', argument " "17"" of type '" "bool""'");
+  } 
+  arg17 = static_cast< bool >(val17);
+  (arg1)->Init(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:

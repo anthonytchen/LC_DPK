@@ -38,7 +38,7 @@ public:
 public:
   Skin(void) {};	
   ~Skin(void) {};
-  void Init(Chemical, double, double, double, double, double, int, int, int, int, double, bool);
+  void Init(Chemical, double, double, double, double, double, double, double, double, double, int, int, int, int, double, bool);
   void Release();
   
   void diffuseMoL(double t_start, double t_end); // method of lines using CVODE solver
