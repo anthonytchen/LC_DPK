@@ -28,7 +28,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	
 
   double g, d, s, t, water_frac;
   g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-  water_frac = 0.20; // mass fraction of water in stratum corneum
+  water_frac = 0.55; // mass fraction of water in stratum corneum
 
   m_StraCorn.Init(g, d, s, t, m_dz, n_layer_x_sc, n_layer_y_sc, offset_y_sc, m_boundary_cond);
   m_StraCorn.createGrids(chemSolute.m_mw, chemSolute.m_K_ow, water_frac, conc_vehicle, diffu_vehicle);
@@ -56,6 +56,7 @@ void Skin::Init(Chemical chemSolute, double conc_vehicle, double diffu_vehicle,	
   m_Dermis.InitDermisBlood(m_Blood.m_flow_capil, m_Blood.m_f_unbound, par_dermis2blood);
 
   /* set up vehicle using fixed geometry */
+  m_concVehicleInit = conc_vehicle;
   m_Vehicle_area = area_vehicle;
   m_gridVehicle.Init("SC", conc_vehicle, chemSolute.m_K_ow, dx_vehicle, y_len_ve, m_dz, diffu_vehicle, partition_vehicle);
   m_gridSink.Init("SK", 0, chemSolute.m_K_ow, 0, 0, m_dz);
@@ -148,7 +149,7 @@ void Skin::diffuseMoL(double t_start, double t_end)
   dim_sc = m_StraCorn.m_nx*m_StraCorn.m_ny;
   dim_ve = m_ViaEpd.m_nx*m_ViaEpd.m_ny;
   dim_de = m_Dermis.m_nx*m_Dermis.m_ny;
-  dim_bld = 1;
+  dim_bld = 2;
   dim = dim_vh + dim_sc + dim_ve + dim_de + dim_bld;
 
   /* get current concentration, and set as initial conditions */
@@ -176,6 +177,7 @@ void Skin::diffuseMoL(double t_start, double t_end)
 
   // from blood
   y[dim_vh+dim_sc+dim_ve+dim_de] = m_Blood.m_concChem;
+  y[dim_vh+dim_sc+dim_ve+dim_de+1] = m_Blood.m_concCleared;
 
   /* ------------- */
 
@@ -239,6 +241,7 @@ void Skin::diffuseMoL(double t_start, double t_end)
 
   // for blood
   m_Blood.m_concChem = NV_Ith_S(y0, dim_vh+dim_sc+dim_ve+dim_de);
+  m_Blood.m_concCleared = NV_Ith_S(y0, dim_vh+dim_sc+dim_ve+dim_de+1);
 
   /* ------------------------- */
   
@@ -430,24 +433,31 @@ double Skin::compFlux_de2down()
   flux = -mass_transfer_rate / total_area;
   return flux;
 }
-/*double Skin::compFlux_de2down()
+
+/* Compute the mass (or mol, depending on concentration unit used) of solute in 
+   each layer
+ */
+void Skin::getLayersAmount(double *fLayersAmount, int dim)
 {
-  int j, idx;
-  double flux, area, total_area;
-  Grid *gridThiis = NULL;
+  // order of values (9 items):
+  //    [initial amount in vehicle] [current amount in vehicle]
+  //    [current amount in stratum corneum] [current amount in lipid of stratum corneum] [current amount in corneocyte of stratum corneum]
+  //    [current amount in viable epidermis]
+  //    [current amount in dermis]
+  //    [current amount in blood]
+  //    [current amount in skin, i.e. cumulative amount cleared from blood]
+  assert( fLayersAmount && dim==9 );
 
-  idx = (m_Dermis.m_nx-1)*m_Dermis.m_ny;
-  total_area = 0;
+  // Compute the amount in vehicle
+  fLayersAmount[0] = m_concVehicleInit           * (m_gridVehicle.m_dx*m_gridVehicle.m_dy*m_gridVehicle.m_dz);
+  fLayersAmount[1] = m_gridVehicle.getConcChem() * (m_gridVehicle.m_dx*m_gridVehicle.m_dy*m_gridVehicle.m_dz);
 
-  for ( j=0; j<m_Dermis.m_ny; j++ ) { // y direction left to right
-				
-    gridThiis = &m_Dermis.m_grids[idx+j];
-    area = gridThiis->m_dy*gridThiis->m_dz;
-    total_area += area;
-  }
-  flux = m_Dermis.m_mass_out / total_area;
-  return flux;
-}*/
+  m_StraCorn.getAmount(fLayersAmount+2, fLayersAmount+3, fLayersAmount+4);
+  fLayersAmount[5] = m_ViaEpd.getAmount();
+  fLayersAmount[6] = m_Dermis.getAmount();
+  fLayersAmount[7] = m_Blood.getAmount();
+  fLayersAmount[8] = m_Blood.getClearedAmount();
+}
 
 	
 /*  ++++++++++++++++++++++++++++++++++

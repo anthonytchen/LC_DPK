@@ -44,6 +44,7 @@ public:
   // I/O functions
   void displayGrids();
   void getGridsConc(double*, int);
+  void getAmount(double*, double*, double*);
   void comp1DConc();
   void saveGrids(bool, const char []);
   void getXCoord(double*, int);

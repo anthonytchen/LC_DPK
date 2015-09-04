@@ -41,6 +41,9 @@ void Blood::Init(double frac_unbound, double k_clear, double body_mass, char gen
   m_k_clear = k_clear;
   m_f_unbound = frac_unbound;
 
+  m_concCleared = .0;
+  m_vol_cleared = 1.0; // arbitrary reference value
+
 }
 
 void Blood::Release()
@@ -62,6 +65,7 @@ void Blood::compODE_dydt (double t, const double y[], double f[])
 {
   f[0] = (-m_mass_into_dermis + m_mass_outfrom_dermis)/m_vol_blood_body;
   f[0] -= m_k_clear * y[0] / m_vol_blood_body;
+  f[1] = m_k_clear * y[0] / m_vol_cleared;
 }
 
 /* ----------------- */

@@ -47,6 +47,10 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
   m_concChem = 0;
   m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
 	
+  m_rou_lipid = rou_lipid;
+  m_rou_keratin = rou_keratin;
+  m_rou_water = rou_water;
+
   double K;
 	
   K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
@@ -88,7 +92,7 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
   mass_lipid = (1 - mass_frac_water_sat) * f_l;
   mass_keratin = (1 - mass_frac_water_sat) * f_k;
 
-  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
+  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water_sat/rou_water;
   V_lipid = mass_lipid/rou_lipid / V_all;
   V_keratin = mass_keratin/rou_keratin / V_all;
 
@@ -277,9 +281,12 @@ void Grid::compDiffusivity(double D_vehicle)
 			
   } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
 
-    // c.f. L. Chen's Phar. Res. paper; -8.15 should be -4.15 c.f. Kasting's original paper
-    D_free = pow(10, -4.15-0.655*log10(m_mw));
+    // c.f. L. Chen's Phar. Res. paper; -8.15 used because of unit (m2/s)
+    //  Kasting's original paper used -4.15 because of unit (cm2/s)
+    D_free = pow(10, -8.15-0.655*log10(m_mw));
     m_D = D_free / m_ve_binding_factor;
+    // printf("m_D = %.5e\n", m_D);
+    // exit(0);
 
   } else if ( !strcmp(m_name, "SC") ) { // vehicle source
 	
@@ -307,16 +314,22 @@ void Grid::compKcoef(double K_vehicle)
 	
   if ( !strcmp(m_name, "LP") ) {	// lipid	
     //m_Kw = pow(m_K_ow, 0.7);
-    m_Kw = 0.9*pow(m_K_ow,0.69);
+    m_Kw = m_rou_lipid / m_rou_water * pow(m_K_ow,0.69);
+    // printf("Kw = %.5lf\n", m_Kw); exit(0);
   } else if ( !strcmp(m_name, "CC") ) { // corneocyte
+    /*
     if (m_K_ow>10)
       K_kw = 5.6 * pow(m_K_ow, 0.27);
     else 
       K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
-    K_kw = 1.37*4.2*pow(m_K_ow,0.31);
-    m_Kw = (1-m_phi_b) * K_kw + m_theta_b;		
+    */
+    K_kw = m_rou_keratin / m_rou_water * 4.2 * pow(m_K_ow,0.31);
+    m_Kw = (1-m_phi_b) * K_kw + m_theta_b;
+    // printf("phi_b %.3lf, theta_b  %.3lf, kkw  %.3lf, kw  %.3lf\n", m_phi_b, m_theta_b, K_kw, m_Kw);
+    // exit(0);
   } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
     m_Kw = 0.7 * m_ve_binding_factor;
+    // printf("Kw = %.5lf\n", m_Kw); exit(0);
   } else if ( !strcmp(m_name, "SC") ) { // vehicle source
     m_Kw = K_vehicle;
   } else if ( !strcmp(m_name, "SK") ) { // sink

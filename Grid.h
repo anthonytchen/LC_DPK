@@ -41,7 +41,8 @@ public:
     m_theta_b, // volume fraction of water in corneocyte
     m_mass_frac_water, // mass fraction of water in this grid
     m_r_s, // solute radius
-    m_r_f; // keratin microfibril radius, in nm
+    m_r_f, // keratin microfibril radius, in nm
+    m_rou_lipid, m_rou_keratin, m_rou_water; // the density of lipid, keratin and water
 
   double m_concChem, // concentration of chemical
     m_concWater; // concentration of water (hydration level)

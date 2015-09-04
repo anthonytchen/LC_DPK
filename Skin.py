@@ -75,33 +75,9 @@ class Skin(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, Skin, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["m_rou_lipid"] = _Skin.Skin_m_rou_lipid_set
-    __swig_getmethods__["m_rou_lipid"] = _Skin.Skin_m_rou_lipid_get
-    if _newclass:m_rou_lipid = _swig_property(_Skin.Skin_m_rou_lipid_get, _Skin.Skin_m_rou_lipid_set)
-    __swig_setmethods__["m_rou_keratin"] = _Skin.Skin_m_rou_keratin_set
-    __swig_getmethods__["m_rou_keratin"] = _Skin.Skin_m_rou_keratin_get
-    if _newclass:m_rou_keratin = _swig_property(_Skin.Skin_m_rou_keratin_get, _Skin.Skin_m_rou_keratin_set)
-    __swig_setmethods__["m_rou_water"] = _Skin.Skin_m_rou_water_set
-    __swig_getmethods__["m_rou_water"] = _Skin.Skin_m_rou_water_get
-    if _newclass:m_rou_water = _swig_property(_Skin.Skin_m_rou_water_get, _Skin.Skin_m_rou_water_set)
-    __swig_setmethods__["m_mw"] = _Skin.Skin_m_mw_set
-    __swig_getmethods__["m_mw"] = _Skin.Skin_m_mw_get
-    if _newclass:m_mw = _swig_property(_Skin.Skin_m_mw_get, _Skin.Skin_m_mw_set)
-    __swig_setmethods__["m_concSource"] = _Skin.Skin_m_concSource_set
-    __swig_getmethods__["m_concSource"] = _Skin.Skin_m_concSource_get
-    if _newclass:m_concSource = _swig_property(_Skin.Skin_m_concSource_get, _Skin.Skin_m_concSource_set)
-    __swig_setmethods__["m_DSource"] = _Skin.Skin_m_DSource_set
-    __swig_getmethods__["m_DSource"] = _Skin.Skin_m_DSource_get
-    if _newclass:m_DSource = _swig_property(_Skin.Skin_m_DSource_get, _Skin.Skin_m_DSource_set)
-    __swig_setmethods__["m_K_ow"] = _Skin.Skin_m_K_ow_set
-    __swig_getmethods__["m_K_ow"] = _Skin.Skin_m_K_ow_get
-    if _newclass:m_K_ow = _swig_property(_Skin.Skin_m_K_ow_get, _Skin.Skin_m_K_ow_set)
-    __swig_setmethods__["m_T"] = _Skin.Skin_m_T_set
-    __swig_getmethods__["m_T"] = _Skin.Skin_m_T_get
-    if _newclass:m_T = _swig_property(_Skin.Skin_m_T_get, _Skin.Skin_m_T_set)
-    __swig_setmethods__["m_eta"] = _Skin.Skin_m_eta_set
-    __swig_getmethods__["m_eta"] = _Skin.Skin_m_eta_get
-    if _newclass:m_eta = _swig_property(_Skin.Skin_m_eta_get, _Skin.Skin_m_eta_set)
+    __swig_setmethods__["m_concVehicleInit"] = _Skin.Skin_m_concVehicleInit_set
+    __swig_getmethods__["m_concVehicleInit"] = _Skin.Skin_m_concVehicleInit_get
+    if _newclass:m_concVehicleInit = _swig_property(_Skin.Skin_m_concVehicleInit_get, _Skin.Skin_m_concVehicleInit_set)
     __swig_setmethods__["m_dz"] = _Skin.Skin_m_dz_set
     __swig_getmethods__["m_dz"] = _Skin.Skin_m_dz_get
     if _newclass:m_dz = _swig_property(_Skin.Skin_m_dz_get, _Skin.Skin_m_dz_set)
@@ -186,6 +162,7 @@ class Skin(_object):
     def get1DConcSC(self, *args): return _Skin.Skin_get1DConcSC(self, *args)
     def get1DCoordSC(self, *args): return _Skin.Skin_get1DCoordSC(self, *args)
     def getGridsConc(self, *args): return _Skin.Skin_getGridsConc(self, *args)
+    def getLayersAmount(self, *args): return _Skin.Skin_getLayersAmount(self, *args)
     def displayGrids(self): return _Skin.Skin_displayGrids(self)
     def saveGrids(self, *args): return _Skin.Skin_saveGrids(self, *args)
     def saveVehicle(self, *args): return _Skin.Skin_saveVehicle(self, *args)

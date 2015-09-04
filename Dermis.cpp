@@ -326,10 +326,13 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
 
       if ( i ==m_nx-1 ) m_mass_out += -mass;
 
+      
       if (m_bToBlood) { // if clearance into blood, then do not use infinite sink as boundary condition
 	if ( i !=m_nx-1 ) mass_transfer_rate += mass;
       } else 
 	mass_transfer_rate += mass;
+      
+      //mass_transfer_rate += mass;
 
       if (m_ode_Jacobian!=NULL) {
 	deriv_this_sum += deriv_this / gridThiis->m_dx;
@@ -339,8 +342,17 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
 
 			
       f[idx_this] = mass_transfer_rate / volume_this;
+
+      bool bWholeDermis2Blood = 1;
       if (m_bToBlood) {
-	flow_this_grid = m_bld_skin_flow * volume_this/m_dermis_totalV;
+
+	if (bWholeDermis2Blood) // solute diffuses into blood from every grid in dermis
+	  flow_this_grid = m_bld_skin_flow * volume_this/m_dermis_totalV;
+	else if (i==m_nx-1) // solute only diffuses into blood at the bottom of dermis
+	  flow_this_grid = m_bld_skin_flow * (volume_this/gridThiis->m_dx) / (m_dermis_totalV/m_x_length);
+	else
+	  goto out_bd;
+
 	fin = flow_this_grid * m_bld_concChem;
 	fout = flow_this_grid * conc_this * (gridThiis->m_ve_fu/m_bld_fu) / m_par_de2blood;
 
@@ -350,7 +362,7 @@ void Dermis::compODE_dydt_block (double t, const double y[], double f[],
 	m_mass_outof_dermis += fout;
       }
 
-      if (m_ode_Jacobian!=NULL) 
+      out_bd: if (m_ode_Jacobian!=NULL) 
 	m_ode_Jacobian[ idx_this*dim + idx_this ] = deriv_this_sum;
 
     } // for j
@@ -393,6 +405,24 @@ void Dermis::getGridsConc(double *fGridsConc, int dim)
        fGridsConc[idx] = m_grids[idx].getConcChem();
      }
   } // for i
+}
+
+double Dermis::getAmount()
+{
+  assert( m_grids );
+
+  int i, j, idx;
+  double amount;
+	
+  amount = .0;
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+       amount += m_grids[idx].getConcChem() * m_grids[idx].m_dx * m_grids[idx].m_dy * m_grids[idx].m_dz;
+     }
+  } // for i
+
+  return amount;
 }
 
 void Dermis::saveGrids(bool b_1st_time, const char fn[])

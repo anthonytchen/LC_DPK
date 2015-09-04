@@ -10,6 +10,8 @@ public:
   double m_flow_capil, // volumetric capillary blood flow rate
     m_vol_blood_body, // blood volume of the entire body
     m_concChem, // solute concentration in blood
+    m_concCleared, // solute concentration in cleared compartment
+    m_vol_cleared, // volume of the cleared compartment
     m_k_clear, // the clearance constant
     m_f_unbound; // fraction of unbounded solute in blood
 
@@ -31,6 +33,8 @@ public:
 	
   // I/O functions
   double getConcChem() { return m_concChem; };
+  double getAmount() { return m_concChem*m_vol_blood_body; };
+  double getClearedAmount() { return m_concCleared*m_vol_cleared; };
   void displayGrids();
   void saveConc(bool, const char []);
 };

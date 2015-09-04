@@ -10,8 +10,8 @@
 int main (int argc, char* argv[])
 {
   double MW, K_ow, pKa,
-    conc_vehicle, diffu_vehicle, partition_vehicle, area_vehicle,
-    t_simu, t_end, t_inv, offset_y_sc, dx_vehicle;
+    conc_vehicle, diffu_vehicle, partition_vehicle, partition_dermis2blood, k_clear_blood, area_vehicle,
+    t_simu, t_end, t_inv, offset_y_sc, dx_vehicle, x_len_viaepd, x_len_dermis;
   bool b_1st_save = true;
   int b_inf_src = 0;
   int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de;
@@ -27,6 +27,8 @@ int main (int argc, char* argv[])
   n_grids_x_ve = 10;
   n_grids_x_de = 10;
   offset_y_sc = 0;
+  x_len_viaepd = 100e-6; // depth of viable epidermis
+  x_len_dermis = 1200e-6; // depth of dermis
   
   // 4-Cyanophenol
   /*
@@ -58,6 +60,8 @@ int main (int argc, char* argv[])
   conc_vehicle = 15.0*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
   diffu_vehicle = 1e-13; // diffusivity of solute in vehicle
   partition_vehicle = 1;
+  partition_dermis2blood = 1.0/pow(10,0.04);
+  k_clear_blood = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s, 1250 = 20.8e-6, 1540 = 25.7e-6
   
 	
   // Provide a command line user interface
@@ -106,9 +110,10 @@ int main (int argc, char* argv[])
   Skin _skin;
   
   //  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
-  _chem.Init(MW, K_ow, pKa, 'B'); // the last letter denotes acid (A) or base (B)
+  _chem.Init(MW, K_ow, pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
 
-  _skin.Init(_chem, conc_vehicle, diffu_vehicle, partition_vehicle, dx_vehicle, area_vehicle, 
+  _skin.Init(_chem, conc_vehicle, diffu_vehicle, partition_vehicle, partition_dermis2blood, k_clear_blood,
+	     dx_vehicle, area_vehicle, x_len_viaepd, x_len_dermis,
 	     n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc, b_inf_src);
   
   strcpy(fn_coord_x, pre_coord); strcat(fn_coord_x, "_x");

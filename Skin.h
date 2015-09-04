@@ -10,11 +10,7 @@
 class Skin
 {
 public:
-  double m_rou_lipid, m_rou_keratin, m_rou_water, // the density of lipid, keratin and water
-    m_mw, // molecular weight
-    m_concSource, m_DSource, // source concentration and diffusivity
-    m_K_ow,	//partition coefficient between octanol and water
-    m_T, m_eta; // temperature, viscosity of water
+  double m_concVehicleInit; // Initial concentration in the vehicle
   double m_dz, m_x_length, m_y_length, // the skin size in the z, x (verticle)
                                        //	and y (lateral) directions
     m_x_length_ve; // the depth of viable epidermis
@@ -73,6 +69,8 @@ public:
   void get1DCoordSC(double *ret, int dim_ret);
 
   void getGridsConc(double *ret, int dim_ret);
+  void getLayersAmount(double *ret, int dim_ret);
+
   void displayGrids();
   void saveGrids(bool, const char []);
   void saveVehicle(bool, const char []);

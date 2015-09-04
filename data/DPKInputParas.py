@@ -7,7 +7,7 @@ class DPKInputParas:
         # skin geometric parameters
         self.n_layer_x_sc = 16
         self.n_layer_y_sc = 1
-        self.x_len_viaepd = 70e-6 # depth of viable epidermis
+        self.x_len_viaepd = 100e-6 # depth of viable epidermis
         self.x_len_dermis = 1200e-6 # depth of dermis
         self.n_grids_x_ve = 10
         self.n_grids_x_de = 10

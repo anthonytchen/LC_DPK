@@ -356,6 +356,24 @@ void ViaEpd::getGridsConc(double *fGridsConc, int dim)
   } // for i
 }
 
+double ViaEpd::getAmount()
+{
+  assert( m_grids );
+
+  int i, j, idx;
+  double amount;
+	
+  amount = .0;
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+       amount += m_grids[idx].getConcChem() * m_grids[idx].m_dx * m_grids[idx].m_dy * m_grids[idx].m_dz;
+     }
+  } // for i
+
+  return amount;
+}
+
 void ViaEpd::saveGrids(bool b_1st_time, const char fn[])
 {
   assert( m_grids );

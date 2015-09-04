@@ -29,16 +29,16 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
   /* set up some constant values */
 
   // density of lipid, keratin and water
-  m_rou_lipid = 1e3; // kg m^{-3}
-  m_rou_keratin = 1.2e3; // kg m^{-3}
+  m_rou_lipid = 0.9e3; // kg m^{-3}
+  m_rou_keratin = 1.37e3; // kg m^{-3}
   m_rou_water = 1e3; // kg m^{-3}
 
   // dimension related; c.f. Readme.docx for more details
   m_w = 8.0; // offset ratio, 8.0
-  m_nx_grids_lipid = 1; // # of x-grids for lipid layer, 2
-  m_nx_grids_cc = 1; // # of x-grids for corneocyte layer, 4
-  m_ny_grids_lipid = 1; // # of y-grids for lipid layer, 2
-  m_ny_grids_cc_dn = 1; // # of y-grids for dn-part of the offset corneocyte layer, 2
+  m_nx_grids_lipid = 2; // # of x-grids for lipid layer, 2
+  m_nx_grids_cc = 4; // # of x-grids for corneocyte layer, 4
+  m_ny_grids_lipid = 2; // # of y-grids for lipid layer, 2
+  m_ny_grids_cc_dn = 2; // # of y-grids for dn-part of the offset corneocyte layer, 2
 
   m_T = 309; // temperature (Kelvin)
   m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
@@ -71,6 +71,7 @@ void StraCorn::Init(double g, double d, double s, double t, double dz,
   m_V_mortar = ( g*(d+s)+t*s ) * dz;	
   m_V_brick = d*t * dz;
   m_V_all = m_V_mortar + m_V_brick;
+  // printf("frac = %.5lf\n", m_V_mortar/m_V_all); exit(0);
 
   m_offset_y =  offset_y;
 
@@ -607,6 +608,35 @@ void StraCorn::getGridsConc(double *fGridsConc, int dim)
      }
   } // for i
 }
+
+void StraCorn::getAmount(double *amount_total, double *amount_lipid, double *amount_corneocyte)
+{
+  assert( m_grids );
+
+  *amount_total = *amount_lipid = *amount_corneocyte = .0;
+
+  int i, j, idx, gsl_errno;
+  double volume, amount;
+	
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+
+       volume = m_grids[idx].m_dx * m_grids[idx].m_dy * m_grids[idx].m_dz;
+       amount = m_grids[idx].getConcChem() * volume;
+
+       if ( !strcmp(m_grids[idx].m_name, "LP") )
+	 *amount_lipid += amount;
+       else if (!strcmp(m_grids[idx].m_name, "CC") )
+	 *amount_corneocyte += amount;
+       else
+	 gsl_error ("subtype name unknown", __FILE__, __LINE__, gsl_errno);       
+     }
+  }
+
+  *amount_total = *amount_lipid + *amount_corneocyte;
+}
+
 
 void StraCorn::comp1DConc()
 {
