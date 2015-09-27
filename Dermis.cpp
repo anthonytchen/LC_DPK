@@ -16,14 +16,14 @@ struct pthread_struct {
 
 /*
  */
-void Dermis::Init(double x_length, double y_length, double dz, int n_grids_x)
+void Dermis::Init(double x_length, double y_length, double dz, int n_grids_x, bool b_has_blood)
 {	
 
   /* set up some constant values */
 
   m_boundary_cond = 1; // boundary condition for left/right; 
                        //  0: zero flux; 1: periodic
-  m_bToBlood = true; // whether dermis is connected to blood
+  m_bToBlood = b_has_blood; // whether dermis is connected to blood
 
   /* ---- */
 

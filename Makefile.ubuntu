@@ -19,7 +19,7 @@ LD=g++
 LFLAGS=-g -O0 -Wno-write-strings
 
 
-all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o LCK #Calib_LCK
+all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o LCK LCK_metabo #Calib_LCK
 
 clean:
 	rm -f *.o *.lnk
@@ -27,6 +27,8 @@ clean:
 ### executables ##
 LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o
 	$(LD) $(LFLAGS)  LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o $(LIBS) $(INC) -o LCK
+LCK_metabo: LCK_metabo.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o
+	$(LD) $(LFLAGS)  LCK_metabo.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o $(LIBS) $(INC) -o LCK_metabo
 Calib_LCK: Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
 	$(LD) $(LFLAGS)  Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o arg.o $(LIBS) $(INC) -o Calib_LCK
 

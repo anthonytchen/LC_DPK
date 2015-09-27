@@ -30,7 +30,7 @@ class Dermis
 public:
   Dermis(void) {};	
   ~Dermis(void) {};
-  void Init(double, double, double, int);
+  void Init(double, double, double, int, bool b_has_blood=1);
   void InitDermisBlood(double, double, double, double bld_concChem=0, double skin_area=1.8);
   void Release();
   
