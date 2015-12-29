@@ -1,19 +1,6 @@
 #include "stdafx.h"
 #include "Comp.h"
 
-/* Structure and definition for parallel computing */
-#define NTHREADS 1 // number of threads for parallel computing
-struct pthread_struct {
-	Comp *comp_obj;
-	double t;
-	const double *y;
-	double *f;
-	int x_start, x_end, y_start, y_end;
-};
-/* ------------------- */
-
-
-
 /* This function will be called at the beginning of the compartment-specific Init function
    thus it only sets up member variables generic to all types of compartment
  */
@@ -27,6 +14,8 @@ void Comp::Init( CoordSys coord_sys, double dz_dtheta,
   m_BdyCond_left = bdy_cond_left;
   m_BdyCond_right = bdy_cond_right;
   m_BdyCond_down = bdy_cond_down;
+  m_n_gridsBdyRight = 0;
+  m_n_gridsBdyDown = 0;
 
   m_gridsBdyUp = NULL;
   m_gridsBdyLeft = NULL;
@@ -38,15 +27,82 @@ void Comp::Init( CoordSys coord_sys, double dz_dtheta,
   m_ode_Jacobian = NULL;
 }
 
-/*
-void StraCorn::updateBoundary(Grid* up, Grid* down, Grid* left, Grid* right)
+void Comp::Release()
 {
-  if (up!=NULL) m_gridBdyUp.set(up);
-  if (down!=NULL) m_gridBdyDown.set(down);
-  if (left!=NULL) m_gridBdyLeft.set(left);
-  if (right!=NULL) m_gridBdyRight.set(right);
+  int i, j, idx;
+  if (!m_grids) {
+    for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+      for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+	idx = i*m_ny + j;
+	m_grids[idx].Release();
+      }
+    }
+    delete [] m_grids;
+  }
+
+  if (m_BdyCond_up == FromOther)
+    delete [] m_MassIn_up;
+
+  if (m_BdyCond_left == FromOther)
+    delete [] m_MassIn_left;
+
+  if (m_BdyCond_right == FromOther)
+    delete [] m_gridsBdyRight;
+
+  if (m_BdyCond_down == FromOther) 
+    delete [] m_gridsBdyDown;
 }
-*/
+
+void Comp::createBoundary(int n_gridsBdyRight, int n_gridsBdyDown)
+{
+  if (m_BdyCond_up == FromOther)
+    m_MassIn_up = new double[m_ny];
+
+  if (m_BdyCond_left == FromOther)
+    m_MassIn_left = new double[m_nx];
+
+  if (m_BdyCond_right == FromOther) {
+    assert (n_gridsBdyRight > 0);
+    m_n_gridsBdyRight = n_gridsBdyRight;
+    m_gridsBdyRight = new Grid[n_gridsBdyRight];
+  }
+
+  if (m_BdyCond_down == FromOther) {
+    assert (n_gridsBdyDown > 0);
+    m_n_gridsBdyDown = n_gridsBdyDown;
+    m_gridsBdyDown = new Grid[n_gridsBdyDown];
+  }
+}
+
+void Comp::setBoundaryGrids(Grid *gridsBdyRight, Grid *gridsBdyDown)
+{
+  int i;
+
+  if (!m_n_gridsBdyRight) {
+    for (i=0; i< m_n_gridsBdyRight; i++)
+      m_gridsBdyRight[i].set(&gridsBdyRight[i]);
+  }
+
+  if (!m_n_gridsBdyDown) {
+    for (i=0; i< m_n_gridsBdyDown; i++)
+      m_gridsBdyDown[i].set(&gridsBdyDown[i]);
+  }
+}
+
+void Comp::setBoundaryConc(double *concBdyRight, double *concBdyDown)
+{
+  int i;
+
+  if (!m_n_gridsBdyRight) {
+    for (i=0; i< m_n_gridsBdyRight; i++)
+      m_gridsBdyRight[i].m_concChem = concBdyRight[i];
+  }
+
+  if (!m_n_gridsBdyDown) {
+    for (i=0; i< m_n_gridsBdyDown; i++)
+      m_gridsBdyDown[i].m_concChem = concBdyDown[i];
+  }
+}
 
 
 /* Calculate the interfacial area between gridThiis and a neighbouring grid
@@ -114,23 +170,24 @@ double Comp::compVolume(Grid gridThiis)
 }
 
 /* compute mass transfer between gridThhis and neighbouring grids to the right
-   whose meshing does not match exactly to gridTThis, e.g. 
-   gridTThis may interface with multiple grids to the right */
-double Comp::compMassIrregGridsRight(Grid gridThhis, double conc_this)
+   whose meshing does not match exactly to gridThiis, e.g. 
+   gridThiis may interface with multiple grids to the right */
+double Comp::compMassIrregGridsRight(Grid gridThiis, double conc_this)
 {
   int i;
+  bool bDone = false;
   double x1_this, x2_this, currentX, nextX, x_length, z_length, thd, deriv_this, deriv_other, area;
-  double massIntoThis, mass;
+  double massIntoThis, mass, conc_other, flux;
   Grid *gridOther = NULL;
   
-  thd = gridThhis.m_dx * 1e-3; // to compare whether two real numbers are the same
+  thd = gridThiis.m_dx * 1e-3; // to compare whether two real numbers are the same
 
-  x1_this = gridTThis.m_x_coord;
-  x2_this = x1_this + gridTThis.m_dx;
+  x1_this = gridThiis.m_x_coord;
+  x2_this = x1_this + gridThiis.m_dx;
 
-  massTrans = currentX = 0;
+  massIntoThis = currentX = 0;
 
-  z_length = compInterArea(gridThiis, 2) / gridThhis.m_dx; // interfacial z_length
+  z_length = compInterArea(gridThiis, 2) / gridThiis.m_dx; // interfacial z_length
 
   for (i=0; i<m_n_gridsBdyRight; i++) {
     currentX = m_gridsBdyRight[i].m_x_coord;
@@ -138,34 +195,95 @@ double Comp::compMassIrregGridsRight(Grid gridThhis, double conc_this)
 
     if ( x1_this > currentX-thd ) {
 
-      if ( x2_this < nextX+thd ) { // gridThhis is contained between currentX & nextX
-
+      if ( x2_this < nextX+thd ) { // gridThiis is contained between currentX & nextX
 	x_length = x2_this - x1_this;
-
-	gridOther = &m_gridsBdyRight[i];
-	conc_other = gridOther->m_concChem;
-     
-	flux = gridThiis.compFlux( gridOther, conc_this, conc_other, 
-				    gridThiis.m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
-	area = z_length * x_length;
-	massTrans += area * flux;
-
+	bDone = true;
       }
-    }
+      else { // gridThiis extends beyond nextX
+	x_length = nextX - x1_this;
+      }
 
-  }
+      gridOther = &m_gridsBdyRight[i];
+      conc_other = gridOther->m_concChem;
+     
+      flux = gridThiis.compFlux( gridOther, conc_this, conc_other, 
+				 gridThiis.m_dy/2, gridOther->m_dy/2, &deriv_this, &deriv_other);
+      area = z_length * x_length;
+      mass = area * flux;
 
-  return massTrans;
+      massIntoThis += mass;
+      m_MassOut_right[i] += -mass; // flux into gridThiis is negative flux into the neighbour
+
+      if (bDone)
+	break;
+      else {
+	gridThiis.m_x_coord = nextX;
+	gridThiis.m_dx -= x_length;
+      }
+    } // if
+
+  } // for i
+
+  return massIntoThis;
 }
 
 
 /* compute mass transfer between gridThhis and neighbouring grids downward
    whose meshing does not match exactly to gridTThis, e.g. 
    gridTThis may interface with multiple grids downward */
-double Comp::compMassIrregGridsDown(Grid gridThhis)
+double Comp::compMassIrregGridsDown(Grid gridThiis, double conc_this)
 {
-  double massTransfer;
-  return massTransfer;
+  int i;
+  bool bDone = false;
+  double y1_this, y2_this, currentY, nextY, y_length, z_length, thd, deriv_this, deriv_other, area;
+  double massIntoThis, mass, conc_other, flux;
+  Grid *gridOther = NULL;
+  
+  thd = gridThiis.m_dy * 1e-3; // to compare whether two real numbers are the same
+
+  y1_this = gridThiis.m_y_coord;
+  y2_this = y1_this + gridThiis.m_dy;
+
+  massIntoThis = currentY = 0;
+
+  for (i=0; i<m_n_gridsBdyDown; i++) {
+    currentY = m_gridsBdyDown[i].m_y_coord;
+    nextY = currentY + m_gridsBdyDown[i].m_dy;
+
+    if ( y1_this > currentY-thd ) {
+
+      if ( y2_this < nextY+thd ) { // gridThiis is contained between currentY & nextY
+	y_length = y2_this - y1_this;
+	bDone = true;
+      }
+      else { // gridThiis extends beyond nextY
+	y_length = nextY - y1_this;
+      }
+
+      gridOther = &m_gridsBdyDown[i];
+      conc_other = gridOther->m_concChem;
+     
+      flux = gridThiis.compFlux( gridOther, conc_this, conc_other, 
+				 gridThiis.m_dx/2, gridOther->m_dx/2, &deriv_this, &deriv_other);
+
+      gridThiis.m_dy = y_length; // this is needed to calculate the correct interfacial area, especially for cylindrical coordinate
+      area = compInterArea(gridThiis, 3); // interfacial area
+      mass = area * flux;
+
+      massIntoThis += mass;
+      m_MassOut_down[i] += -mass; // flux into gridThiis is negative flux into the neighbour
+
+      if (bDone)
+	break;
+      else {
+	gridThiis.m_y_coord = nextY;
+	gridThiis.m_dy = y2_this - y1_this - y_length;
+      }
+    } // if
+
+  } // for i
+
+  return massIntoThis;
 }
 
 
@@ -175,9 +293,10 @@ void Comp::compODE_dydt(double t, const double y[], double f[])
 {
   int i, rc;
 	
-  if (NTHREADS==1) {
+  if (NTHREADS==1 || NTHREADS > m_ny) {
     compODE_dydt_block (t, y, f, 0, m_nx, 0, m_ny);
-  } else {		
+  } 
+  else {		
     struct pthread_struct p[NTHREADS];
     pthread_t threads[NTHREADS];
 			
@@ -320,7 +439,7 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 	  mass_transfer_rate += area * flux;
 	  break;
 	case FromOther :
-	  mass = compMassIrregGridsRight(*gridThiis);
+	  mass = compMassIrregGridsRight(*gridThiis, conc_this);
 	  mass_transfer_rate += mass;
 	  break;
 	}
@@ -338,7 +457,7 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 
       /* diffusion from down */
 
-      area = compInterArea(*gridThiis, 2); // interfacial area	
+      area = compInterArea(*gridThiis, 2); // interfacial area
 
       if ( i==m_nx-1 ) { // bottom layer
 
@@ -349,7 +468,7 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 	  SayBye("to be implemented");
 	  break;
 	case FromOther :
-	  mass = compMassIrregGridsDown(*gridThiis);
+	  mass = compMassIrregGridsDown(*gridThiis, conc_this);
 	  mass_transfer_rate += mass;
 	  break;
 	}
@@ -382,7 +501,7 @@ void Comp::displayGrids()
   assert( m_grids );
 
   int i, j, idx, gsl_errno;;
-  printf("# of grids: [x] %d, [y] %d in stratum corneum\n", m_nx, m_ny);
+  printf("# of grids: [x] %d, [y] %d\n", m_nx, m_ny);
 
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
@@ -392,13 +511,36 @@ void Comp::displayGrids()
 	printf("L ");
       else if ( !strcmp(m_grids[idx].m_name, "CC") )
 	printf("C ");
+      else if ( !strcmp(m_grids[idx].m_name, "VE") )
+	printf("V ");
       else
-	gsl_error ("subtype name unknown", __FILE__, __LINE__, gsl_errno); 
+	SayBye ("subtype name unknown" ); 
 				
     } // for j
     printf("\n");
   } // for i
   fflush(stdout);
+}
+
+
+double Comp::getAmount()
+{
+  assert( m_grids );
+
+  int i, j, idx;
+  double volume, amount;
+	
+  amount = .0;
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+
+       volume = compVolume(m_grids[idx]);
+       amount += m_grids[idx].getConcChem() * volume;
+     }
+  }
+
+  return amount;
 }
 
 void Comp::getGridsConc(double *fGridsConc, int dim)
@@ -469,7 +611,7 @@ void Comp::getYCoord(double *coord_y, int dim)
   }
 }
 
-void Comp::saveCoord(const char fn_x[], const char fn_y[])
+void Comp::saveCoord(const char fn_x[], const char fn_y[], const char fn_suffix[])
 {
   assert( m_grids );
 
@@ -478,8 +620,8 @@ void Comp::saveCoord(const char fn_x[], const char fn_y[])
   int i, j, idx;
 
   // save grids
-  strcpy(fn1, fn_x); strcat(fn1, ".sc");
-  strcpy(fn2, fn_y); strcat(fn2, ".sc");
+  strcpy(fn1, fn_x); strcat(fn1, fn_suffix);
+  strcpy(fn2, fn_y); strcat(fn2, fn_suffix);
 
   file_x = fopen(fn1, "w");
   file_y = fopen(fn2, "w");

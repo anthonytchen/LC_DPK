@@ -2,6 +2,7 @@
 #define _H_SKIN_
 
 #include "Chemical.h"
+#include "Vehicle.h"
 #include "StraCorn.h"
 #include "ViaEpd.h"
 #include "Dermis.h"
@@ -17,15 +18,12 @@ class Skin
 {
 public:
   double *m_concVehicleInit; // Initial concentration in the vehicle
-  double m_dz, m_x_length, m_y_length, // the skin size in the z, x (verticle)
+  double m_dz_dtheta, m_x_length, m_y_length, // the skin size in the z, x (verticle)
                                        //	and y (lateral) directions
     m_x_length_ve; // the depth of viable epidermis
 
-  int m_boundary_cond;
   int m_dim_vh, m_dim_sc, m_dim_ve, m_dim_de, m_dim_bd, m_dim_all;
   int m_nChem; // No. of chemical species considered
-
-  double *m_gsl_ode_Jacobian; // Jacobian matrix needed for GSL ODE solver
 
   double m_Vehicle_area; // The dimensions in m_gridVehicle is for the microscopic grid used for simulation.
                          // The actual vehicle application area is contained here.
@@ -36,6 +34,7 @@ public:
 
   // Chemical m_Chemical;
   Grid *m_gridVehicle, *m_gridSink; // todo: create separate classes for vehicle and sink; the sink should be configured to be below any of the layers
+  Vehicle *m_Vehicle;
   StraCorn *m_StraCorn;
   ViaEpd *m_ViaEpd;
   Dermis *m_Dermis;
@@ -63,13 +62,6 @@ public:
 	
   // Functions needed for SUNDIALS' CVODE solver
   static int static_cvODE (double, N_Vector, N_Vector, void *);
-  /*
-  static int static_cvJacobian (long int, long int, long int, double, 
-				N_Vector, N_Vector, DlsMat J, void *,
-				N_Vector, N_Vector, N_Vector);
-  static int static_cvJacobian (long int, double, N_Vector, N_Vector, DlsMat J, void *,
-				N_Vector, N_Vector, N_Vector);
-  */
 		
   // I/O functions
 

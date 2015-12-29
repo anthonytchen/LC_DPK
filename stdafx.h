@@ -13,7 +13,7 @@
 #include <pthread.h>
 #include <time.h>
 
-#include <gsl/gsl_errno.h>
+//#include <gsl/gsl_errno.h>
 
 #include <cvode/cvode.h>             /* prototypes for CVODE fcts., consts. */
 #include <cvode/cvode_band.h>        /* prototype for CVBand */
@@ -23,7 +23,7 @@
 #include <sundials/sundials_types.h> /* definition of type realtype */
 #include <sundials/sundials_math.h>  /* definition of ABS and EXP */
 
-
-//#define _DEBUG_3_
-
 // TODO: reference additional headers your program requires here
+#include "except.h"
+#define NTHREADS 1 // number of threads for parallel computing
+//#define _DEBUG_3_

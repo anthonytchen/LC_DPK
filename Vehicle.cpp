@@ -1,9 +1,10 @@
 #include "stdafx.h"
-#include "ViaEpd.h"
+#include "Vehicle.h"
 
 /*
  */
-void ViaEpd::Init(double x_length, double y_length, double dz_dtheta, int n_grids_x, int n_grids_y,
+void Vehicle::Init(double x_length, double y_length, double dz_dtheta, int n_grids_x, int n_grids_y,
+		   double init_concChem,
 		  CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down)
 {	
   // call Init of the base class Comp
@@ -15,16 +16,17 @@ void ViaEpd::Init(double x_length, double y_length, double dz_dtheta, int n_grid
 	
   m_nx = n_grids_x;
   m_ny = n_grids_y;
+  m_init_concChem = init_concChem;
+
+  m_T = 309; // temperature (Kelvin)
+  m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
+  m_K_vw = 1; // partition coefficient between vehicle and water (1 means vehicle is water)
 }
 
 
 /*
-  Chemical parameters:
-    MW: molecular weight
-    Kow: partition coefficient between octanol and water
-    pKa: the ionisation of the chemical
  */
-void ViaEpd::createGrids(Chemical chem, double coord_x_now)
+void Vehicle::createGrids(Chemical chem, double coord_x_now)
 {
   int i, j, idx, idx_x, idx_y;
   double dx, dy, coord_x, coord_y;
@@ -36,7 +38,7 @@ void ViaEpd::createGrids(Chemical chem, double coord_x_now)
 
   coord_x = coord_x_now;   coord_y = 0;
   struct Point current_point;
-  setPoint(current_point, coord_x, coord_y, dx, dy, "VE", "VE");
+  setPoint(current_point, coord_x, coord_y, dx, dy, "VH", "VH");
     
   idx_x = idx_y = 0;
 
@@ -45,7 +47,7 @@ void ViaEpd::createGrids(Chemical chem, double coord_x_now)
 			
       idx = i*m_ny + j;
 
-      m_grids[idx].InitVE_DE("VE", chem, 0, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz_dtheta);
+      m_grids[idx].InitVH("VH", chem, m_init_concChem, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz_dtheta, m_T, m_eta, m_K_vw);
 
       // update current_point
       if (j==m_ny-1) { // last element in the lateral direction, move down
@@ -54,7 +56,7 @@ void ViaEpd::createGrids(Chemical chem, double coord_x_now)
 	coord_y += dy;
       }
 
-      setPoint(current_point, coord_x, coord_y, dx, dy, "VE", "VE");
+      setPoint(current_point, coord_x, coord_y, dx, dy, "VH", "VH");
       
     } // for j
   } // for i
@@ -63,8 +65,8 @@ void ViaEpd::createGrids(Chemical chem, double coord_x_now)
 	
 /*  +++  I/O functions +++++++++ */
 
-void ViaEpd::saveCoord(const char fn_x[], const char fn_y[])
+void Vehicle::saveCoord(const char fn_x[], const char fn_y[])
 {
-  Comp::saveCoord(fn_x, fn_y, ".ve");
+  Comp::saveCoord(fn_x, fn_y, ".vh");
 }
 /*  ------------ END <I/O functions> -------------------- */

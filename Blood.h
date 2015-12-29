@@ -1,7 +1,6 @@
 #ifndef _H_BLOOD_
 #define _H_BLOOD_
 
-#include "Chemical.h"
 #include "Dermis.h"
 
 class Blood
@@ -18,7 +17,6 @@ public:
   // solute mass transport into and out from dermis
   double m_mass_into_dermis, m_mass_outfrom_dermis;
 
-  Grid m_gridVehicle, m_gridSink;
 
 public:
   Blood(void) {};	

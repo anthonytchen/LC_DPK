@@ -52,13 +52,17 @@ public:
   Comp(void) {};	
   ~Comp(void) {};
   void Init(CoordSys, double, BdyCond, BdyCond, BdyCond, BdyCond);
+  void Release();
   
   void createGrids() {}; // not used; meshing should be done in specific compartments
-  // void updateBoundary(Grid*, Grid*, Grid*, Grid*);
+  void createBoundary(int n_gridsBdyRight=0, int n_gridsBdyDown=0);
+  void setBoundaryGrids(Grid *gridsBdyRight=NULL, Grid *gridsBdyDown=NULL);
+  void setBoundaryConc(double *concBdyRight=NULL, double *concBdyDown=NULL);
+
   double compInterArea(Grid gridThiis, int direction);
   double compVolume(Grid gridThiis);
-  double compMassIrregGridsRight(Grid gridThhis);
-  double compMassIrregGridsDown(Grid gridThhis);
+  double compMassIrregGridsRight(Grid gridThiis, double conc_this);
+  double compMassIrregGridsDown(Grid gridThiis, double conc_this);
 	
   // Functions needed for computing ODE's right hand side (i.e. dy/dt)
   void compODE_dydt (double, const double[], double []);
@@ -67,11 +71,23 @@ public:
   
   // I/O functions
   void displayGrids();
+  double getAmount();
   void getGridsConc(double*, int);
   void saveGrids(bool, const char []);
   void getXCoord(double*, int);
   void getYCoord(double*, int);
-  void saveCoord(const char [], const char []);
+  void saveCoord(const char [], const char [], const char []);
 };
+
+/* Structure and definition for parallel computing */
+
+struct pthread_struct {
+	Comp *comp_obj;
+	double t;
+	const double *y;
+	double *f;
+	int x_start, x_end, y_start, y_end;
+};
+/* ------------------- */
 
 #endif

@@ -1,15 +1,6 @@
 #include "stdafx.h"
 #include "Skin.h"
 
-#define NTHREADS 8
-
-struct pthread_struct {
-	Skin *skin_obj;
-	double t;
-	const double *y;
-	double *f;
-	int x_start, x_end, y_start, y_end;
-};
 
 /* Initialisation for possibly multiple chemicals */
 void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
@@ -26,7 +17,8 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
   m_b_has_blood = b_has_blood;
 
   m_concVehicleInit = new double[nChem];
-  m_gridVehicle = new Grid[nChem];
+  // m_gridVehicle = new Grid[nChem];
+  m_Vehicle = new Vehicle[nChem];
   m_StraCorn = new StraCorn[nChem];
   m_ViaEpd = new ViaEpd[nChem];
   m_Dermis = new Dermis[nChem];
@@ -34,20 +26,20 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
     m_Blood = new Blood[nChem];
   m_gridSink = new Grid[nChem];
 
-  m_dz = 0.01; // fixing dz, the dimension perpendicular to x-y domain
+  m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
-  m_boundary_cond = 1; // Boundary condition, [0] - zero flux at left/right sides
-	               //    [1] - mirror flux at left/right sides (i.e. periodic boundary condition)
+  BdyCond bdy_left_right = Periodic;
 
   /* set up stratum corneum using fixed geometry */
 
-  double g, d, s, t, water_frac;
-  g=.075e-6; d=40e-6; s=0.075e-6*5.21; t=0.8e-6*5.21;
-  water_frac = 0.55; // mass fraction of water in stratum corneum
+  double g, d, s, t, water_frac_surface;
+  g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
+  water_frac_surface = 0.55; // mass fraction of water in stratum corneum
 
   for (i=0; i<m_nChem; i++) {
-    m_StraCorn[i].Init(g, d, s, t, m_dz, n_layer_x_sc, n_layer_y_sc, offset_y_sc, m_boundary_cond);
-    m_StraCorn[i].createGrids(chemSolute[i].m_mw, chemSolute[i].m_K_ow, water_frac, conc_vehicle[i], diffu_vehicle[i]);
+    m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
+		       Cartesian, FromOther, bdy_left_right, bdy_left_right, ZeroFlux); // bdy conditions: u/l/r/d
+    m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface);
   }
 
 
@@ -58,8 +50,9 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
   y_len_ve = n_layer_y_sc*(d+s); // depends on the setup for stratum corneum
 
   for (i=0; i<m_nChem; i++) {
-    m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz, n_grids_x_ve);
-    m_ViaEpd[i].createGrids(chemSolute[i].m_mw, chemSolute[i].m_K_ow, chemSolute[i].m_pKa, chemSolute[i].m_frac_non_ion, chemSolute[i].m_frac_unbound, chemSolute[i].m_acid_base, x_len_sc);
+    m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz_dtheta, n_grids_x_ve, 1, Cartesian,
+		     FromOther, bdy_left_right, bdy_left_right, ZeroFlux);
+    m_ViaEpd[i].createGrids(chemSolute[i], x_len_sc);
   }
 
   /* set up dermis using fixed geometry */
@@ -68,14 +61,15 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
   y_len_de = y_len_ve; // depends on the setup for ve (thus also on stratum corneum)
 
   for (i=0; i<m_nChem; i++) {
-    m_Dermis[i].Init(x_len_de, y_len_de, m_dz, n_grids_x_de, m_b_has_blood);
-    m_Dermis[i].createGrids(chemSolute[i].m_mw, chemSolute[i].m_K_ow, chemSolute[i].m_pKa, chemSolute[i].m_frac_non_ion, chemSolute[i].m_frac_unbound, chemSolute[i].m_acid_base, x_len_sc+x_len_ve);
+    m_Dermis[i].Init(x_len_de, y_len_de, m_dz_dtheta, n_grids_x_de, 1, m_b_has_blood, Cartesian,
+		     FromOther, bdy_left_right, bdy_left_right, ZeroFlux);
+    m_Dermis[i].createGrids(chemSolute[i], x_len_sc+x_len_ve);
   }
 
   /* set up blood compartment, then set up the blood properties in dermis */
   if (m_b_has_blood)  {
     for (i=0; i<m_nChem; i++) {
-      m_Blood[i].Init(m_Dermis[i].m_grids->m_ve_fu, blood_k_clear[i], 70, 'M');
+      m_Blood[i].Init(m_Dermis[i].m_grids->m_chemical.m_frac_unbound, blood_k_clear[i], 70, 'M');
       m_Dermis[i].InitDermisBlood(m_Blood[i].m_flow_capil, m_Blood[i].m_f_unbound, par_dermis2blood[i]);
     }
   }
@@ -86,13 +80,15 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
 
   for (i=0; i<m_nChem; i++) {
     m_concVehicleInit[i] = conc_vehicle[i];
-    m_gridVehicle[i].Init("SC", conc_vehicle[i], chemSolute[i].m_K_ow, dx_vehicle, y_len_ve, m_dz, diffu_vehicle[i], partition_vehicle[i]);
-    m_gridSink[i].Init("SK", 0, chemSolute[i].m_K_ow, 0, 0, m_dz);
+    m_Vehicle[i].Init(dx_vehicle, y_len_ve, m_dz_dtheta, 1, 1, conc_vehicle[i], Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, FromOther);
+    m_Vehicle[i].createGrids(chemSolute[i], -dx_vehicle); // coordinate 0 starts from stratum corneum
+    m_gridSink[i].Init("SK", 0, chemSolute[i].m_K_ow, 0, 0, m_dz_dtheta);
   }
   m_bInfSrc = bInfSrc; // whether the vehicle is a infinite source
 
+
   // setup the dimensions
-  m_dim_vh = 1;
+  m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
   m_dim_sc = m_StraCorn[0].m_nx * m_StraCorn[0].m_ny;
   m_dim_ve = m_ViaEpd[0].m_nx * m_ViaEpd[0].m_ny;
   m_dim_de = m_Dermis[0].m_nx * m_Dermis[0].m_ny;
@@ -121,8 +117,9 @@ void Skin::Release(void)
 {
   int i;
   for (i<0; i<m_nChem; i++) {
-    m_gridVehicle[i].Release();
+    //    m_gridVehicle[i].Release();
     m_gridSink[i].Release();
+    m_Vehicle[i].Release();
     m_StraCorn[i].Release();
     m_ViaEpd[i].Release();
     m_Dermis[i].Release();
@@ -131,7 +128,8 @@ void Skin::Release(void)
   }
   
   delete [] m_concVehicleInit;
-  delete [] m_gridVehicle;
+  //  delete [] m_gridVehicle;
+  delete [] m_Vehicle;
   delete [] m_gridSink;
   delete [] m_StraCorn;
   delete [] m_ViaEpd;
@@ -250,7 +248,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
   }
 
-  return GSL_SUCCESS;	
+  return 1;	
 }
 
 /* add reaction with diffusion */
@@ -262,7 +260,6 @@ void Skin::compReaction()
 /* Diffusion using method of lines (MoL) */
 void Skin::diffuseMoL(double t_start, double t_end)
 {		
-  bool bJacobianRequired = false;
   int i, j, k, idx, gsl_status, flag;
   double reltol, abstol, t;
   double *y = NULL;
@@ -278,7 +275,9 @@ void Skin::diffuseMoL(double t_start, double t_end)
     idx = k*m_dim_all;
 
     // from vehicle
-    y[idx] = m_gridVehicle[k].m_concChem; 
+    for ( i=0; i<m_Vehicle[k].m_nx; i++ ) // x direction up to down
+      for ( j=0; j<m_Vehicle[k].m_ny; j++ ) // y direction left to right	
+	y[idx + i*m_Vehicle[k].m_ny + j] = m_Vehicle[k].m_grids[i*m_Vehicle[k].m_ny + j].m_concChem;
 
     // from stratum corneum
     idx += m_dim_vh;
@@ -352,6 +351,11 @@ void Skin::diffuseMoL(double t_start, double t_end)
 
     // for vehicle
     m_gridVehicle[k].m_concChem = NV_Ith_S(y0, idx); 
+    // from vehicle
+    for ( i=0; i<m_Vehicle[k].m_nx; i++ ) // x direction up to down
+      for ( j=0; j<m_Vehicle[k].m_ny; j++ ) // y direction left to right	
+	m_Vehicle[k].m_grids[i*m_Vehicle[k].m_ny + j].m_concChem = NV_Ith_S(y0, idx + i*m_Vehicle[k].m_ny + j); 
+
 
     // for stratum corneum
     idx += m_dim_vh;
@@ -386,7 +390,6 @@ void Skin::diffuseMoL(double t_start, double t_end)
 
   N_VDestroy_Serial(y0);  
   CVodeFree(&cvode_mem);
-  //  delete [] m_gsl_ode_Jacobian;
   delete [] y;
 }
 

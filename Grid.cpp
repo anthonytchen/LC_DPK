@@ -27,46 +27,77 @@ void cpyPoint(struct Point& dst, struct Point& src)
 }
 /* ------------ */
 
+void Grid::operator=(const Grid &other)
+{
+  m_Kw = other.m_Kw;
+  m_D = other.m_D;
+  m_concChem = other.m_concChem;
+  m_x_coord = other.m_x_coord;
+  m_y_coord = other.m_y_coord;
+  m_dx = other.m_dx;
+  m_dy = other.m_dy;
+  m_dz = other.m_dz;	
+}
+
 
 /*  +++++++++++++++++++++++++++++++
 	Initiators
 	+++++++++++++++++++++++++++++++ */
 
-
-//	args: mw - molecular weight
-//		  T - temperature, default is 309 K (36 deg C)
-//	      eta - water viscosity (default 0.0071 P at 36 deg C)
-//  TODO: Read information from configuration files, instead of hard-coding here
-void Grid::Init(const char name[], double mw, double mass_frac_water, double mass_frac_water_sat,
-		double V_mortar_geometry, double V_brick_geometry, double V_all_geometry,
-		double rou_lipid, double rou_keratin, double rou_water,
-		double T, double eta, double K_ow, double x_coord, double y_coord,
+/* generic init */
+void Grid::Init(const char name[], Chemical chem, double concChem, double x_coord, double y_coord,
 		double dx, double dy, double dz)
 {
   strcpy(m_name, name);
-  m_concChem = 0;
-  m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
-	
-  m_rou_lipid = rou_lipid;
-  m_rou_keratin = rou_keratin;
-  m_rou_water = rou_water;
+  m_chemical = chem;
+  m_concChem = concChem;
 
-  double K;
-	
+  m_x_coord = x_coord; m_y_coord = y_coord;
+  m_dx = dx;  m_dy = dy; m_dz = dz;
+}
+
+/* init vehicle */
+void Grid::InitVH(const char name[], Chemical chem, double concChem, double x_coord, double y_coord,
+		  double dx, double dy, double dz, double T, double eta, double K_vw)
+{
+  Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
+
+  /* calculation of diffusivity in water */
+  double K, r_f, Dw, r_s_inA, alpha, beta, lambda, gamma, K_kw, r_f_inA, phi_f, k, S;
+
   K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
-  m_r_f = 3.5e-9; // keratin microfibril radius, 3.5 nm
+  Dw = K*T/6/M_PI/eta/chem.m_r_s; // diffusivity in water, Stoke-Eistein equation
 
-  m_mw = mw;
-  m_mass_frac_water = mass_frac_water;
-  m_r_s = pow( 0.9087 * mw * 3/4/M_PI, 1.0/3 )*1e-10; // from A to meter
-  m_Dw = K*T/6/M_PI/eta/m_r_s;
+  m_D = Dw; // assuming vehicle is water!
+  m_Kw = K_vw;
+}
 
-  //printf("mw = %.3lf, Dw = %.3e \n", mw, m_Dw);
-  //exit(0);
+/* init sink */
+void Grid::InitSK(const char name[], Chemical chem, double concChem, double x_coord, double y_coord,
+		  double dx, double dy, double dz)
+{
+  Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
 
-  // calulcate various mass/volume fractions needed
-  double f_l, f_k, mass_lipid, mass_keratin;
-  double V_all, V_lipid, V_keratin, V_water_mortar, V_water_brick;
+  m_D = 1; // very big value, essentially means anything in the sink can be quickly removed
+  m_Kw = 1; // arbitrary value
+}
+
+/*  Init  stratum corneum
+    T - temperature, default is 309 K (36 deg C)
+    eta - water viscosity (default 0.0071 P at 36 deg C) */
+void Grid::InitSC(const char name[], Chemical chem, double concChem, double mass_frac_water, double mass_frac_water_sat,
+		double V_mortar_geometry, double V_brick_geometry, double V_all_geometry,
+		double rou_lipid, double rou_keratin, double rou_water, double T, double eta, 
+		double x_coord, double y_coord, double dx, double dy, double dz)
+{
+  /* 1. set up member variables */
+
+  Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
+
+  /* 2. calulcate various mass/volume fractions needed */
+
+  double f_l, f_k, mass_lipid, mass_keratin, theta_b, phi_b,
+    V_all, V_lipid, V_keratin, V_water_mortar, V_water_brick;
 	
   f_l = 0.125; // dry mass fraction of SC lipid and keratin
   f_k = 1 - f_l;
@@ -83,7 +114,7 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
   V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
 
   //	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
-  m_theta_b = V_water_brick / V_brick_geometry * V_all_geometry;
+  theta_b = V_water_brick / V_brick_geometry * V_all_geometry;
 
 
   // do the same for saturated water
@@ -100,82 +131,78 @@ void Grid::Init(const char name[], double mw, double mass_frac_water, double mas
   V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
 
   //	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
-  m_phi_b = V_water_brick / V_brick_geometry * V_all_geometry;
-	
-  m_x_coord = x_coord; m_y_coord = y_coord;
-  m_dx = dx;	m_dy = dy;	m_dz = dz;
-	
-  m_K_ow = K_ow;
-  compDiffusivity();
-  compKcoef();
-}
+  phi_b = V_water_brick / V_brick_geometry * V_all_geometry;	
 
-void Grid::Init(const char name[], double concChem, double K_ow, 
-		double dx, double dy, double dz, double D_vehicle, double K_vehicle)
-{
-  strcpy(m_name, name);
-  m_concChem = concChem;
 
-  m_dx = dx;
-  m_dy = dy;
-  m_dz = dz;
-	
-  m_K_ow = K_ow;
-  compDiffusivity(D_vehicle);
-  compKcoef(K_vehicle);	
-}
+  /* 3. calculate diffusivity and partition coefficient */
 
-void Grid::InitVE(double mw, double Kow, double pKa, double frac_non_ion, double frac_unbound,
-		  char acid_base,
-		  double x_coord, double y_coord, double dx, double dy, double dz)
-{
-  int gsl_errno;
+  double K, r_f, Dw, r_s_inA, alpha, beta, lambda, gamma, K_kw, r_f_inA, phi_f, k, S;
 
-  strcpy(m_name, "VE");
-  m_concChem = 0;
-  m_mass_diffused.bUp = m_mass_diffused.bLeft = m_mass_diffused.bRight = m_mass_diffused.bDown = false;
-	
-  m_mw = mw;
-  m_K_ow = Kow;
-  m_pKa = pKa;
+  K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
+  r_f = 3.5e-9; // keratin microfibril radius, 3.5 nm
+  Dw = K*T/6/M_PI/eta/chem.m_r_s; // diffusivity in water, Stoke-Eistein equation
 
-  m_x_coord = x_coord; m_y_coord = y_coord;
-  m_dx = dx;	m_dy = dy;	m_dz = dz;
+  if ( !strcmp(m_name, "LP") ) {	// lipid	
 
-  // calculate the fraction of solute non-ionised at pH 7.4 (m_ve_fnon)
-  //       and the fraction of unbound in a 2.7% albumin solution at pH 7.4 (m_ve_fu)
-  // thus to calculate the binding factor in VE
-  // Refs: 
-  //     Florence AT, Attwood D (2006). Physicochemical Principles of Pharmacy, Pharmaceutical Press, London, p. 77.
-  //     Yamazaki K, Kanaoka M (2004). Journal of Pharmaceutical Sciences, 93: 1480.
-  if ( frac_non_ion<0 || frac_unbound<0 ) // either is negative, calculate from the following QSPR; otherwise take values directly from input parameters
-    switch (acid_base) {
-    case 'A' : // weak acid
-      m_ve_fnon = 1 / ( 1 + pow(10, 7.4-pKa) );
-      m_ve_fu = 1 - ( 0.7936 * exp(log10(m_K_ow)) + 0.2239 ) / ( 0.7936 * exp(log10(m_K_ow)) + 1.2239 );
-      break;
-    case 'B' : // weak base
-      m_ve_fnon = 1 / ( 1 + pow(10, pKa-7.4) );
-      m_ve_fu = 1 - ( 0.5578 * exp(log10(m_K_ow)) + 0.0188 ) / ( 0.5578 * exp(log10(m_K_ow)) + 1.0188 );
-      break;
-    default :
-      gsl_error ("Needs to provide whether it's acid or base", __FILE__, __LINE__, gsl_errno);
-      exit(-1);
+    //m_Kw = pow(m_K_ow, 0.7);
+    m_Kw = rou_lipid / rou_water * pow(chem.m_K_ow,0.69);
+
+    if (chem.m_mw <= 380){		
+      r_s_inA = chem.m_r_s*1e10; // unit in Angstrom
+      m_D = 2 * 1E-9 * exp(-0.46*r_s_inA*r_s_inA);
+    } else {
+      m_D = 3 * 1E-13;
     }
-  else {
-    m_ve_fnon = frac_non_ion;
-    m_ve_fu = frac_unbound;
-  }
-  // m_ve_fnon = 1; // for DEET which is non-polar
-  //  m_ve_fu = 0.95; // for DEET
-  m_ve_binding_factor = 0.68 + 0.32/m_ve_fu + 0.025*m_ve_fnon*pow(m_K_ow, 0.7);
 
-  compDiffusivity();
-  compKcoef();
+  } else if ( !strcmp(m_name, "CC") ) { // corneocyte
+
+    /*
+    if (m_K_ow>10)
+      K_kw = 5.6 * pow(m_K_ow, 0.27);
+    else 
+      K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
+    */
+    K_kw = rou_keratin / rou_water * 4.2 * pow(chem.m_K_ow,0.31);
+    m_Kw = (1-phi_b) * K_kw + theta_b;
+
+    // empirically fitted parameters
+    alpha = 9.47;
+    beta = 9.32 * 1E-8;
+    lambda = 1.09;
+    gamma = -1.17;
+		
+    r_s_inA = chem.m_r_s*1e10; // unit in A
+    r_f_inA = r_f*1e10; // unit in A
+		
+    phi_f = 1-theta_b;		
+    k = beta*r_f_inA*r_f_inA* pow(phi_f, gamma);
+    S = (r_s_inA+r_f_inA)/r_f_inA;
+    S = phi_f * S*S;
+	
+    m_D = exp( -alpha*pow(S,lambda) ) / ( 1 + r_s_inA/sqrt(k) + r_s_inA*r_s_inA/3/k );
+    m_D *= Dw;
+  }
 }
 
-/*  END <Initiators>
-	--------------------------------------------- */
+
+void Grid::InitVE_DE(const char name[], Chemical chem, double concChem, double x_coord, double y_coord, double dx, double dy, double dz)
+{
+  Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
+
+  double binding_factor, D_free;
+
+  binding_factor = 0.68 + 0.32/chem.m_frac_unbound + 0.025*chem.m_frac_non_ion*pow(chem.m_K_ow, 0.7);
+
+  // c.f. L. Chen's Phar. Res. paper; -8.15 used because of unit (m2/s)
+  //  Kasting's original paper used -4.15 because of unit (cm2/s)
+  D_free = pow(10, -8.15-0.655*log10(chem.m_mw));
+  m_D = D_free / binding_factor;
+
+  m_Kw = 0.7 * binding_factor;
+}
+
+/*  --------------------------------------------- */
+
 
 /*  +++++++++++++++++++++++++++++++++++++++++++
 	Main functions
@@ -205,140 +232,5 @@ double Grid::compFlux(Grid* other, double conc_this, double conc_other,
 }
 
 
-void Grid::setConcFromDiffMass(void)
-{
-  double delConc;
-  delConc = m_mass_diffused.up+m_mass_diffused.left+m_mass_diffused.right+m_mass_diffused.down;	
-	
-  m_concChem += delConc / (m_dx*m_dy*m_dz) ;
-}
+/* -------------------------------------------- */
 
-void Grid::set(Grid* other)
-{
-  m_Kw = other->m_Kw;
-  m_D = other->m_D;
-  m_Dw = other->m_Dw;
-  m_K_ow = other->m_K_ow;
-  m_mw = other->m_mw; 
-  m_pKa = other->m_pKa;
-  m_ve_fu = other->m_ve_fu;
-  m_ve_fnon = other->m_ve_fnon;
-  m_ve_binding_factor = other->m_ve_binding_factor; 
-  m_phi_b = other->m_phi_b;
-  m_theta_b = other->m_theta_b;
-  m_mass_frac_water = other->m_mass_frac_water;
-  m_r_s = other->m_r_s;
-  m_r_f = other->m_r_f;
-
-  m_concChem = other->m_concChem;
-  m_concWater = other->m_concWater;
-  m_mass_diffused = other->m_mass_diffused;
-  m_x_coord = other->m_x_coord;
-  m_y_coord = other->m_y_coord;
-  m_dx = other->m_dx;
-  m_dy = other->m_dy;
-  m_dz = other->m_dz;	
-}
-
-/*  END <Main functions>
-	--------------------------------------------- */
-
-/*  ++++ Functions to calculate model parameters ++++ */
-
-void Grid::compDiffusivity(double D_vehicle)
-{	
-  int gsl_errno;
-  double alpha, beta, lambda, gamma, k, S, phi_f, r_s_inA, r_f_inA, 
-    D_free, D_binding_factor;
-	
-  if ( !strcmp(m_name, "LP") ) {	// lipid	
-    
-    if (m_mw <= 380){		
-      r_s_inA = m_r_s*1e10; // unit in Angstrom
-      m_D = 2 * 1E-9 * exp(-0.46*r_s_inA*r_s_inA);
-    } else {
-      m_D = 3 * 1E-13;
-    }
-
-  } else if ( !strcmp(m_name, "CC") ) { // corneocyte
-		
-    // empirically fitted parameters
-    alpha = 9.47;
-    beta = 9.32 * 1E-8;
-    lambda = 1.09;
-    gamma = -1.17;
-		
-    r_s_inA = m_r_s*1e10; // unit in A
-    r_f_inA = m_r_f*1e10; // unit in A
-		
-    phi_f = 1-m_theta_b;		
-    k = beta*r_f_inA*r_f_inA* pow(phi_f, gamma);
-    S = (r_s_inA+r_f_inA)/r_f_inA;
-    S = phi_f * S*S;
-	
-    m_D = exp( -alpha*pow(S,lambda) ) / ( 1 + r_s_inA/sqrt(k) + r_s_inA*r_s_inA/3/k );
-    m_D *= m_Dw;
-			
-  } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
-
-    // c.f. L. Chen's Phar. Res. paper; -8.15 used because of unit (m2/s)
-    //  Kasting's original paper used -4.15 because of unit (cm2/s)
-    D_free = pow(10, -8.15-0.655*log10(m_mw));
-    m_D = D_free / m_ve_binding_factor;
-    // printf("m_D = %.5e\n", m_D);
-    // exit(0);
-
-  } else if ( !strcmp(m_name, "SC") ) { // vehicle source
-	
-    assert( D_vehicle>0 ); // make sure some reasonable values are provided
-    m_D = D_vehicle;
-		
-  } else if ( !strcmp(m_name, "SK") ) { // infinite sink
-    
-    m_D = 1; // very big value, essentially means anything in the sink can be quickly removed
-    
-  } else {
-	
-    gsl_error ("Grid name unknown", __FILE__, __LINE__, gsl_errno);
-    exit(-1);		
-    
-  } // end if - else if - else
-}
-
-
-// Compute partition coefficient between this grid and water
-void Grid::compKcoef(double K_vehicle)
-{
-  int gsl_errno;
-  double K_kw;
-	
-  if ( !strcmp(m_name, "LP") ) {	// lipid	
-    //m_Kw = pow(m_K_ow, 0.7);
-    m_Kw = m_rou_lipid / m_rou_water * pow(m_K_ow,0.69);
-    // printf("Kw = %.5lf\n", m_Kw); exit(0);
-  } else if ( !strcmp(m_name, "CC") ) { // corneocyte
-    /*
-    if (m_K_ow>10)
-      K_kw = 5.6 * pow(m_K_ow, 0.27);
-    else 
-      K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
-    */
-    K_kw = m_rou_keratin / m_rou_water * 4.2 * pow(m_K_ow,0.31);
-    m_Kw = (1-m_phi_b) * K_kw + m_theta_b;
-    // printf("phi_b %.3lf, theta_b  %.3lf, kkw  %.3lf, kw  %.3lf\n", m_phi_b, m_theta_b, K_kw, m_Kw);
-    // exit(0);
-  } else if ( !strcmp(m_name, "VE") ) { // viable epidermis
-    m_Kw = 0.7 * m_ve_binding_factor;
-    // printf("Kw = %.5lf\n", m_Kw); exit(0);
-  } else if ( !strcmp(m_name, "SC") ) { // vehicle source
-    m_Kw = K_vehicle;
-  } else if ( !strcmp(m_name, "SK") ) { // sink
-    m_Kw = 1.0;
-  } else {
-    gsl_error ("Grid name unknown", __FILE__, __LINE__, gsl_errno);
-    exit(-1);
-  }
-}
-
-/*  END <Functions to calculate model parameters>
-	--------------------------------------------- */
