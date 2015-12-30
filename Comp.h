@@ -46,7 +46,6 @@ class Comp
 
   /* member variables for I/O and MISC */
   double *m_conc1D, *m_coord1D; // 1-d concentration and corresponding coordinates, verticle direction
-  double *m_ode_Jacobian; // not used so far
 
 public:
   Comp(void) {};	
@@ -58,9 +57,14 @@ public:
   void createBoundary(int n_gridsBdyRight=0, int n_gridsBdyDown=0);
   void setBoundaryGrids(Grid *gridsBdyRight=NULL, Grid *gridsBdyDown=NULL);
   void setBoundaryConc(double *concBdyRight=NULL, double *concBdyDown=NULL);
+  void setBdyMassInOutZero();
+  void passBdyMassOut(Comp *bdyRight, Comp *bdydown);
 
   double compInterArea(Grid gridThiis, int direction);
   double compVolume(Grid gridThiis);
+  double compTotalArea(int);
+  double compTotalVolume();
+
   double compMassIrregGridsRight(Grid gridThiis, double conc_this);
   double compMassIrregGridsDown(Grid gridThiis, double conc_this);
 	

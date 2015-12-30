@@ -24,7 +24,6 @@ void Comp::Init( CoordSys coord_sys, double dz_dtheta,
   m_MassIn_up = m_MassIn_left = m_MassOut_right = m_MassOut_down = NULL;
   m_grids = NULL;
   m_conc1D = m_coord1D = NULL;
-  m_ode_Jacobian = NULL;
 }
 
 void Comp::Release()
@@ -80,12 +79,12 @@ void Comp::setBoundaryGrids(Grid *gridsBdyRight, Grid *gridsBdyDown)
 
   if (!m_n_gridsBdyRight) {
     for (i=0; i< m_n_gridsBdyRight; i++)
-      m_gridsBdyRight[i].set(&gridsBdyRight[i]);
+      m_gridsBdyRight[i] = gridsBdyRight[i];
   }
 
   if (!m_n_gridsBdyDown) {
     for (i=0; i< m_n_gridsBdyDown; i++)
-      m_gridsBdyDown[i].set(&gridsBdyDown[i]);
+      m_gridsBdyDown[i] = gridsBdyDown[i];
   }
 }
 
@@ -104,6 +103,29 @@ void Comp::setBoundaryConc(double *concBdyRight, double *concBdyDown)
   }
 }
 
+void Comp::setBdyMassInOutZero()
+{
+  int i;
+  if (!m_MassIn_up)
+    memset(m_MassIn_up, 0, sizeof(double)*m_ny);
+  if (!m_MassIn_left)
+    memset(m_MassIn_left, 0, sizeof(double)*m_nx);
+  if (!m_MassOut_right)
+    memset(m_MassOut_right, 0, sizeof(double)*m_n_gridsBdyRight);
+  if (!m_MassOut_down)
+    memset(m_MassOut_down, 0, sizeof(double)*m_n_gridsBdyDown);
+}
+
+void Comp::passBdyMassOut(Comp *bdyRight, Comp *bdyDown)
+{
+  assert(!bdyRight || m_n_gridsBdyRight==bdyRight->m_nx);
+  assert(!bdyDown || m_n_gridsBdyDown==bdyDown->m_ny);
+
+  if (!bdyRight)
+    memcpy(bdyRight->m_MassIn_left, m_MassOut_right, sizeof(double)*m_n_gridsBdyRight);
+  if (!bdyDown)
+    memcpy(bdyDown->m_MassIn_up, m_MassOut_down, sizeof(double)*m_n_gridsBdyDown);
+}
 
 /* Calculate the interfacial area between gridThiis and a neighbouring grid
    direction: [0] = up; [1] = left; [2] = right; [3] = down
@@ -168,6 +190,53 @@ double Comp::compVolume(Grid gridThiis)
 
   }
 }
+
+/* compute this compartment's total area to a certain direction defined below
+   direction: [0] = up; [1] = left; [2] = right; [3] = down */
+double Comp::compTotalArea(int direction)
+{
+  double area, r1, r2, pi_alpha_360;
+
+  switch (m_coord_sys) {
+
+  case Cartesian :
+
+    if (direction==0 || direction==3)
+      area = m_y_length * m_dz_dtheta;
+    else if (direction==1 || direction==2)
+      area = m_x_length * m_dz_dtheta;
+    else
+      SayBye("Option not valid");
+    break;
+
+  case Cylindrical :
+
+    pi_alpha_360 = M_PI * m_dz_dtheta / 360;
+
+    if (direction==0 || direction==3)
+      area = pi_alpha_360 * m_y_length * m_y_length;
+    else if (direction==1)
+      area = 0;
+    else if (direction==2)
+      area = m_x_length * pi_alpha_360 * 2 * m_y_length;
+    else
+      SayBye("Option not valid");
+    break;
+
+  default :
+    SayBye("Coordinate system not implemented");
+    break;
+  }
+}
+
+/* compute this compartment's total volume */
+double Comp::compTotalVolume()
+{
+  double volume;
+  SayBye("not implemented yet");
+  return volume;
+}
+
 
 /* compute mass transfer between gridThhis and neighbouring grids to the right
    whose meshing does not match exactly to gridThiis, e.g. 

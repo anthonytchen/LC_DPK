@@ -33,7 +33,6 @@ public:
   struct Reaction m_React;
 
   // Chemical m_Chemical;
-  Grid *m_gridVehicle, *m_gridSink; // todo: create separate classes for vehicle and sink; the sink should be configured to be below any of the layers
   Vehicle *m_Vehicle;
   StraCorn *m_StraCorn;
   ViaEpd *m_ViaEpd;
@@ -77,7 +76,6 @@ public:
 
   void displayGrids();
   void saveGrids(bool, const char []);
-  void saveVehicle(bool, const char [], int idx_chem=0);
   void getXCoord(double *coord_x, int dim);
   void getYCoord(double *coord_y, int dim);
   void saveCoord(const char [], const char []);
