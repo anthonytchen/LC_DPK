@@ -5,7 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "arg.h"
-#include "gsl/gsl_errno.h"
+#include "except.h"
 
 static int SetVal (Config_t *cp, char *str);
 static void SPrintVal (Config_t *cp, char *str);
@@ -319,13 +319,13 @@ int required(char **variable, Config_t *vparam, int n)
 
 void countf(char *fn, int *nr, int *nc)
 {
-  int i, j, c, n, obs, gsl_errno;
+  int i, j, c, n, obs;
   double l;
   char tmp[1024], item[101];
 
   FILE *fp = NULL;
   if ( ( fp = fopen(fn, "rt") ) == NULL )
-    gsl_error("Cannot open file to read", __FILE__, __LINE__, gsl_errno);
+    SayBye("Cannot open file to read");
 
   i = 0; c = getc(fp);
   while (c!=EOF) { /* count number of lines */
@@ -350,7 +350,7 @@ void countf(char *fn, int *nr, int *nc)
 	  *nc = n;
 	} else {
 	  if ( *nc != n ) {
-	    gsl_error("Number of columns is not consistent in data file", __FILE__, __LINE__, gsl_errno);
+	    SayBye("Number of columns is not consistent in data file");
 	    //	  exit (-1);
 	  }
 	}
@@ -369,7 +369,7 @@ void countf(char *fn, int *nr, int *nc)
     }
     item[j] = 0;
     if ( sscanf(item, "%lf", &l) != 1 ){
-      gsl_error("Bad numeric item on datafile", __FILE__, __LINE__, gsl_errno);
+      SayBye("Bad numeric item on datafile");
       exit(1);
     }
     n ++;
@@ -380,7 +380,7 @@ void countf(char *fn, int *nr, int *nc)
 	*nc = n;
       } else {
 	if ( *nc != n ) 
-	  gsl_error("Number of columns is not consistent in data file", __FILE__, __LINE__, gsl_errno);
+	  SayBye("Number of columns is not consistent in data file");
       }
 
       i ++ ;

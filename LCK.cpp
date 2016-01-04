@@ -112,7 +112,7 @@ int main (int argc, char* argv[])
   //  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
   _chem.Init(MW, K_ow, pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
 
-  _skin.Init(&_chem, 1, &conc_vehicle, &diffu_vehicle, &partition_vehicle, &partition_dermis2blood, &k_clear_blood,
+  _skin.Init(&_chem, 1, true, &conc_vehicle, &diffu_vehicle, &partition_vehicle, &partition_dermis2blood, &k_clear_blood,
 	     dx_vehicle, area_vehicle, x_len_viaepd, x_len_dermis,
 	     n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc, b_inf_src);
   
@@ -145,8 +145,8 @@ int main (int argc, char* argv[])
 
     _skin.compFlux_2sc(&flux1);
     _skin.compFlux_sc2down(&flux2);
-    _skin.compFlux_ve2down(&flux3);
-     _skin.compFlux_de2down(&flux4);
+    //_skin.compFlux_ve2down(&flux3);
+    // _skin.compFlux_de2down(&flux4);
     printf("Time %e flux = %e %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3, flux4);
 
     // _skin.resetVehicle(conc_vehicle, partition_vehicle, diffu_vehicle);

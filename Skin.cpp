@@ -39,7 +39,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
 
   for (i=0; i<m_nChem; i++) {
     m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
-		       Cartesian, FromOther, bdy_left_right, bdy_left_right, ZeroFlux); // bdy conditions: u/l/r/d
+		       Cartesian, FromOther, bdy_left_right, bdy_left_right, FromOther); // bdy conditions: u/l/r/d
     m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface);
   }
 
@@ -52,7 +52,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, bool b_has_blood,
 
   for (i=0; i<m_nChem; i++) {
     m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz_dtheta, n_grids_x_ve, 1, Cartesian,
-		     FromOther, bdy_left_right, bdy_left_right, ZeroFlux);
+		     FromOther, bdy_left_right, bdy_left_right, FromOther);
     m_ViaEpd[i].createGrids(chemSolute[i], x_len_sc);
   }
 
@@ -176,7 +176,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
     // update the concentration in boundary grids according to y[]
     concBdy = new double[m_StraCorn[i].m_ny];
-    memcpy(concBdy, y+idx+m_dim_vh, m_StraCorn[i].m_ny);
+    memcpy(concBdy, y+idx+m_dim_vh, sizeof(double)*m_StraCorn[i].m_ny);
     m_Vehicle[i].setBoundaryConc(NULL, concBdy);
     delete [] concBdy;
 
@@ -191,7 +191,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
     idx += m_dim_vh;
     // update the concentration in boundary grids according to y[]
     concBdy = new double[m_ViaEpd[i].m_ny];
-    memcpy(concBdy, y+idx+m_dim_sc, m_ViaEpd[i].m_ny);
+    memcpy(concBdy, y+idx+m_dim_sc, sizeof(double)*m_ViaEpd[i].m_ny);
     m_StraCorn[i].setBoundaryConc(NULL, concBdy);
     delete [] concBdy;
 
@@ -204,7 +204,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
     idx += m_dim_sc;
     // update the concentration in boundary grids according to y[]
     concBdy = new double[m_Dermis[i].m_ny];
-    memcpy(concBdy, y+idx+m_dim_ve, m_ViaEpd[i].m_ny);
+    memcpy(concBdy, y+idx+m_dim_ve, sizeof(double)*m_ViaEpd[i].m_ny);
     m_ViaEpd[i].setBoundaryConc(NULL, concBdy);
     delete [] concBdy;
 
@@ -278,7 +278,7 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
   }
 
-  return 1;	
+  return 0;
 }
 
 /* add reaction with diffusion */

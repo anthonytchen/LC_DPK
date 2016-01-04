@@ -45,11 +45,14 @@ void Comp::Release()
   if (m_BdyCond_left == FromOther)
     delete [] m_MassIn_left;
 
-  if (m_BdyCond_right == FromOther)
+  if (m_BdyCond_right == FromOther){
+    delete [] m_MassOut_right;
     delete [] m_gridsBdyRight;
-
-  if (m_BdyCond_down == FromOther) 
+  }
+  if (m_BdyCond_down == FromOther){
+    delete [] m_MassOut_down;
     delete [] m_gridsBdyDown;
+  }
 }
 
 void Comp::createBoundary(int n_gridsBdyRight, int n_gridsBdyDown)
@@ -63,12 +66,14 @@ void Comp::createBoundary(int n_gridsBdyRight, int n_gridsBdyDown)
   if (m_BdyCond_right == FromOther) {
     assert (n_gridsBdyRight > 0);
     m_n_gridsBdyRight = n_gridsBdyRight;
+    m_MassOut_right = new double [n_gridsBdyRight];
     m_gridsBdyRight = new Grid[n_gridsBdyRight];
   }
 
   if (m_BdyCond_down == FromOther) {
     assert (n_gridsBdyDown > 0);
     m_n_gridsBdyDown = n_gridsBdyDown;
+    m_MassOut_down = new double [n_gridsBdyDown];
     m_gridsBdyDown = new Grid[n_gridsBdyDown];
   }
 }
@@ -77,12 +82,12 @@ void Comp::setBoundaryGrids(Grid *gridsBdyRight, Grid *gridsBdyDown)
 {
   int i;
 
-  if (!m_n_gridsBdyRight) {
+  if (m_n_gridsBdyRight) {
     for (i=0; i< m_n_gridsBdyRight; i++)
       m_gridsBdyRight[i] = gridsBdyRight[i];
   }
 
-  if (!m_n_gridsBdyDown) {
+  if (m_n_gridsBdyDown) {
     for (i=0; i< m_n_gridsBdyDown; i++)
       m_gridsBdyDown[i] = gridsBdyDown[i];
   }
@@ -92,12 +97,12 @@ void Comp::setBoundaryConc(double *concBdyRight, double *concBdyDown)
 {
   int i;
 
-  if (!m_n_gridsBdyRight) {
+  if (m_n_gridsBdyRight) {
     for (i=0; i< m_n_gridsBdyRight; i++)
       m_gridsBdyRight[i].m_concChem = concBdyRight[i];
   }
 
-  if (!m_n_gridsBdyDown) {
+  if (m_n_gridsBdyDown) {
     for (i=0; i< m_n_gridsBdyDown; i++)
       m_gridsBdyDown[i].m_concChem = concBdyDown[i];
   }
@@ -106,13 +111,13 @@ void Comp::setBoundaryConc(double *concBdyRight, double *concBdyDown)
 void Comp::setBdyMassInOutZero()
 {
   int i;
-  if (!m_MassIn_up)
+  if (m_MassIn_up)
     memset(m_MassIn_up, 0, sizeof(double)*m_ny);
-  if (!m_MassIn_left)
+  if (m_MassIn_left)
     memset(m_MassIn_left, 0, sizeof(double)*m_nx);
-  if (!m_MassOut_right)
+  if (m_MassOut_right)
     memset(m_MassOut_right, 0, sizeof(double)*m_n_gridsBdyRight);
-  if (!m_MassOut_down)
+  if (m_MassOut_down)
     memset(m_MassOut_down, 0, sizeof(double)*m_n_gridsBdyDown);
 }
 
@@ -121,9 +126,9 @@ void Comp::passBdyMassOut(Comp *bdyRight, Comp *bdyDown)
   assert(!bdyRight || m_n_gridsBdyRight==bdyRight->m_nx);
   assert(!bdyDown || m_n_gridsBdyDown==bdyDown->m_ny);
 
-  if (!bdyRight)
+  if (bdyRight)
     memcpy(bdyRight->m_MassIn_left, m_MassOut_right, sizeof(double)*m_n_gridsBdyRight);
-  if (!bdyDown)
+  if (bdyDown)
     memcpy(bdyDown->m_MassIn_up, m_MassOut_down, sizeof(double)*m_n_gridsBdyDown);
 }
 
@@ -167,6 +172,8 @@ double Comp::compInterArea(Grid gridThiis, int direction)
     break;
   }
 
+  return area;
+
 }
 
 /* compute the volume of this grid */
@@ -189,6 +196,8 @@ double Comp::compVolume(Grid gridThiis)
     break;
 
   }
+
+  return volume;
 }
 
 /* compute this compartment's total area to a certain direction defined below
@@ -227,6 +236,8 @@ double Comp::compTotalArea(int direction)
     SayBye("Coordinate system not implemented");
     break;
   }
+
+  return area;
 }
 
 /* compute this compartment's total volume */
@@ -249,18 +260,23 @@ double Comp::compMassIrregGridsRight(Grid gridThiis, double conc_this)
   double massIntoThis, mass, conc_other, flux;
   Grid *gridOther = NULL;
   
-  thd = gridThiis.m_dx * 1e-3; // to compare whether two real numbers are the same
+  //  thd = gridThiis.m_dx * 1e-3; // to compare whether two real numbers are the same
 
-  x1_this = gridThiis.m_x_coord;
-  x2_this = x1_this + gridThiis.m_dx;
-
-  massIntoThis = currentX = 0;
+  massIntoThis = 0;
 
   z_length = compInterArea(gridThiis, 2) / gridThiis.m_dx; // interfacial z_length
 
   for (i=0; i<m_n_gridsBdyRight; i++) {
-    currentX = m_gridsBdyRight[i].m_x_coord;
-    nextX = currentX + m_gridsBdyRight[i].m_dx;
+
+    x1_this = gridThiis.m_x_coord;     // x coordiantes of this
+    x2_this = x1_this + gridThiis.m_dx;//
+
+    currentX = m_gridsBdyRight[i].m_x_coord;    // x coordinates of the neighbouring grid
+    nextX = currentX + m_gridsBdyRight[i].m_dx; //
+
+    // to compare whether two real numbers are the same
+    thd = gridThiis.m_dx<m_gridsBdyDown[i].m_dx ? gridThiis.m_dx : m_gridsBdyDown[i].m_dx;
+    thd *= 1e-3;
 
     if ( x1_this > currentX-thd ) {
 
@@ -308,16 +324,20 @@ double Comp::compMassIrregGridsDown(Grid gridThiis, double conc_this)
   double massIntoThis, mass, conc_other, flux;
   Grid *gridOther = NULL;
   
-  thd = gridThiis.m_dy * 1e-3; // to compare whether two real numbers are the same
-
-  y1_this = gridThiis.m_y_coord;
-  y2_this = y1_this + gridThiis.m_dy;
-
-  massIntoThis = currentY = 0;
+  //  thd = gridThiis.m_dy * 1e-3; // to compare whether two real numbers are the same
+  massIntoThis = 0;
 
   for (i=0; i<m_n_gridsBdyDown; i++) {
-    currentY = m_gridsBdyDown[i].m_y_coord;
-    nextY = currentY + m_gridsBdyDown[i].m_dy;
+
+    y1_this = gridThiis.m_y_coord;      // y coordinates of this grid
+    y2_this = y1_this + gridThiis.m_dy; //
+
+    currentY = m_gridsBdyDown[i].m_y_coord;    // y coordinates of the neighbouring grid
+    nextY = currentY + m_gridsBdyDown[i].m_dy; //
+
+    // to compare whether two real numbers are the same
+    thd = gridThiis.m_dy<m_gridsBdyDown[i].m_dy ? gridThiis.m_dy : m_gridsBdyDown[i].m_dy;
+    thd *= 1e-3;
 
     if ( y1_this > currentY-thd ) {
 
@@ -526,7 +546,7 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 
       /* diffusion from down */
 
-      area = compInterArea(*gridThiis, 2); // interfacial area
+      area = compInterArea(*gridThiis, 3); // interfacial area
 
       if ( i==m_nx-1 ) { // bottom layer
 

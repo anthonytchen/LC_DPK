@@ -4,7 +4,8 @@ CC=g++
 
 # libraries
 #LIBSPATH=/home/tc0008/sundials/lib
-LIBS=-L/usr/local/lib -lgsl -lgslcblas -lm -pthread -lsundials_cvode -lsundials_nvecserial
+#LIBS=-L/usr/local/lib -lgsl -lgslcblas -lm -pthread -lsundials_cvode -lsundials_nvecserial
+LIBS=-L/usr/local/lib -lm -pthread -lsundials_cvode -lsundials_nvecserial
 INC=-I/usr/local/include/
 
 #CFLAGS=-O2 -ffast-math -Wno-deprecated -c
@@ -19,14 +20,14 @@ LD=g++
 LFLAGS=-g -O0 -Wno-write-strings
 
 
-all:	arg.o Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o LCK LCK_metabo #Calib_LCK
+all:	except.o arg.o Chemical.o Grid.o Comp.o Vehicle.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o LCK #LCK_metabo #Calib_LCK
 
 clean:
 	rm -f *.o *.lnk
 
 ### executables ##
-LCK: LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o
-	$(LD) $(LFLAGS)  LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o $(LIBS) $(INC) -o LCK
+LCK: LCK.cpp Chemical.o Grid.o Comp.o Vehicle.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o except.o
+	$(LD) $(LFLAGS)  LCK.cpp Chemical.o Grid.o Comp.o Vehicle.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o except.o $(LIBS) $(INC) -o LCK
 LCK_metabo: LCK_metabo.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o
 	$(LD) $(LFLAGS)  LCK_metabo.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o arg.o $(LIBS) $(INC) -o LCK_metabo
 Calib_LCK: Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
@@ -34,12 +35,18 @@ Calib_LCK: Calib_LCK.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Skin.o
 
 
 ### objective files ##
+except.o: except.cpp except.h
+	$(CC) $(CFLAGS) except.cpp $(INC) -o except.o
 arg.o: arg.h arg.c
 	$(CC) $(CFLAGS) arg.c $(INC) -o arg.o
 Chemical.o: Chemical.h Chemical.cpp
 	$(CC) $(CFLAGS) Chemical.cpp $(INC) -o Chemical.o
 Grid.o: Grid.h Grid.cpp
 	$(CC) $(CFLAGS) Grid.cpp $(INC) -o Grid.o
+Comp.o: Comp.h Comp.cpp
+	$(CC) $(CFLAGS) Comp.cpp $(INC) -o Comp.o
+Vehicle.o: Vehicle.h Vehicle.cpp
+	$(CC) $(CFLAGS) Vehicle.cpp $(INC) -o Vehicle.o
 StraCorn.o: StraCorn.h StraCorn.cpp
 	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
 ViaEpd.o: ViaEpd.h ViaEpd.cpp

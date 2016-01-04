@@ -50,7 +50,7 @@ void Chemical::calcIon()
    Refs:  Yamazaki K, Kanaoka M (2004). Journal of Pharmaceutical Sciences, 93: 1480. */
 void Chemical::calcBinding()
 {
-  switch (acid_base) {
+  switch (m_acid_base) {
     case 'A' : // weak acid
       m_frac_unbound = 1 - ( 0.7936 * exp(log10(m_K_ow)) + 0.2239 ) / ( 0.7936 * exp(log10(m_K_ow)) + 1.2239 );
       break;
