@@ -22,7 +22,7 @@ int main (int argc, char* argv[])
   static char *pre_coord = "coord";
 	
   t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
-  n_layer_x_sc = 16+5; //16
+  n_layer_x_sc = 12; //16
   n_layer_y_sc = 2; // 2
   n_grids_x_ve = 10;
   n_grids_x_de = 10;
@@ -112,7 +112,9 @@ int main (int argc, char* argv[])
   //  _chem.Init(MW, K_ow, pKa, 'A'); // the last letter denotes acid (A) or base (B)
   _chem.Init(MW, K_ow, pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
 
-  _skin.Init(&_chem, 1, true, &conc_vehicle, &diffu_vehicle, &partition_vehicle, &partition_dermis2blood, &k_clear_blood,
+  // SC, VE, DE, blood
+  bool has_compartments[4] = {true, false, false, false};
+  _skin.Init(&_chem, 1, has_compartments, &conc_vehicle, &diffu_vehicle, &partition_vehicle, &partition_dermis2blood, &k_clear_blood,
 	     dx_vehicle, area_vehicle, x_len_viaepd, x_len_dermis,
 	     n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc, b_inf_src);
   

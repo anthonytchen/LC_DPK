@@ -54,6 +54,7 @@ public:
   void Init(const char[], Chemical, double, double, double, double, double, double);
   void InitVH(const char[], Chemical, double, double, double, double, double, double, double, double, double);
   void InitSK(const char[], Chemical, double, double, double, double, double, double);
+  void InitSK();
   void InitSC(const char[], Chemical, double, double, double, double, double, double, 
 	    double, double, double, double, double, double, double, double, double, double);
   void InitVE_DE(const char[], Chemical, double, double, double, double, double, double); // Init for viable epidermis or dermis grid

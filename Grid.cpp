@@ -82,6 +82,18 @@ void Grid::InitSK(const char name[], Chemical chem, double concChem, double x_co
   m_Kw = 1; // arbitrary value
 }
 
+void Grid::InitSK()
+{
+  strcpy(m_name, "SK");
+  m_concChem = 0;
+
+  m_x_coord = m_y_coord = 0;
+  m_dx = m_dy = m_dz = 0;
+
+  m_D = 1; // very big value, essentially means anything in the sink can be quickly removed
+  m_Kw = 1; // arbitrary value, doesn't matter in flux calculation
+}
+
 /*  Init  stratum corneum
     T - temperature, default is 309 K (36 deg C)
     eta - water viscosity (default 0.0071 P at 36 deg C) */

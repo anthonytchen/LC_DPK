@@ -37,7 +37,9 @@ class Comp
   /* member variables to do with boundaries */
   int m_n_gridsBdyRight, m_n_gridsBdyDown;
   BdyCond m_BdyCond_up, m_BdyCond_left, m_BdyCond_right, m_BdyCond_down;
-  Grid *m_gridsBdyUp, *m_gridsBdyLeft, *m_gridsBdyRight, *m_gridsBdyDown; // grids of the 4 boundaries
+  //Grid *m_gridsBdyUp, *m_gridsBdyLeft, *m_gridsBdyRight, *m_gridsBdyDown; // grids of the 4 boundaries
+  Grid *m_gridsBdyRight, *m_gridsBdyDown; // grids of the 2 boundaries for which outgoing flux is calculated
+  Grid m_gridSink; // sink with zero concentration
   double *m_MassIn_up, *m_MassIn_left, // to avoid duplicate calculations, only record mass-in from up and left
     *m_MassOut_right, *m_MassOut_down; //  and mass-out to right and down
 

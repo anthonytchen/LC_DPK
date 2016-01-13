@@ -28,6 +28,7 @@ public:
   double m_Vehicle_area; // The dimensions in m_gridVehicle is for the microscopic grid used for simulation.
                          // The actual vehicle application area is contained here.
   bool m_bInfSrc, 
+    m_b_has_SC, m_b_has_VE, m_b_has_DE, // whether has stratum corneum, viable epidermis, dermis
     m_b_has_blood; // whether has blood compartment
 
   struct Reaction m_React;
@@ -42,7 +43,7 @@ public:
 public:
   Skin(void) {};	
   ~Skin(void) {};
-  void Init(Chemical*, int, bool, double*, double*, double*, double*, double*, double, double, double, double, int, int, int, int, double, bool);
+  void Init(Chemical*, int, const bool [], double*, double*, double*, double*, double*, double, double, double, double, int, int, int, int, double, bool);
   void InitReaction(int, int, double, double); // initialisation for reaction parameters
   void Release();
   

@@ -17,13 +17,15 @@ void Comp::Init( CoordSys coord_sys, double dz_dtheta,
   m_n_gridsBdyRight = 0;
   m_n_gridsBdyDown = 0;
 
-  m_gridsBdyUp = NULL;
-  m_gridsBdyLeft = NULL;
+  // m_gridsBdyUp = NULL;
+  // m_gridsBdyLeft = NULL;
   m_gridsBdyRight = NULL;
   m_gridsBdyDown = NULL;
   m_MassIn_up = m_MassIn_left = m_MassOut_right = m_MassOut_down = NULL;
   m_grids = NULL;
   m_conc1D = m_coord1D = NULL;
+
+  m_gridSink.InitSK(); // setup a sink grid
 }
 
 void Comp::Release()
@@ -482,7 +484,8 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 	case ZeroFlux : 
 	  break;
 	case ZeroConc :
-	  SayBye("to be implemented");
+	  flux = gridThiis->compFlux( &m_gridSink, conc_this, 0, gridThiis->m_dy/2, 0, &deriv_this, &deriv_other);	  
+	  mass_transfer_rate += area * flux;
 	  break;
 	case Periodic :
 	  idx_other = i*m_ny+m_ny-1;
@@ -517,7 +520,8 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 	case ZeroFlux : 
 	  break;
 	case ZeroConc :
-	  SayBye("to be implemented");
+	  flux = gridThiis->compFlux( &m_gridSink, conc_this, 0, gridThiis->m_dy/2, 0, &deriv_this, &deriv_other);	  
+	  mass_transfer_rate += area * flux;
 	  break;
 	case Periodic :
 	  idx_other = i*m_ny;
@@ -554,7 +558,8 @@ void Comp::compODE_dydt_block (double t, const double y[], double f[],
 	case ZeroFlux : 
 	  break;
 	case ZeroConc :
-	  SayBye("to be implemented");
+	  flux = gridThiis->compFlux( &m_gridSink, conc_this, 0, gridThiis->m_dx/2, 0, &deriv_this, &deriv_other);	  
+	  mass_transfer_rate += area * flux;
 	  break;
 	case FromOther :
 	  mass = compMassIrregGridsDown(*gridThiis, conc_this);
