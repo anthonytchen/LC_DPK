@@ -114,7 +114,7 @@ int main (int argc, char* argv[])
 
   // SC, VE, DE, blood
   bool has_compartments[4] = {true, false, false, false};
-  _skin.Init(&_chem, 1, has_compartments, &conc_vehicle, &diffu_vehicle, &partition_vehicle, &partition_dermis2blood, &k_clear_blood,
+  _skin.Init(&_chem, 1, has_compartments, &conc_vehicle, &partition_vehicle, &diffu_vehicle, &partition_dermis2blood, &k_clear_blood,
 	     dx_vehicle, area_vehicle, x_len_viaepd, x_len_dermis,
 	     n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de, offset_y_sc, b_inf_src);
   

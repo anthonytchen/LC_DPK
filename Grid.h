@@ -52,7 +52,7 @@ public:
   void operator=(const Grid &other);
 
   void Init(const char[], Chemical, double, double, double, double, double, double);
-  void InitVH(const char[], Chemical, double, double, double, double, double, double, double, double, double);
+  void InitVH(const char[], Chemical, double, double, double, double, double, double, double, double, double, double diff_vh=-1);
   void InitSK(const char[], Chemical, double, double, double, double, double, double);
   void InitSK();
   void InitSC(const char[], Chemical, double, double, double, double, double, double, 

@@ -4,7 +4,7 @@
 
 /* Initialisation for possibly multiple chemicals */
 void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[],
-		double *conc_vehicle, double *diffu_vehicle, double *partition_vehicle, 
+		double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
 		double *par_dermis2blood, double *blood_k_clear,
 		double dx_vehicle, double area_vehicle, double x_len_ve, double x_len_de,
 		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc,
@@ -134,13 +134,13 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
   for (i=0; i<m_nChem; i++) {
     m_concVehicleInit[i] = conc_vehicle[i];
     if (m_b_has_SC) {
-      m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], 
+      m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
 			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, FromOther);
       m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
       m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
     }
     else {
-      m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], 
+      m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
 			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, ZeroFlux);
       m_Vehicle[i].createBoundary(0, 0);    
       m_Vehicle[i].setBoundaryGrids(NULL, NULL);
@@ -687,10 +687,14 @@ void Skin::get1DCoordSC(double *ret, int dim_ret, int idx_chem)
 void Skin::displayGrids()
 {
   m_Vehicle[0].displayGrids();
-  m_StraCorn[0].displayGrids();
-  m_ViaEpd[0].displayGrids();
-  m_Dermis[0].displayGrids();
-  m_Blood[0].displayGrids();
+  if (m_b_has_SC)
+    m_StraCorn[0].displayGrids();
+  if (m_b_has_VE)
+    m_ViaEpd[0].displayGrids();
+  if (m_b_has_DE)
+    m_Dermis[0].displayGrids();
+  if (m_b_has_blood)
+    m_Blood[0].displayGrids();
 
   fflush(stdout);
 }

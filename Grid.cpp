@@ -58,17 +58,20 @@ void Grid::Init(const char name[], Chemical chem, double concChem, double x_coor
 
 /* init vehicle */
 void Grid::InitVH(const char name[], Chemical chem, double concChem, double x_coord, double y_coord,
-		  double dx, double dy, double dz, double T, double eta, double K_vw)
+		  double dx, double dy, double dz, double T, double eta, double K_vw, double diff_vh)
 {
   Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
 
-  /* calculation of diffusivity in water */
-  double K, r_f, Dw, r_s_inA, alpha, beta, lambda, gamma, K_kw, r_f_inA, phi_f, k, S;
+  
+  double K;
 
-  K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
-  Dw = K*T/6/M_PI/eta/chem.m_r_s; // diffusivity in water, Stoke-Eistein equation
+  if (diff_vh<0) { /* calculation of diffusivity in water */
+    K = 1.3806488 * 1E-23; // Boltzmann constant, Kg m^2 s^{-2}
+    m_D = K*T/6/M_PI/eta/chem.m_r_s; // diffusivity in water, Stoke-Eistein equation
+  }
+  else
+    m_D = diff_vh;
 
-  m_D = Dw; // assuming vehicle is water!
   m_Kw = K_vw;
 }
 

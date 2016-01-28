@@ -4,8 +4,8 @@
 /*
  */
 void Vehicle::Init(double x_length, double y_length, double dz_dtheta, int n_grids_x, int n_grids_y,
-		   double init_concChem,
-		  CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down)
+		   double init_concChem, double K_vw, double diff_vehicle, 
+		   CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down)
 {	
   // call Init of the base class Comp
   Comp::Init (coord_sys, dz_dtheta, bdy_cond_up, bdy_cond_left, bdy_cond_right, bdy_cond_down);
@@ -20,7 +20,8 @@ void Vehicle::Init(double x_length, double y_length, double dz_dtheta, int n_gri
 
   m_T = 309; // temperature (Kelvin)
   m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
-  m_K_vw = 1; // partition coefficient between vehicle and water (1 means vehicle is water)
+  m_K_vw = K_vw; // partition coefficient between vehicle and water
+  m_D = diff_vehicle; // diffusion coefficient in vehicle
 }
 
 
@@ -47,7 +48,7 @@ void Vehicle::createGrids(Chemical chem, double coord_x_now)
 			
       idx = i*m_ny + j;
 
-      m_grids[idx].InitVH("VH", chem, m_init_concChem, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz_dtheta, m_T, m_eta, m_K_vw);
+      m_grids[idx].InitVH("VH", chem, m_init_concChem, current_point.x_coord, current_point.y_coord, current_point.dx, current_point.dy, m_dz_dtheta, m_T, m_eta, m_K_vw, m_D);
 
       // update current_point
       if (j==m_ny-1) { // last element in the lateral direction, move down
