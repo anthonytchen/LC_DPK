@@ -22,7 +22,7 @@ int main (int argc, char* argv[])
   static char *pre_coord = "coord";
 	
   t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
-  n_layer_x_sc = 12; //16
+  n_layer_x_sc = 23; //16
   n_layer_y_sc = 2; // 2
   n_grids_x_ve = 10;
   n_grids_x_de = 10;
@@ -66,11 +66,11 @@ int main (int argc, char* argv[])
   */
 
   /* vanakoski  paper */
-  dx_vehicle = 1e-4; // thickness of vehicle in meter
-  area_vehicle = 30*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 24.9*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
-  diffu_vehicle = 1e-13; // diffusivity of solute in vehicle
-  partition_vehicle = 1;
+  dx_vehicle = 3e-4; // thickness of vehicle in meter
+  area_vehicle = 22.5*1e-4; // cm2 patch, represented in m2
+  conc_vehicle = 39.37*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
+  diffu_vehicle = -1; // using diffusivity in water
+  partition_vehicle = 0.7;
   partition_dermis2blood = 1.0/pow(10,0.04);
   k_clear_blood = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s, 1250 = 20.8e-6, 1540 = 25.7e-6
   
@@ -125,7 +125,7 @@ int main (int argc, char* argv[])
   _chem.Init(MW, K_ow, pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
 
   // SC, VE, DE, blood
-  //bool has_compartments[4] = {true, false, false, false};
+  // bool has_compartments[4] = {true, false, false, false};
   bool has_compartments[4] = {true, true, true, true};
   _skin.Init(&_chem, 1, has_compartments, &conc_vehicle, &partition_vehicle, &diffu_vehicle, &partition_dermis2blood, &k_clear_blood,
 	     dx_vehicle, area_vehicle, x_len_viaepd, x_len_dermis,
@@ -162,9 +162,10 @@ int main (int argc, char* argv[])
     _skin.compFlux_sc2down(&flux2);
     //_skin.compFlux_ve2down(&flux3);
     // _skin.compFlux_de2down(&flux4);
-    printf("Time %e flux = %e %e %e %e\n", t_simu+t_inv, flux1, flux2, flux3, flux4);
+    printf("Time %e flux = %e %e \n", t_simu+t_inv, flux1, flux2);
 
-    // _skin.resetVehicle(conc_vehicle, partition_vehicle, diffu_vehicle);
+    if ( t_simu+t_inv-3600*16 > -1 )
+      _skin.removeVehicle();
   }
 
   _skin.Release();

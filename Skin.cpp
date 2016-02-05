@@ -40,14 +40,14 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
       if (m_b_has_VE) {
 	m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
 			   Cartesian, FromOther, bdy_left_right, bdy_left_right, FromOther); // bdy conditions: u/l/r/d
-	m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);    
-	m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
+	//m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);    
+	//m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
       }
       else {
 	m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
 			   Cartesian, FromOther, bdy_left_right, bdy_left_right, ZeroConc); // bdy conditions: u/l/r/d
-	m_StraCorn[i].createBoundary(0, 0);    
-	m_StraCorn[i].setBoundaryGrids(NULL, NULL);
+	//m_StraCorn[i].createBoundary(0, 0);    
+	//m_StraCorn[i].setBoundaryGrids(NULL, NULL);
       }
       m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface);     
     }
@@ -72,14 +72,14 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
       if (m_b_has_DE) {
 	m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz_dtheta, n_grids_x_ve, 1, Cartesian,
 			 FromOther, bdy_left_right, bdy_left_right, FromOther);
-	m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);    
-	m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
+	//m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);    
+	//m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
       }
       else {
 	m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz_dtheta, n_grids_x_ve, 1, Cartesian,
 			 FromOther, bdy_left_right, bdy_left_right, ZeroConc);
-	m_ViaEpd[i].createBoundary(0, 0);
-	m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
+	//m_ViaEpd[i].createBoundary(0, 0);
+	//m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
       }
       m_ViaEpd[i].createGrids(chemSolute[i], x_len_sc);
     }
@@ -136,18 +136,59 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
     if (m_b_has_SC) {
       m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
 			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, FromOther);
-      m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
-      m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
+      //m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
+      //m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
     }
     else {
       m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
 			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, ZeroFlux);
-      m_Vehicle[i].createBoundary(0, 0);    
-      m_Vehicle[i].setBoundaryGrids(NULL, NULL);
+      //m_Vehicle[i].createBoundary(0, 0);    
+      //m_Vehicle[i].setBoundaryGrids(NULL, NULL);
     }
     m_Vehicle[i].createGrids(chemSolute[i], -dx_vehicle); // coordinate 0 starts from stratum corneum
   }
   m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
+
+
+  /* Link the compartments through boundary setting */
+
+  // bdy conditions: up/left/right/down
+  for (i=0; i<m_nChem; i++) {
+
+    // vehicle
+    if (m_b_has_SC) {
+      m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
+      m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
+    }
+    else {
+      m_Vehicle[i].createBoundary(0, 0);    
+      m_Vehicle[i].setBoundaryGrids(NULL, NULL);
+    }
+
+    // stratum corneum
+    if (m_b_has_SC) {
+      if (m_b_has_VE) {
+	m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);    
+	m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
+      }
+      else {
+	m_StraCorn[i].createBoundary(0, 0);    
+	m_StraCorn[i].setBoundaryGrids(NULL, NULL);
+      }
+    }
+
+    // viable epidermis
+    if (m_b_has_VE) {
+      if (m_b_has_DE) {
+	m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);    
+	m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
+      }
+      else {
+	m_ViaEpd[i].createBoundary(0, 0);
+	m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
+      }
+    }    
+  }
 
   // overall dimension
   m_dim_all =  m_dim_vh + m_dim_sc + m_dim_ve + m_dim_de +  m_dim_bd;
