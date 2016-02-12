@@ -117,3 +117,18 @@ matplotlib.rcParams.update({'font.size': 20})
 plt.savefig('Nicotine_MultiDose.png', bbox_inches='tight')
 #plt.show()
 
+if 1 :
+    plt.figure(4, figsize=(18.5,10.5))
+    plt.plot(dat[:,0], dat[:,1], 'ro', label='Data')
+    t_range_mdl = np.linspace(0, 32, 193)
+    mdl = np.loadtxt("conc_bd_chem0.txt")
+    plt.plot(t_range_mdl[1:], mdl*1e6,'b-')
+
+    plt.annotate('Patch removed', xy=(16, 0), xytext=(16, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
+    plt.legend(loc='upper right')
+    plt.axis([0, 32.5, 0, 18])
+    plt.xlabel('Time (hr)')
+    plt.ylabel('Plasma concentration (ng/ml)')
+    mpl.rcParams.update({'font.size': 20})
+    plt.show()
+    #plt.savefig('Nicotine_DeVeaugh.png', bbox_inches='tight')
