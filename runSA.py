@@ -7,7 +7,6 @@ x = np.array([-0.155, -9.012])  # 10**-0.155 = 0.7
 #x = np.array([-0.097, -9.012]) # 10**-0.097 = 0.8
 #x = np.array([-0.046, -9.012])  # 10**-0.046 = 0.9
 
-
 t_range = np.linspace(0, 30, 181)
 t_range_long = np.linspace(0, 60, 121)
 #t_range = np.linspace(0, 30, 31)
@@ -90,30 +89,5 @@ ax.set_xlabel('Time (hr)')
 ax.set_ylabel('Percentage as in stratum corneum (%)')
 mpl.rcParams.update({'font.size': 20})
 plt.savefig('Nicotine_StraCorn.png', bbox_inches='tight')
-#plt.show()
-
-
-
-plt.figure(3, figsize=(18.5,10.5))
-dat = np.loadtxt("Nicotine_Bannon89_Multiple.txt")
-t_range_multiple = np.linspace(0, 168, 169)
-blood_conc_data_multiple = dat[:,1]
-conc_simu_30_multiple = runDPK.runDPKfunc( 10**x[0], 10**x[1], 100*1e-6, t_range_multiple*3600, 2, clear_blood=23.3e-6 )
-plt.plot(dat[:,0], dat[:,1], 'bs', label='Data (30mg)')
-plt.plot(t_range_multiple, conc_simu_30_multiple[0]*1e6, 'b-', label='Model (30mg)')
-plt.annotate('', xy=(24, 0), xytext=(24, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
-plt.annotate('', xy=(48, 0), xytext=(48, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
-plt.annotate('Patch replaced', xy=(72, 0), xytext=(72, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
-plt.annotate('', xy=(96, 0), xytext=(96, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
-plt.annotate('', xy=(120, 0), xytext=(120, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
-plt.annotate('', xy=(144, 0), xytext=(144, 2), arrowprops=dict(facecolor='none', shrink=0.05),)
-
-plt.legend(loc='upper left')
-#plt.axis([0, 32, 0, 16])
-plt.axis([0, 170, 0, 20])
-plt.xlabel('Time (hr)')
-plt.ylabel('Plasma concentration (ng/ml)')
-matplotlib.rcParams.update({'font.size': 20})
-plt.savefig('Nicotine_MultiDose.png', bbox_inches='tight')
 #plt.show()
 
