@@ -243,6 +243,41 @@ void Skin::Release(void)
 
 }
 
+/* Functions to create individual compartments 
+*/
+void Skin::createVH(Chemical *chemSolute, double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
+		    double x_start_coord, double y_start_coord, double xlen, double ylen, double area_vehicle, bool bInfSrc,
+		    double *x_end_coord, double *y_end_coord)
+{
+  int i;
+  BdyCond bdy_left_right = Periodic;
+
+  m_concVehicleInit = new double[m_nChem];
+  m_Vehicle = new Vehicle[m_nChem];
+
+  m_Vehicle_area = area_vehicle;
+  m_bInfSrc = bInfSrc; // whether the vehicle is a infinite source
+
+  for (i=0; i<m_nChem; i++) {
+    m_concVehicleInit[i] = conc_vehicle[i];
+    if (m_b_has_SC) {
+      m_Vehicle[i].Init(xlen, ylen, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
+			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, FromOther);
+    }
+    else {
+      m_Vehicle[i].Init(xlen, ylen, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
+			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, ZeroFlux);
+    }
+    m_Vehicle[i].createGrids(chemSolute[i], x_start_coord); // todo: add y_start_coord in grids creation
+  }
+  m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
+  
+  *x_end_coord = xlen;
+  *y_end_coord = ylen;
+
+}
+
+// ----------------------------------------------------
 
 int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
 {

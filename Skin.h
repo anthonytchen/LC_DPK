@@ -3,6 +3,7 @@
 
 #include "Chemical.h"
 #include "Vehicle.h"
+#include "Sebum.h"
 #include "StraCorn.h"
 #include "ViaEpd.h"
 #include "Dermis.h"
@@ -35,6 +36,7 @@ public:
 
   // Chemical m_Chemical;
   Vehicle *m_Vehicle;
+  Sebum *m_Sebum;
   StraCorn *m_StraCorn;
   ViaEpd *m_ViaEpd;
   Dermis *m_Dermis;
@@ -46,6 +48,18 @@ public:
   void Init(Chemical*, int, const bool [], double*, double*, double*, double*, double*, double, double, double, double, int, int, int, int, double, bool);
   void InitReaction(int, int, double, double); // initialisation for reaction parameters
   void Release();
+
+  // functions to create individual compartments
+  //     they return end-of-compartment x and y coordinates (x_end_coord, y_end_coord)
+  //     that can be passed to subsequent compartments
+  void createVH(Chemical*, double*, double*, double*, double, double, double, double, double, bool, double *x_end_coord, double *y_end_coord); // vehicle
+  void createSB(double *x_end_coord, double *y_end_coord); // sebum
+  void createSC(double *x_end_coord, double *y_end_coord); // stratum corneum
+  void createVE(double *x_end_coord, double *y_end_coord); // viable epidermis
+  void createDE(double *x_end_coord, double *y_end_coord); // dermis
+  void createBD(); // blood
+
+  // functions to link compartments
   
   void diffuseMoL(double t_start, double t_end); // method of lines using CVODE solver
   void resetVehicle(double[], double[], double[]); // reset vehicle concentration, partition coefficient, diffusivity
