@@ -75,6 +75,28 @@ void Grid::InitVH(const char name[], Chemical chem, double concChem, double x_co
   m_Kw = K_vw;
 }
 
+/* init sebum */
+void Grid::InitSB(const char name[], Chemical chem, double concChem, double x_coord, double y_coord,
+		  double dx, double dy, double dz, double K_sw, double D)
+{
+  Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
+
+  
+  double K;
+
+  if (D<0) { /* calculate diffusivity from QSPR model */
+    SayBye("QSPR for calculating sebum diffusion coefficient not yet implemented");
+  }
+  else
+    m_D = D;
+
+  if (K_sw<0) { /* calculate partition coefficient from QSPR model */
+    SayBye("QSPR for calculating sebum partition coefficient not yet implemented");
+  }
+  else
+    m_Kw = K_sw;
+}
+
 /* init sink */
 void Grid::InitSK(const char name[], Chemical chem, double concChem, double x_coord, double y_coord,
 		  double dx, double dy, double dz)

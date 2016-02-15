@@ -28,6 +28,7 @@ class Grid
 public:
   char m_name[3]; // two-letter combination of the name of the grid
   //            'VH' - vehicle
+  //            'SB' - sebum
   //		'CC' - corneocyte in stratum corneum
   //		'LP' - lipid in stratum corneum
   //		'VE' - viable epidermis
@@ -53,6 +54,7 @@ public:
 
   void Init(const char[], Chemical, double, double, double, double, double, double);
   void InitVH(const char[], Chemical, double, double, double, double, double, double, double, double, double, double diff_vh=-1);
+  void InitSB(const char[], Chemical, double, double, double, double, double, double, double, double);
   void InitSK(const char[], Chemical, double, double, double, double, double, double);
   void InitSK();
   void InitSC(const char[], Chemical, double, double, double, double, double, double, 

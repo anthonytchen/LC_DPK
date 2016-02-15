@@ -1,4 +1,4 @@
-/* The header file for viable epidermis  */
+/* The header file for the vehicle  */
 #ifndef _H_VEHICLE_
 #define _H_VEHICLE_
 
