@@ -24,7 +24,7 @@ public:
   void Init(double, double, double, double, double, int, int, double, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond);
   void Release();
   
-  void createGrids(Chemical, double);
+  void createGrids(Chemical, double, double, double);
  
   // I/O functions
   void getAmount(double*, double*, double*);

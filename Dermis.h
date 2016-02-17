@@ -24,7 +24,7 @@ public:
   void Init(double, double, double, int, int, bool, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond);
   void InitDermisBlood(double, double, double, double bld_concChem=0, double skin_area=1.8);
   
-  void createGrids(Chemical, double);
+  void createGrids(Chemical, double, double);
   void updateBlood(double);
 	
   // Functions needed for computing ODE's right hand side (i.e. dy/dt)

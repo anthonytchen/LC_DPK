@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "arg.h"
 #include "Chemical.h"
-#include "Skin.h"
+#include "Skin_VS.h"
 
 
 int main (int argc, char* argv[])
@@ -94,12 +94,11 @@ int main (int argc, char* argv[])
   Chemical _chem;
   _chem.Init(MW, pow(10, log_K_ow), pKa, 1, 1, 'B'); // the last 3 inputs are not used when calculating permeability through SC
 
-  Skin _skin;
-  // SC, VE, DE, blood
-  bool has_compartments[4] = {true, false, false, false};
+  Skin_VS _skin;
+
   K_vh = pow(10, log_K_vh);
-  _skin.Init(&_chem, 1, has_compartments, &conc_vehicle, &K_vh, &diffu_vehicle,  NULL, NULL,
-	     dx_vehicle, area_vehicle, 0, 0, n_layer_x_sc, n_layer_y_sc, 0, 0, 0, b_inf_src);  
+  _skin.Init(&_chem, 1, &conc_vehicle, &K_vh, &diffu_vehicle,
+	     dx_vehicle, area_vehicle, n_layer_x_sc, n_layer_y_sc, 40.03751e-6, b_inf_src);
   _skin.saveCoord( fn_coord_x, fn_coord_y );
   if ( nDis > 1 )
     _skin.displayGrids();	

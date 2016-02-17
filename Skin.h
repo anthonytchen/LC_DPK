@@ -52,12 +52,12 @@ public:
   // functions to create individual compartments
   //     they return end-of-compartment x and y coordinates (x_end_coord, y_end_coord)
   //     that can be passed to subsequent compartments
-  void createVH(Chemical*, double*, double*, double*, double, double, double, double, double, bool, double *x_end_coord, double *y_end_coord); // vehicle
+  void createVH(const Chemical*, const double*, const double*, const double*, double, double, double, double, double, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // vehicle
   void createSB(double *x_end_coord, double *y_end_coord); // sebum
-  void createSC(double *x_end_coord, double *y_end_coord); // stratum corneum
-  void createVE(double *x_end_coord, double *y_end_coord); // viable epidermis
-  void createDE(double *x_end_coord, double *y_end_coord); // dermis
-  void createBD(); // blood
+  void createSC(const Chemical*, double, double, int, int, double, BdyCondStr, double *x_end_coord, double *y_end_coord); // stratum corneum
+  void createVE(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord); // viable epidermis
+  void createDE(const Chemical*, double, double, double, double, int, int, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // dermis
+  void createBD(const double*, const double*); // blood
 
   // functions to link compartments
   

@@ -22,6 +22,7 @@ enum CoordSys {Cartesian, Cylindrical};
     -- ODE: to indicated boundary conditions are not needed if the compartment is ODE
  */
 enum BdyCond {ZeroFlux, ZeroConc, Periodic, FromOther, ODE };
+struct BdyCondStr { BdyCond up, left, right, down; };
 
 class Comp
 {

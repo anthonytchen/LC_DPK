@@ -15,7 +15,7 @@ public:
   ~ViaEpd(void) {};
   void Init(double, double, double, int, int, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond);
   
-  void createGrids(Chemical, double);
+  void createGrids(Chemical, double, double);
  
   // I/O functions
   void saveCoord(const char [], const char []);

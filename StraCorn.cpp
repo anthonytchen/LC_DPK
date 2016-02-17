@@ -80,7 +80,7 @@ void StraCorn::Release()
 }
 
 
-void StraCorn::createGrids(Chemical chem, double water_frac_surface)
+void StraCorn::createGrids(Chemical chem, double water_frac_surface, double coord_x_start, double coord_y_start)
 {
   bool bOffset = false;
   int i, j, idx, idx_x, idx_y, idx_y_offset, cc_subtype_offset;
@@ -125,19 +125,19 @@ void StraCorn::createGrids(Chemical chem, double water_frac_surface)
     SayBye ("subtype name unknown");    
   }
 
-  struct Point current_point;
-  setPoint(current_point, 0, 0, dx_lipid, dy_offset, "LP", "LP"); // starting from lipid on the top layer
-
   double water_frac, water_frac_sat = 0.55; // saturated water content (w/w)
   double water_increment_per_x = (water_frac_sat - water_frac_surface) / m_x_length;
     
   idx_x = 0; idx_y = idx_y_offset;
-  coord_x = coord_y = 0;
   cc_subtype = cc_subtype_offset;
+
+  coord_x = coord_x_start; coord_y = coord_y_start;
+  struct Point current_point;
+  setPoint(current_point, coord_x, coord_y, dx_lipid, dy_offset, "LP", "LP"); // starting from lipid on the top layer
 
   for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
     
-    water_frac = water_frac_surface + current_point.x_coord * water_increment_per_x;
+    water_frac = water_frac_surface + (current_point.x_coord - coord_x_start) * water_increment_per_x;
     // printf("water fraction %lf at %.3e\n", water_frac, current_point.x_coord);
 
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
@@ -160,6 +160,7 @@ void StraCorn::createGrids(Chemical chem, double water_frac_surface)
       if (j==m_ny-1) { // last element in the lateral direction, move down
 				
 	idx_x ++;
+	coord_y = coord_y_start;
 
 	if ( !strcmp(current_point.x_type, "LP") ) {
 	  coord_x += dx_lipid;
@@ -167,49 +168,49 @@ void StraCorn::createGrids(Chemical chem, double water_frac_surface)
 	    switch (cc_subtype_offset) {
 	    case 0 :
 	    case 2 :
-	      setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "CC");
+	      setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "CC");
 	      break;
 	    case 1 :
-	      if (!bOffset)   setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "CC");
-	      else            setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "LP");
+	      if (!bOffset)   setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "CC");
+	      else            setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "LP");
 	      break;
 	    case 3 :
-	      if (!bOffset)   setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "LP");
-	      else            setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "CC");
+	      if (!bOffset)   setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "LP");
+	      else            setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "CC");
 	      break;
 	    default :
 	      break;
 	    }	      
 	    idx_x = 0;
 	  } else {
-	    setPoint(current_point, coord_x, 0, dx_lipid, dy_offset, "LP", "LP");
+	    setPoint(current_point, coord_x, coord_y, dx_lipid, dy_offset, "LP", "LP");
 	  }
 	} else if ( !strcmp(current_point.x_type, "CC") ) {
 	  coord_x += dx_cc;
 	  if ( idx_x == m_nx_grids_cc ) {
-	    setPoint(current_point, coord_x, 0, dx_lipid, dy_offset, "LP", "LP");
+	    setPoint(current_point, coord_x, coord_y, dx_lipid, dy_offset, "LP", "LP");
 	    idx_x = 0;
 	    bOffset = !bOffset;
 	  } else {
 	    switch (cc_subtype_offset) {
 	    case 0 :
 	    case 2 :
-	      setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "CC");
+	      setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "CC");
 	      break;
 	    case 1 :
-	      if (!bOffset)   setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "CC");
-	      else            setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "LP");
+	      if (!bOffset)   setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "CC");
+	      else            setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "LP");
 	      break;
 	    case 3 :
-	      if (!bOffset)   setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "LP");
-	      else            setPoint(current_point, coord_x, 0, dx_cc, dy_offset, "CC", "CC");
+	      if (!bOffset)   setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "LP");
+	      else            setPoint(current_point, coord_x, coord_y, dx_cc, dy_offset, "CC", "CC");
 	      break;
 	    default :
 	      break;
 	    }
 	  }
 	}
-	coord_y = 0;
+	// coord_y = 0;
 	idx_y = idx_y_offset;
 	cc_subtype = cc_subtype_offset;
 

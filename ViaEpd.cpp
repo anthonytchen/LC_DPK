@@ -24,7 +24,7 @@ void ViaEpd::Init(double x_length, double y_length, double dz_dtheta, int n_grid
     Kow: partition coefficient between octanol and water
     pKa: the ionisation of the chemical
  */
-void ViaEpd::createGrids(Chemical chem, double coord_x_now)
+void ViaEpd::createGrids(Chemical chem, double coord_x_start, double coord_y_start)
 {
   int i, j, idx, idx_x, idx_y;
   double dx, dy, coord_x, coord_y;
@@ -34,7 +34,7 @@ void ViaEpd::createGrids(Chemical chem, double coord_x_now)
 	
   m_grids = new Grid[m_nx*m_ny]; // organised in row dominant
 
-  coord_x = coord_x_now;   coord_y = 0;
+  coord_x = coord_x_start;   coord_y = coord_y_start;
   struct Point current_point;
   setPoint(current_point, coord_x, coord_y, dx, dy, "VE", "VE");
     
@@ -49,7 +49,7 @@ void ViaEpd::createGrids(Chemical chem, double coord_x_now)
 
       // update current_point
       if (j==m_ny-1) { // last element in the lateral direction, move down
-	coord_x += dx; 	coord_y = 0;
+	coord_x += dx; 	coord_y = coord_y_start;
       } else { // not the last element in the lateral direction, thus move to the right
 	coord_y += dy;
       }

@@ -39,7 +39,7 @@ void Dermis::InitDermisBlood(double bld_skin_flow, double bld_fu, double par_de2
     frac_non_ion: fraction of non-ionisation
     frac_unbound: fraction of unbound to 2.7% albumin
  */
-void Dermis::createGrids(Chemical chem, double coord_x_now)
+void Dermis::createGrids(Chemical chem, double coord_x_start, double coord_y_start)
 {
   int i, j, idx, idx_x, idx_y, gsl_errno;
   double dx, dy, coord_x, coord_y;
@@ -49,7 +49,7 @@ void Dermis::createGrids(Chemical chem, double coord_x_now)
 	
   m_grids = new Grid[m_nx*m_ny]; // organised in row dominant
 
-  coord_x = coord_x_now;   coord_y = 0;
+  coord_x = coord_x_start;   coord_y = coord_y_start;
   struct Point current_point;
   setPoint(current_point, coord_x, coord_y, dx, dy, "DE", "DE");
     
@@ -65,7 +65,7 @@ void Dermis::createGrids(Chemical chem, double coord_x_now)
 
       // update current_point
       if (j==m_ny-1) { // last element in the lateral direction, move down
-	coord_x += dx; 	coord_y = 0;
+	coord_x += dx; 	coord_y = coord_y_start;
       } else { // not the last element in the lateral direction, thus move to the right
 	coord_y += dy;
       }

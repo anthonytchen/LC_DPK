@@ -601,12 +601,16 @@ void Comp::displayGrids()
     for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right	
 
       idx = i*m_ny + j;			
-      if ( !strcmp(m_grids[idx].m_name, "LP") )
+      if ( !strcmp(m_grids[idx].m_name, "VH") )
+	printf("H ");
+      else if ( !strcmp(m_grids[idx].m_name, "LP") )
 	printf("L ");
       else if ( !strcmp(m_grids[idx].m_name, "CC") )
 	printf("C ");
       else if ( !strcmp(m_grids[idx].m_name, "VE") )
 	printf("V ");
+      else if ( !strcmp(m_grids[idx].m_name, "DE") )
+	printf("D ");
       else
 	SayBye ("subtype name unknown" ); 
 				

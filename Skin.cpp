@@ -34,7 +34,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
 
     double g, d, s, t, water_frac_surface;
     g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-    water_frac_surface = 0.55; // mass fraction of water in stratum corneum
+    water_frac_surface = 0.20; // mass fraction of water in stratum corneum
 
     for (i=0; i<m_nChem; i++) {
       if (m_b_has_VE) {
@@ -49,7 +49,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
 	//m_StraCorn[i].createBoundary(0, 0);    
 	//m_StraCorn[i].setBoundaryGrids(NULL, NULL);
       }
-      m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface);     
+      m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface, 0, 0);     
     }
     m_dim_sc = m_StraCorn[0].m_nx * m_StraCorn[0].m_ny;
     x_len_sc = n_layer_x_sc*(g+t) + g;
@@ -59,7 +59,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
     m_dim_sc = 0;
     x_len_sc = 0;
   }
-
+  
   // 2. set up viable epidermis 
 
   if (m_b_has_VE) {
@@ -81,7 +81,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
 	//m_ViaEpd[i].createBoundary(0, 0);
 	//m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
       }
-      m_ViaEpd[i].createGrids(chemSolute[i], x_len_sc);
+      m_ViaEpd[i].createGrids(chemSolute[i], x_len_sc, 0);
     }
     m_dim_ve = m_ViaEpd[0].m_nx * m_ViaEpd[0].m_ny;
   }
@@ -99,7 +99,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
     for (i=0; i<m_nChem; i++) {
       m_Dermis[i].Init(x_len_de, y_len_de, m_dz_dtheta, n_grids_x_de, 1, m_b_has_blood, Cartesian,
 		       FromOther, bdy_left_right, bdy_left_right, ZeroFlux);
-      m_Dermis[i].createGrids(chemSolute[i], x_len_sc+x_len_ve);
+      m_Dermis[i].createGrids(chemSolute[i], x_len_sc+x_len_ve, 0);
 
       // setup boundaries
       m_Dermis[i].createBoundary(0, 0);    m_Dermis[i].setBoundaryGrids(NULL, NULL);
@@ -124,7 +124,7 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
     m_dim_bd = 0;
 
   // 5. set up vehicle 
-
+  
   m_concVehicleInit = new double[nChem];
   m_Vehicle = new Vehicle[nChem];
 
@@ -145,10 +145,10 @@ void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[]
       //m_Vehicle[i].createBoundary(0, 0);    
       //m_Vehicle[i].setBoundaryGrids(NULL, NULL);
     }
-    m_Vehicle[i].createGrids(chemSolute[i], -dx_vehicle); // coordinate 0 starts from stratum corneum
+    m_Vehicle[i].createGrids(chemSolute[i], -dx_vehicle, 0); // coordinate 0 starts from stratum corneum
   }
   m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
-
+  
 
   /* Link the compartments through boundary setting */
 
@@ -213,44 +213,47 @@ void Skin::Release(void)
   int i;
 
   delete [] m_concVehicleInit;
-  for (i<0; i<m_nChem; i++)
+  for (i=0; i<m_nChem; i++)
     m_Vehicle[i].Release();
   delete [] m_Vehicle;
 
   if(m_b_has_SC) {
-    for (i<0; i<m_nChem; i++) 
+    for (i=0; i<m_nChem; i++) 
       m_StraCorn[i].Release();
     delete [] m_StraCorn;
   }
 
   if(m_b_has_VE) {
-    for (i<0; i<m_nChem; i++)
+    for (i=0; i<m_nChem; i++)
       m_ViaEpd[i].Release();
     delete [] m_ViaEpd;
   }
 
   if(m_b_has_DE) {
-    for (i<0; i<m_nChem; i++)
+    for (i=0; i<m_nChem; i++)
       m_Dermis[i].Release();
     delete [] m_Dermis;
   }
 
   if(m_b_has_blood) {
-    for (i<0; i<m_nChem; i++)
+    for (i=0; i<m_nChem; i++)
       m_Blood[i].Release();
     delete [] m_Blood;
   }
 
 }
 
-/* Functions to create individual compartments 
+/* ++++++++++++++++++++++++++
+   Functions to create individual compartments 
 */
-void Skin::createVH(Chemical *chemSolute, double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
-		    double x_start_coord, double y_start_coord, double xlen, double ylen, double area_vehicle, bool bInfSrc,
-		    double *x_end_coord, double *y_end_coord)
+void Skin::createVH(const Chemical *chemSolute, const double *conc_vehicle, const double *partition_vehicle, const double *diffu_vehicle, 
+		    double coord_x_start, double coord_y_start, double xlen, double ylen, double area_vehicle, 
+		    bool bInfSrc, BdyCondStr bdys,
+		    double *coord_x_end, double *coord_y_end)
 {
-  int i;
-  BdyCond bdy_left_right = Periodic;
+  int i, nx, ny;
+
+  nx = ny = 1; // vehicle as a single grid
 
   m_concVehicleInit = new double[m_nChem];
   m_Vehicle = new Vehicle[m_nChem];
@@ -260,21 +263,109 @@ void Skin::createVH(Chemical *chemSolute, double *conc_vehicle, double *partitio
 
   for (i=0; i<m_nChem; i++) {
     m_concVehicleInit[i] = conc_vehicle[i];
-    if (m_b_has_SC) {
-      m_Vehicle[i].Init(xlen, ylen, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
-			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, FromOther);
-    }
-    else {
-      m_Vehicle[i].Init(xlen, ylen, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
-			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, ZeroFlux);
-    }
-    m_Vehicle[i].createGrids(chemSolute[i], x_start_coord); // todo: add y_start_coord in grids creation
+    m_Vehicle[i].Init(xlen, ylen, m_dz_dtheta, nx, ny, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
+		      Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+    m_Vehicle[i].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
   m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
   
-  *x_end_coord = xlen;
-  *y_end_coord = ylen;
+  *coord_x_end = coord_x_start + xlen;
+  *coord_y_end = coord_y_start + ylen;
 
+}
+
+void Skin::createSB(double *x_end_coord, double *y_end_coord)
+{
+}
+
+void Skin::createSC(const Chemical *chemSolute,
+		    double coord_x_start, double coord_y_start, int n_layer_x_sc, int n_layer_y_sc, double offset_y_sc,
+		    BdyCondStr bdys,
+		    double *coord_x_end, double *coord_y_end)
+{
+  int i;
+  double xlen, ylen;
+
+  m_b_has_SC = true;
+  m_StraCorn = new StraCorn[m_nChem];
+
+  double g, d, s, t, water_frac_surface;
+  g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
+  water_frac_surface = 0.20; // mass fraction of water on the surface of stratum corneum
+
+  for (i=0; i<m_nChem; i++) {
+    m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc,
+		       Cartesian, bdys.up, bdys.left, bdys.right, bdys.down); // bdy conditions: u/l/r/d
+    m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface, coord_x_start, coord_y_start);     
+  }
+
+  m_dim_sc = m_StraCorn[0].m_nx * m_StraCorn[0].m_ny;
+  xlen = n_layer_x_sc*(g+t) + g;
+  ylen = n_layer_y_sc*(d+s);
+
+  *coord_x_end = coord_x_start + xlen;
+  *coord_y_end = coord_y_start + ylen;
+}
+
+void Skin::createVE(const Chemical *chemSolute,  
+		    double coord_x_start, double coord_y_start, double xlen, double ylen, int n_grids_x, int n_grids_y,
+		    BdyCondStr bdys,
+		    double *coord_x_end, double *coord_y_end)
+{
+
+  int i;
+
+  m_b_has_VE = true;
+  m_ViaEpd = new ViaEpd[m_nChem];
+
+  for (i=0; i<m_nChem; i++) {
+    m_ViaEpd[i].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
+		     Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+    m_ViaEpd[i].createGrids(chemSolute[i], coord_x_start, coord_y_start);
+  }
+
+  m_dim_ve = m_ViaEpd[0].m_nx * m_ViaEpd[0].m_ny;
+
+  *coord_x_end = coord_x_start + xlen;
+  *coord_y_end = coord_y_start + ylen;
+}
+
+void Skin::createDE(const Chemical *chemSolute,  
+		    double coord_x_start, double coord_y_start, double xlen, double ylen, int n_grids_x, int n_grids_y,
+		    bool b_has_blood, BdyCondStr bdys,
+		    double *coord_x_end, double *coord_y_end)
+{
+  int i;
+
+  m_b_has_blood = b_has_blood;
+  m_b_has_DE = true;
+  m_Dermis = new Dermis[m_nChem];
+
+  for (i=0; i<m_nChem; i++) {
+    m_Dermis[i].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y, b_has_blood,
+		     Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+    m_Dermis[i].createGrids(chemSolute[i], coord_x_start, coord_y_start);
+  }
+
+  m_dim_de = m_Dermis[0].m_nx * m_Dermis[0].m_ny;
+
+  *coord_x_end = coord_x_start + xlen;
+  *coord_y_end = coord_y_start + ylen;
+}
+
+void Skin::createBD(const double *par_dermis2blood, const double *blood_k_clear)
+{
+  int i;
+
+  m_b_has_blood = true;
+  m_Blood = new Blood[m_nChem];
+
+  for (i=0; i<m_nChem; i++) {
+    m_Blood[i].Init(m_Dermis[i].m_grids->m_chemical.m_frac_unbound, blood_k_clear[i], 70, 'M');
+    m_Dermis[i].InitDermisBlood(m_Blood[i].m_flow_capil, m_Blood[i].m_f_unbound, par_dermis2blood[i]);
+  }
+
+  m_dim_bd = 2;
 }
 
 // ----------------------------------------------------
