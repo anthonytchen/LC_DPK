@@ -22,7 +22,7 @@ int main (int argc, char* argv[])
   static char *fn = "chemical_name";
   char fn_conc[1024] = "conc";
 	
-  t_end = 900; t_inv = 10; // simulation time and interval ()in seconds
+  t_end = 900; t_inv = 10; // simulation time and interval in seconds
   n_layer_x_sc = 12;
   n_layer_y_sc = 1;
   
@@ -62,7 +62,7 @@ int main (int argc, char* argv[])
     "n_layer_x_sc", "Number of (verticle) cell layers in stratum corneum",
     "-nx", INT, (caddr_t)&n_layer_x_sc,
 
-    "fn", "File name to store concentration, coordinates, and flux history",
+    "fn", "File name prefix to store concentration, coordinates, and flux history",
     "-fn", STRING, (caddr_t)&fn,
 
     "inf_src", "Whether the vehicle is an infinite source",

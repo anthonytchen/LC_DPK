@@ -17,7 +17,8 @@ LFLAGS=-g -O0 -Wno-write-strings
 
 
 all:	except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Skin_VSVDB.o Blood.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o HarSebum.o \
+	StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Skin_VSVDB.o Blood.o \
 	run_VS run_VSVDB #LCK_metabo
 
 clean:
@@ -60,6 +61,10 @@ Vehicle.o: Vehicle.h Vehicle.cpp
 	$(CC) $(CFLAGS) Vehicle.cpp $(INC) -o Vehicle.o
 Sebum.o: Sebum.h Sebum.cpp
 	$(CC) $(CFLAGS) Sebum.cpp $(INC) -o Sebum.o
+SurSebum.o: SurSebum.h SurSebum.cpp
+	$(CC) $(CFLAGS) SurSebum.cpp $(INC) -o SurSebum.o
+HarSebum.o: HarSebum.h HarSebum.cpp
+	$(CC) $(CFLAGS) HarSebum.cpp $(INC) -o HarSebum.o
 StraCorn.o: StraCorn.h StraCorn.cpp
 	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
 ViaEpd.o: ViaEpd.h ViaEpd.cpp

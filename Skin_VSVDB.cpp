@@ -5,6 +5,8 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
 		      double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
 		      double dx_vehicle, double area_vehicle, 
 		      int n_layer_x_sc, int n_layer_y_sc, double offset_y_sc,
+		      double x_len_ve, int n_grids_x_ve, double x_len_de, int n_grids_x_de,
+		      double *par_dermis2blood, double *blood_k_clear,
 		      bool bInfSrc)
 {
 
@@ -14,55 +16,45 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
 
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
-  m_b_has_SC = true;
-  m_b_has_VE = m_b_has_DE = m_b_has_blood = false;
+  m_b_has_SC = m_b_has_VE = m_b_has_DE = m_b_has_blood = true;
 
   // boundary condition: up, left, right, down
   BdyCondStr bdys_vh = {ZeroFlux,  Periodic, Periodic, FromOther};
-  BdyCondStr bdys_sc = {FromOther, Periodic, Periodic, ZeroConc};
+  BdyCondStr bdys_sc = {FromOther, Periodic, Periodic, FromOther};
+  BdyCondStr bdys_ve = bdys_sc;
+  BdyCondStr bdys_de = {FromOther, Periodic, Periodic, ZeroFlux};
 
   m_nChem = nChem;
 
   /*  set up the compartments */
 
-  if (1) {
-  coord_x_start = dx_vehicle; coord_y_start = 0;
+  // SC
+  // coord_x_start = dx_vehicle; coord_y_start = 0;
+  coord_x_start = 0; coord_y_start = 0;
   createSC(chemSolute, coord_x_start, coord_y_start, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
 	   bdys_sc, &coord_x_end, &coord_y_end);
   x_len_sc = coord_x_end - coord_x_start;
   y_len_sc = coord_y_end - coord_y_start;
-  }
 
-  if (m_b_has_SC && 0) {
-    BdyCond bdy_left_right = Periodic;
-    m_StraCorn = new StraCorn[nChem];
+  // VE
+  coord_x_start = coord_x_end; coord_y_start = 0;
+  createVE(chemSolute, coord_x_start, coord_y_start, x_len_ve, y_len_sc, n_grids_x_ve, 1,
+	   bdys_ve, &coord_x_end, &coord_y_end);
 
-    double g, d, s, t, water_frac_surface;
-    g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-    water_frac_surface = 0.55; // mass fraction of water in stratum corneum
+  // DE
+  coord_x_start = coord_x_end; coord_y_start = 0;
+  createDE(chemSolute, coord_x_start, coord_y_start, x_len_de, y_len_sc, n_grids_x_de, 1, true,
+	   bdys_de, &coord_x_end, &coord_y_end);
 
-    for (i=0; i<m_nChem; i++) {
-      m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
-			   Cartesian, FromOther, bdy_left_right, bdy_left_right, ZeroConc); // bdy conditions: u/l/r/d
-      m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface, 0, 0);     
-    }
-    m_dim_sc = m_StraCorn[0].m_nx * m_StraCorn[0].m_ny;
-    x_len_sc = n_layer_x_sc*(g+t) + g;
-    y_len_sc = n_layer_y_sc*(d+s);
-  }
+  // BD
+  createBD(par_dermis2blood, blood_k_clear);
 
-
-  if (0) {
-  bool has_compartments[4] = {true, false, false, false};
-  Skin::Init(chemSolute, nChem, has_compartments, conc_vehicle, partition_vehicle, diffu_vehicle, NULL, NULL,
-	     dx_vehicle, area_vehicle, 0, 0, n_layer_x_sc, n_layer_y_sc, 0, 0, offset_y_sc, bInfSrc);
-  }
-
-  coord_x_start = 0; coord_y_start = 0;
+  // VH
+  // coord_x_start = 0; coord_y_start = 0;
+  coord_x_start = -dx_vehicle; coord_y_start = 0;
   createVH(chemSolute, conc_vehicle, partition_vehicle, diffu_vehicle,
 	   coord_x_start, coord_y_start, dx_vehicle, y_len_sc, area_vehicle,
 	   bInfSrc, bdys_vh, &coord_x_end, &coord_y_end);
-
 
 
   /* link the compartments through boundary setting
@@ -73,13 +65,19 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
     m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
     m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
 
-    m_StraCorn[i].createBoundary(0, 0);
-    m_StraCorn[i].setBoundaryGrids(NULL, NULL);
+    m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);
+    m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
+
+    m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);
+    m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
+
+    m_Dermis[i].createBoundary(0, 0);    
+    m_Dermis[i].setBoundaryGrids(NULL, NULL);
 
   }
 
   // overall dimension
-  m_dim_all =  m_dim_vh + m_dim_sc;
+  m_dim_all =  m_dim_vh + m_dim_sc + m_dim_ve + m_dim_de + m_dim_bd;
 
   // If InitReaction() is not called, set m_React.idx_substrate to -1 to indicate no reaction
   m_React.idx_substrate = -1;

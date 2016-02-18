@@ -357,6 +357,8 @@ void Skin::createBD(const double *par_dermis2blood, const double *blood_k_clear)
 {
   int i;
 
+  assert(m_b_has_DE);
+
   m_b_has_blood = true;
   m_Blood = new Blood[m_nChem];
 

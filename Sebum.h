@@ -17,7 +17,7 @@ public:
   ~Sebum(void) {};
   void Init(double, double, double, int, int, double, double, double, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond);
   
-  void createGrids(Chemical, double);
+  void createGrids(Chemical, double, double);
  
   // I/O functions
   void saveCoord(const char [], const char []);

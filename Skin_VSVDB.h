@@ -16,8 +16,7 @@ class Skin_VSVDB : public Skin
 public:
 
 public:
-  //void Init(const Chemical*, int, const double*, const double*, const double*, double, double, int, int, double, bool);
-  void Init(Chemical*, int, double*, double*, double*, double, double, int, int, double, bool);
+  void Init(Chemical*, int, double*, double*, double*, double, double, int, int, double, double, int, double, int, double*, double*, bool);
   void Release();
 
 };

@@ -25,44 +25,16 @@ void Skin_VS::Init(Chemical *chemSolute, int nChem,
 
   /*  set up the compartments */
 
-  if (1) {
   coord_x_start = dx_vehicle; coord_y_start = 0;
   createSC(chemSolute, coord_x_start, coord_y_start, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
 	   bdys_sc, &coord_x_end, &coord_y_end);
   x_len_sc = coord_x_end - coord_x_start;
   y_len_sc = coord_y_end - coord_y_start;
-  }
-
-  if (m_b_has_SC && 0) {
-    BdyCond bdy_left_right = Periodic;
-    m_StraCorn = new StraCorn[nChem];
-
-    double g, d, s, t, water_frac_surface;
-    g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-    water_frac_surface = 0.55; // mass fraction of water in stratum corneum
-
-    for (i=0; i<m_nChem; i++) {
-      m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
-			   Cartesian, FromOther, bdy_left_right, bdy_left_right, ZeroConc); // bdy conditions: u/l/r/d
-      m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface, 0, 0);     
-    }
-    m_dim_sc = m_StraCorn[0].m_nx * m_StraCorn[0].m_ny;
-    x_len_sc = n_layer_x_sc*(g+t) + g;
-    y_len_sc = n_layer_y_sc*(d+s);
-  }
-
-
-  if (0) {
-  bool has_compartments[4] = {true, false, false, false};
-  Skin::Init(chemSolute, nChem, has_compartments, conc_vehicle, partition_vehicle, diffu_vehicle, NULL, NULL,
-	     dx_vehicle, area_vehicle, 0, 0, n_layer_x_sc, n_layer_y_sc, 0, 0, offset_y_sc, bInfSrc);
-  }
 
   coord_x_start = 0; coord_y_start = 0;
   createVH(chemSolute, conc_vehicle, partition_vehicle, diffu_vehicle,
 	   coord_x_start, coord_y_start, dx_vehicle, y_len_sc, area_vehicle,
 	   bInfSrc, bdys_vh, &coord_x_end, &coord_y_end);
-
 
 
   /* link the compartments through boundary setting
