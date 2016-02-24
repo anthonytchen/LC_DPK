@@ -44,6 +44,7 @@ void Blood::Init(double frac_unbound, double k_clear, double body_mass, char gen
   m_concCleared = .0;
   m_vol_cleared = 1.0; // arbitrary reference value
 
+  m_dim = 2;
 }
 
 void Blood::Release()
@@ -72,6 +73,20 @@ void Blood::compODE_dydt (double t, const double y[], double f[])
 
 	
 /*  +++  I/O functions +++++++++ */
+
+void Blood::getGridsConc(double *fGridsConc, int dim)
+{
+  assert( dim == 2);
+  fGridsConc[0] = m_concChem;
+  fGridsConc[1] = m_concCleared;
+}
+
+void Blood::setGridsConc(const double fGridsConc[], int dim)
+{
+  assert( dim == 2);
+  m_concChem = fGridsConc[0];
+  m_concCleared = fGridsConc[1];  
+}
 
 void Blood::displayGrids()
 {

@@ -18,6 +18,9 @@ public:
   void Init(Chemical*, int, double*, double*, double*, double, double, int, int, double, bool);
   void Release();
 
+  // int compODE_dydt (double, const double [], double []);
+  //void diffuseMoL(double, double);
+
 };
 
 #endif

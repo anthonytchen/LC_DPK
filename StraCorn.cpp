@@ -49,6 +49,7 @@ void StraCorn::Init(double g, double d, double s, double t, double dz_dtheta,
   m_nx = (m_nx_grids_lipid+m_nx_grids_cc)*n_layer_x + m_nx_grids_lipid; 	
   // Lateral direction, [dh] [s] [dm] [s], here d=dh+dm+s, w=dm/dh
   m_ny = (int) ( m_ny_grids_lipid*2 + m_ny_grids_cc_dn + m_ny_grids_cc_dn*m_w ) * n_layer_y;
+  m_dim = m_nx * m_ny;
 
   m_x_length = n_layer_x*(g+t)+g;
   m_y_length = n_layer_y*(d+s);

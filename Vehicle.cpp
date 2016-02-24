@@ -16,6 +16,7 @@ void Vehicle::Init(double x_length, double y_length, double dz_dtheta, int n_gri
 	
   m_nx = n_grids_x;
   m_ny = n_grids_y;
+  m_dim = m_nx*m_ny;
   m_init_concChem = init_concChem;
 
   m_T = 309; // temperature (Kelvin)

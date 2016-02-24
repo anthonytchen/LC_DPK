@@ -64,6 +64,7 @@ public:
 	
 
   double getConcChem() { return m_concChem; }
+  void setConcChem(double conc) { m_concChem = conc; }
   char* getName() { return m_name; }
   void setName(const char name[]) { strcpy(m_name, name); };
 

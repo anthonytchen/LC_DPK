@@ -17,6 +17,7 @@ void Dermis::Init(double x_length, double y_length, double dz_dtheta, int n_grid
 	
   m_nx = n_grids_x;
   m_ny = n_grids_y;
+  m_dim = m_nx * m_ny;
 }
 
 void Dermis::InitDermisBlood(double bld_skin_flow, double bld_fu, double par_de2blood, double bld_concChem, double skin_area)

@@ -6,8 +6,8 @@
   D_sebum: diffusion coefficient in sebum; if <0 then will be calculated from QSPR model
  */
 void Sebum::Init(double x_length, double y_length, double dz_dtheta, int n_grids_x, int n_grids_y,
-		 double init_concChem, double K_sw, double D_sebum, 
-		 CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down)
+		 CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down, 
+		 double K_sw, double D_sebum)
 {	
   // call Init of the base class Comp
   Comp::Init (coord_sys, dz_dtheta, bdy_cond_up, bdy_cond_left, bdy_cond_right, bdy_cond_down);
@@ -18,7 +18,7 @@ void Sebum::Init(double x_length, double y_length, double dz_dtheta, int n_grids
 	
   m_nx = n_grids_x;
   m_ny = n_grids_y;
-  m_init_concChem = init_concChem;
+  m_dim = m_nx*m_ny;
 
   m_T = 309; // temperature (Kelvin)
   // m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),

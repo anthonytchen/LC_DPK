@@ -3,7 +3,8 @@
 
 #include "Chemical.h"
 #include "Vehicle.h"
-#include "Sebum.h"
+#include "SurSebum.h"
+#include "HarSebum.h"
 #include "StraCorn.h"
 #include "ViaEpd.h"
 #include "Dermis.h"
@@ -15,6 +16,12 @@ struct Reaction
   double Vmax, Km; // model parameters
 };
 
+struct CompIdx
+{
+  CompType type;
+  Comp **pComp;
+};
+
 class Skin
 {
 public:
@@ -23,43 +30,57 @@ public:
                                        //	and y (lateral) directions
     m_x_length_ve; // the depth of viable epidermis
 
-  int m_dim_vh, m_dim_sc, m_dim_ve, m_dim_de, m_dim_bd, m_dim_all;
+  int m_dim_vh, m_dim_sc, m_dim_ve, m_dim_de, m_dim_bd, m_dim_sb_sur, m_dim_sb_har, m_dim_all;
   int m_nChem; // No. of chemical species considered
 
   double m_Vehicle_area; // The dimensions in m_gridVehicle is for the microscopic grid used for simulation.
                          // The actual vehicle application area is contained here.
   bool m_bInfSrc, 
-    m_b_has_SC, m_b_has_VE, m_b_has_DE, // whether has stratum corneum, viable epidermis, dermis
+    m_b_has_VE, m_b_has_DE, // whether has viable epidermis, dermis
+    m_b_has_SB_sur, m_b_has_SB_har, // whether has sebum on the surface or in hair follicle
     m_b_has_blood; // whether has blood compartment
 
   struct Reaction m_React;
 
-  // Chemical m_Chemical;
+  /* The compartments */
   Vehicle *m_Vehicle;
-  Sebum *m_Sebum;
+  Sebum *m_SurSebum, *m_HarSebum;
   StraCorn *m_StraCorn;
   ViaEpd *m_ViaEpd;
   Dermis *m_Dermis;
   Blood *m_Blood;
+  
+  // the number of compartments in each type of compartment for each chemical species
+  int m_nVehicle, m_nSebum_Sur, m_nSebum_Har, m_nStraCorn, m_nViaEpd, m_nDermis, m_nBlood;
+  int m_nxComp, m_nyComp;
+
+  CompIdx **m_CompIdx; // 2D array to contain the compartment matrix
 
 public:
   Skin(void) {};	
   ~Skin(void) {};
-  void Init(Chemical*, int, const bool [], double*, double*, double*, double*, double*, double, double, double, double, int, int, int, int, double, bool);
+  void Init();
   void InitReaction(int, int, double, double); // initialisation for reaction parameters
   void Release();
 
   // functions to create individual compartments
   //     they return end-of-compartment x and y coordinates (x_end_coord, y_end_coord)
   //     that can be passed to subsequent compartments
+  void createCompMatrix(int, int);
+  void releaseCompMatrix();
   void createVH(const Chemical*, const double*, const double*, const double*, double, double, double, double, double, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // vehicle
-  void createSB(double *x_end_coord, double *y_end_coord); // sebum
+  void createSurSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int); // surface sebum
+  void createHarSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int); // surface sebum
   void createSC(const Chemical*, double, double, int, int, double, BdyCondStr, double *x_end_coord, double *y_end_coord); // stratum corneum
   void createVE(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord); // viable epidermis
   void createDE(const Chemical*, double, double, double, double, int, int, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // dermis
   void createBD(const double*, const double*); // blood
 
   // functions to link compartments
+  int getSizeBdyRight(int, int, int);
+  Comp* getConcBdyRight(const double [], int, int, int, int, double*);
+  int getSizeBdyDown(int, int, int);
+  Comp* getConcBdyDown(const double [], int, int, int, int, double*);
   
   void diffuseMoL(double t_start, double t_end); // method of lines using CVODE solver
   void resetVehicle(double[], double[], double[]); // reset vehicle concentration, partition coefficient, diffusivity
@@ -80,6 +101,7 @@ public:
   // I/O functions
 
   // extracting information from stratum corneum
+  double getSCYlen();
   int getNLayerXSc() { return m_StraCorn[0].m_n_layer_x; };
   int getNGridsXSc() { return m_StraCorn[0].m_nx; };
   int getNGridsYSc() { return m_StraCorn[0].m_ny; };

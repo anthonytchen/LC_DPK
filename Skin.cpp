@@ -1,197 +1,24 @@
 #include "stdafx.h"
 #include "Skin.h"
 
+using namespace std;
 
 /* Initialisation for possibly multiple chemicals */
-void Skin::Init(Chemical *chemSolute, int nChem, const bool b_has_compartments[],
-		double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
-		double *par_dermis2blood, double *blood_k_clear,
-		double dx_vehicle, double area_vehicle, double x_len_ve, double x_len_de,
-		int n_layer_x_sc, int n_layer_y_sc, int n_grids_x_ve, int n_grids_x_de, double offset_y_sc,
-		bool bInfSrc)
+void Skin::Init()
 {
-
-  int i;
-
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
-  BdyCond bdy_left_right = Periodic;
-  double x_len_sc, y_len_sc, y_len_ve, y_len_de;
 
-  m_nChem = nChem;
-  m_b_has_SC = b_has_compartments[0]; 
-  m_b_has_VE = b_has_compartments[1]; 
-  m_b_has_DE = b_has_compartments[2];
-  m_b_has_blood = b_has_compartments[3];
+  m_Vehicle = NULL;
+  m_SurSebum = NULL;
+  m_HarSebum = NULL;
+  m_StraCorn = NULL;
+  m_ViaEpd = NULL;
+  m_Dermis = NULL;
+  m_Blood = NULL;
 
-  /* now set up each compartment */
-
-  // 1. set up stratum corneum using fixed geometry
-
-  assert(m_b_has_SC); // currently we have to have SC to make the code work
-
-  if (m_b_has_SC) {
-    m_StraCorn = new StraCorn[nChem];
-
-    double g, d, s, t, water_frac_surface;
-    g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-    water_frac_surface = 0.20; // mass fraction of water in stratum corneum
-
-    for (i=0; i<m_nChem; i++) {
-      if (m_b_has_VE) {
-	m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
-			   Cartesian, FromOther, bdy_left_right, bdy_left_right, FromOther); // bdy conditions: u/l/r/d
-	//m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);    
-	//m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
-      }
-      else {
-	m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
-			   Cartesian, FromOther, bdy_left_right, bdy_left_right, ZeroConc); // bdy conditions: u/l/r/d
-	//m_StraCorn[i].createBoundary(0, 0);    
-	//m_StraCorn[i].setBoundaryGrids(NULL, NULL);
-      }
-      m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface, 0, 0);     
-    }
-    m_dim_sc = m_StraCorn[0].m_nx * m_StraCorn[0].m_ny;
-    x_len_sc = n_layer_x_sc*(g+t) + g;
-    y_len_sc = n_layer_y_sc*(d+s);
-  }
-  else {
-    m_dim_sc = 0;
-    x_len_sc = 0;
-  }
-  
-  // 2. set up viable epidermis 
-
-  if (m_b_has_VE) {
-    assert(m_b_has_SC);
-    m_ViaEpd = new ViaEpd[nChem];
-
-    y_len_ve = y_len_sc; // depends on the setup for stratum corneum
-
-    for (i=0; i<m_nChem; i++) {
-      if (m_b_has_DE) {
-	m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz_dtheta, n_grids_x_ve, 1, Cartesian,
-			 FromOther, bdy_left_right, bdy_left_right, FromOther);
-	//m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);    
-	//m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
-      }
-      else {
-	m_ViaEpd[i].Init(x_len_ve, y_len_ve, m_dz_dtheta, n_grids_x_ve, 1, Cartesian,
-			 FromOther, bdy_left_right, bdy_left_right, ZeroConc);
-	//m_ViaEpd[i].createBoundary(0, 0);
-	//m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
-      }
-      m_ViaEpd[i].createGrids(chemSolute[i], x_len_sc, 0);
-    }
-    m_dim_ve = m_ViaEpd[0].m_nx * m_ViaEpd[0].m_ny;
-  }
-  else
-    m_dim_ve = 0;
-
-  // 3. set up dermis 
-
-  if (m_b_has_DE) {
-    assert(m_b_has_SC && m_b_has_VE);
-    m_Dermis = new Dermis[nChem];
-
-    y_len_de = y_len_ve; // depends on the setup for ve
-
-    for (i=0; i<m_nChem; i++) {
-      m_Dermis[i].Init(x_len_de, y_len_de, m_dz_dtheta, n_grids_x_de, 1, m_b_has_blood, Cartesian,
-		       FromOther, bdy_left_right, bdy_left_right, ZeroFlux);
-      m_Dermis[i].createGrids(chemSolute[i], x_len_sc+x_len_ve, 0);
-
-      // setup boundaries
-      m_Dermis[i].createBoundary(0, 0);    m_Dermis[i].setBoundaryGrids(NULL, NULL);
-    }
-    m_dim_de = m_Dermis[0].m_nx * m_Dermis[0].m_ny;
-  }
-  else
-    m_dim_de = 0;
-
-  // 4. set up blood
-  if (m_b_has_blood) {
-    assert(m_b_has_SC && m_b_has_VE && m_b_has_DE);
-    m_Blood = new Blood[nChem];
-
-    for (i=0; i<m_nChem; i++) {
-      m_Blood[i].Init(m_Dermis[i].m_grids->m_chemical.m_frac_unbound, blood_k_clear[i], 70, 'M');
-      m_Dermis[i].InitDermisBlood(m_Blood[i].m_flow_capil, m_Blood[i].m_f_unbound, par_dermis2blood[i]);
-    }
-    m_dim_bd = 2;
-  }
-  else
-    m_dim_bd = 0;
-
-  // 5. set up vehicle 
-  
-  m_concVehicleInit = new double[nChem];
-  m_Vehicle = new Vehicle[nChem];
-
-  m_Vehicle_area = area_vehicle;
-  m_bInfSrc = bInfSrc; // whether the vehicle is a infinite source
-
-  for (i=0; i<m_nChem; i++) {
-    m_concVehicleInit[i] = conc_vehicle[i];
-    if (m_b_has_SC) {
-      m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
-			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, FromOther);
-      //m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
-      //m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
-    }
-    else {
-      m_Vehicle[i].Init(dx_vehicle, y_len_sc, m_dz_dtheta, 1, 1, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
-			Cartesian, ZeroFlux, bdy_left_right, bdy_left_right, ZeroFlux);
-      //m_Vehicle[i].createBoundary(0, 0);    
-      //m_Vehicle[i].setBoundaryGrids(NULL, NULL);
-    }
-    m_Vehicle[i].createGrids(chemSolute[i], -dx_vehicle, 0); // coordinate 0 starts from stratum corneum
-  }
-  m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
-  
-
-  /* Link the compartments through boundary setting */
-
-  // bdy conditions: up/left/right/down
-  for (i=0; i<m_nChem; i++) {
-
-    // vehicle
-    if (m_b_has_SC) {
-      m_Vehicle[i].createBoundary(0, m_StraCorn[i].m_ny);    
-      m_Vehicle[i].setBoundaryGrids(NULL, m_StraCorn[i].m_grids);
-    }
-    else {
-      m_Vehicle[i].createBoundary(0, 0);    
-      m_Vehicle[i].setBoundaryGrids(NULL, NULL);
-    }
-
-    // stratum corneum
-    if (m_b_has_SC) {
-      if (m_b_has_VE) {
-	m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);    
-	m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
-      }
-      else {
-	m_StraCorn[i].createBoundary(0, 0);    
-	m_StraCorn[i].setBoundaryGrids(NULL, NULL);
-      }
-    }
-
-    // viable epidermis
-    if (m_b_has_VE) {
-      if (m_b_has_DE) {
-	m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);    
-	m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
-      }
-      else {
-	m_ViaEpd[i].createBoundary(0, 0);
-	m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
-      }
-    }    
-  }
-
-  // overall dimension
-  m_dim_all =  m_dim_vh + m_dim_sc + m_dim_ve + m_dim_de +  m_dim_bd;
+  m_nVehicle = m_nSebum_Sur = m_nSebum_Har = m_nStraCorn = m_nViaEpd = m_nDermis = m_nBlood = 0;
+  m_nxComp = m_nyComp = 0;
+  m_CompIdx = NULL;
 
   // If InitReaction() is not called, set m_React.idx_substrate to -1 to indicate no reaction
   m_React.idx_substrate = -1;
@@ -208,44 +35,65 @@ void Skin::InitReaction(int idx_substrate, int idx_product, double Vmax, double 
   m_React.Km = Km;
 }
 
+
 void Skin::Release(void)
 {
   int i;
 
-  delete [] m_concVehicleInit;
-  for (i=0; i<m_nChem; i++)
-    m_Vehicle[i].Release();
-  delete [] m_Vehicle;
+  if(m_nVehicle>0){
+    delete [] m_concVehicleInit;
+    for (i=0; i<m_nChem*m_nVehicle; i++)
+      m_Vehicle[i].Release();
+    delete [] m_Vehicle;
+  }
 
-  if(m_b_has_SC) {
-    for (i=0; i<m_nChem; i++) 
+  if(m_nStraCorn>0) {
+    for (i=0; i<m_nChem*m_nStraCorn; i++) 
       m_StraCorn[i].Release();
     delete [] m_StraCorn;
   }
 
-  if(m_b_has_VE) {
-    for (i=0; i<m_nChem; i++)
+  if(m_nViaEpd>0) {
+    for (i=0; i<m_nChem*m_nViaEpd; i++)
       m_ViaEpd[i].Release();
     delete [] m_ViaEpd;
   }
 
-  if(m_b_has_DE) {
-    for (i=0; i<m_nChem; i++)
+  if(m_nDermis>0) {
+    for (i=0; i<m_nChem*m_nDermis; i++)
       m_Dermis[i].Release();
     delete [] m_Dermis;
   }
 
-  if(m_b_has_blood) {
-    for (i=0; i<m_nChem; i++)
+  if (m_nBlood>0) {
+    for (i=0; i<m_nChem*m_nBlood; i++)
       m_Blood[i].Release();
     delete [] m_Blood;
   }
 
+  releaseCompMatrix();
 }
 
 /* ++++++++++++++++++++++++++
    Functions to create individual compartments 
 */
+
+void Skin::createCompMatrix(int nxComp, int nyComp)
+{
+  m_nxComp = nxComp;
+  m_nyComp = nyComp;
+  m_CompIdx = new CompIdx*[nxComp];
+  for (int i = 0; i < nxComp; i++)
+    m_CompIdx[i] = new CompIdx[nyComp];
+}
+
+void Skin::releaseCompMatrix()
+{
+  for (int i = 0; i < m_nxComp; i++)
+    delete [] m_CompIdx[i];
+  delete [] m_CompIdx;
+}
+
 void Skin::createVH(const Chemical *chemSolute, const double *conc_vehicle, const double *partition_vehicle, const double *diffu_vehicle, 
 		    double coord_x_start, double coord_y_start, double xlen, double ylen, double area_vehicle, 
 		    bool bInfSrc, BdyCondStr bdys,
@@ -274,8 +122,60 @@ void Skin::createVH(const Chemical *chemSolute, const double *conc_vehicle, cons
 
 }
 
-void Skin::createSB(double *x_end_coord, double *y_end_coord)
+/* surface sebum */
+void Skin::createSurSB(const Chemical *chemSolute,  
+		       double coord_x_start, double coord_y_start, double xlen, double ylen, int n_grids_x, int n_grids_y,
+		       BdyCondStr bdys,
+		       double *coord_x_end, double *coord_y_end, int idx_sursb)
 {
+  int i, idx;
+
+  m_b_has_SB_sur = true;
+  assert (m_SurSebum);
+
+  // should be done outside this function
+  //  m_Sebum_Sur = new SurSebum[m_nChem];
+
+
+  for (i=0; i<m_nChem; i++) {
+    idx = i + idx_sursb*m_nChem;
+    m_SurSebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
+			 Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+    m_SurSebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
+  }
+
+  m_dim_sb_sur = n_grids_x*n_grids_y;
+
+  *coord_x_end = coord_x_start + xlen;
+  *coord_y_end = coord_y_start + ylen;
+}
+
+
+void Skin::createHarSB(const Chemical *chemSolute,  
+		    double coord_x_start, double coord_y_start, double xlen, double ylen, int n_grids_x, int n_grids_y,
+		    BdyCondStr bdys,
+		    double *coord_x_end, double *coord_y_end, int idx_harsb)
+{
+  int i, idx;
+
+  m_b_has_SB_har = true;
+  assert (m_HarSebum);
+
+  // should be done outside the function
+  //  m_Sebum_Hur = new SurSebum[m_nChem];
+
+  for (i=0; i<m_nChem; i++) {
+    idx = i + idx_harsb*m_nChem;
+    m_HarSebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
+			  Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+    m_HarSebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
+  }
+
+  m_dim_sb_har = n_grids_x*n_grids_y;
+
+  *coord_x_end = coord_x_start + xlen;
+  *coord_y_end = coord_y_start + ylen;
+
 }
 
 void Skin::createSC(const Chemical *chemSolute,
@@ -286,7 +186,6 @@ void Skin::createSC(const Chemical *chemSolute,
   int i;
   double xlen, ylen;
 
-  m_b_has_SC = true;
   m_StraCorn = new StraCorn[m_nChem];
 
   double g, d, s, t, water_frac_surface;
@@ -370,6 +269,98 @@ void Skin::createBD(const double *par_dermis2blood, const double *blood_k_clear)
   m_dim_bd = 2;
 }
 
+int Skin::getSizeBdyRight(int chemIdx, int cIdx_i, int cIdx_j)
+{
+  int i, idx, size;
+  Comp *pCompThis, *pCompBdy;
+  
+  pCompThis = m_CompIdx[cIdx_i][cIdx_j].pComp[chemIdx];
+
+  if (cIdx_j == m_nyComp-1){ // rightmost compartment, no right boundary
+    assert( pCompThis->m_BdyCond_right!=FromOther );
+    size = 0;
+  }
+  else {
+    pCompBdy = m_CompIdx[cIdx_i][cIdx_j+1].pComp[chemIdx];
+    size = pCompBdy->m_nx;
+  }
+
+  return size;
+}
+
+Comp* Skin::getConcBdyRight(const double y[], int idx_up2now, int chemIdx, int cIdx_i, int cIdx_j, double concRight[])
+{
+  int i, idx;
+  Comp *pCompThis, *pCompBdy;
+
+  assert(concRight!=NULL);
+  
+  pCompThis = m_CompIdx[cIdx_i][cIdx_j].pComp[chemIdx];
+  pCompBdy = m_CompIdx[cIdx_i][cIdx_j+1].pComp[chemIdx];
+
+  idx = idx_up2now + pCompThis->m_dim;
+  for (i=0; i<pCompBdy->m_nx; i++ )
+    concRight[i] = y[idx+i*pCompBdy->m_ny];
+
+  return pCompBdy;
+}
+
+int Skin::getSizeBdyDown(int chemIdx, int cIdx_i, int cIdx_j)
+{
+  int i, idx, size;
+  Comp *pCompThis, *pCompBdy;
+  
+  pCompThis = m_CompIdx[cIdx_i][cIdx_j].pComp[chemIdx];
+
+  if (cIdx_i == m_nxComp-1){ // downmost compartment, no down boundary
+    assert( pCompThis->m_BdyCond_down!=FromOther );
+    size = 0;
+  }
+  else {
+    pCompBdy = m_CompIdx[cIdx_i+1][cIdx_j].pComp[chemIdx];
+    size = pCompBdy->m_ny;
+  }
+
+  return size;
+}
+
+Comp* Skin::getConcBdyDown(const double y[], int idx_up2now, int chemIdx, int cIdx_i, int cIdx_j, double* concDown)
+{
+  int i, j, idx;
+  Comp *pCompThis, *pCompBdy, *p;
+  
+  pCompThis = m_CompIdx[cIdx_i][cIdx_j].pComp[chemIdx];
+
+  if (cIdx_i == m_nxComp-1){ // downmost compartment, no down boundary
+    assert( pCompThis->m_BdyCond_down!=FromOther );
+    concDown = NULL;
+    return NULL;
+  }
+
+  pCompBdy = m_CompIdx[cIdx_i+1][cIdx_j].pComp[chemIdx];
+  // concDown = new double[pCompBdy->m_ny];
+
+  // work out the index for the down boundary
+  idx = idx_up2now;
+  i = cIdx_i; 
+  for (j=cIdx_j; j<m_nyComp; j++) {
+      p = m_CompIdx[i][j].pComp[chemIdx];
+      idx += p->m_dim;
+  }
+  i = cIdx_i+1;
+  for (j=0; j<cIdx_j; j++) {
+      p = m_CompIdx[i][j].pComp[chemIdx];
+      idx += p->m_dim;
+  }
+
+  // fill in concDown from y[]
+  for (j=0; j<pCompBdy->m_ny; j++ )
+    concDown[j] = y[idx+j];
+
+  return pCompBdy;
+
+}
+
 // ----------------------------------------------------
 
 int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
@@ -384,102 +375,109 @@ int Skin::static_cvODE (double t, N_Vector y, N_Vector dydt, void *paras)
 
 int Skin::compODE_dydt (double t, const double y[], double f[])
 {
-  int i, j, idx;
-  double *concBdy = NULL;
+  int i, j, k, idx, dim;
+  double *concBdy, *concBdyRight, *concBdyDown;
+  concBdy = concBdyRight = concBdyDown = NULL;
 
-  /* y and f are organised as (for each chemical):
-     vehicle (1 grid), sc (row dominant), ve (row dominant), de (row dominant), bd */
+  Comp *pComp, *pCompBdyRight, *pCompBdyDown;
+  pComp = pCompBdyRight = pCompBdyDown = NULL;
 
-  for (i=0; i<m_nChem; i++) { // for each chemical
+  CompType cType;
 
-    idx = i*m_dim_all;
+  for (k=0; k<m_nChem; k++) { // for each chemical
 
-    /* re-set all boundary in-out mass transfer to 0 */
-    m_Vehicle[i].setBdyMassInOutZero();
-    if (m_b_has_SC)
-      m_StraCorn[i].setBdyMassInOutZero();
-    if (m_b_has_VE)
-      m_ViaEpd[i].setBdyMassInOutZero();
-    if (m_b_has_DE)
-      m_Dermis[i].setBdyMassInOutZero();
+    idx = k*m_dim_all;
 
+    // for each of the compartments in m_CompIdx
 
-    /* compute for vehicle */
-
-    // update the concentration in boundary grids according to y[]
-    if (m_b_has_SC) {
-      concBdy = new double[m_StraCorn[i].m_ny];
-      memcpy(concBdy, y+idx+m_dim_vh, sizeof(double)*m_StraCorn[i].m_ny);
-      m_Vehicle[i].setBoundaryConc(NULL, concBdy);
-      delete [] concBdy;
-    }
-    m_Vehicle[i].compODE_dydt(t, y+idx, f+idx); // calculate dydt
-    if (m_bInfSrc)                              // infinite source, concentration doesn't change, but above dydt calculation is still needed
-      memset(f, 0, sizeof(double)*m_dim_vh);    //    since calling compODE_dydt will calculate the flux across boundaries properly
-
-    if (m_b_has_SC)
-      m_Vehicle[i].passBdyMassOut(NULL, &m_StraCorn[i]); // pass the right/down boundary mass transfer to appropriate compartment
-
-    /* compute for stratum corneum */
-
-    if (m_b_has_SC) {
-      idx += m_dim_vh;
-
-      // update the concentration in boundary grids according to y[]
-      if (m_b_has_VE) {
-	concBdy = new double[m_ViaEpd[i].m_ny];
-	memcpy(concBdy, y+idx+m_dim_sc, sizeof(double)*m_ViaEpd[i].m_ny);
-	m_StraCorn[i].setBoundaryConc(NULL, concBdy);
-	delete [] concBdy;
+    //  1. reset mass transfer between compartments
+    for (i=0; i<m_nxComp; i++) {
+      for (j=0; j<m_nyComp; j++) {
+	pComp = m_CompIdx[i][j].pComp[k];
+	pComp->setBdyMassInOutZero();
       }
-      m_StraCorn[i].compODE_dydt(t, y+idx, f+idx);
-      if (m_b_has_VE)
-	m_StraCorn[i].passBdyMassOut(NULL, &m_ViaEpd[i]); // pass the right/down boundary mass transfer to appropriate compartment
     }
 
-    /* compute for viable epidermis */
+    //  2. calculate right hand side of differential equations
+    for (i=0; i<m_nxComp; i++) {
+      for (j=0; j<m_nyComp; j++) {
 
-    if (m_b_has_VE) {
-      idx += m_dim_sc;
+	pComp = m_CompIdx[i][j].pComp[k];
 
-      // update the concentration in boundary grids according to y[]
-      if (m_b_has_DE) {
-	concBdy = new double[m_Dermis[i].m_ny];
-	memcpy(concBdy, y+idx+m_dim_ve, sizeof(double)*m_ViaEpd[i].m_ny);
-	m_ViaEpd[i].setBoundaryConc(NULL, concBdy);
-	delete [] concBdy;
-      }
-      m_ViaEpd[i].compODE_dydt(t, y+idx, f+idx);
-      if (m_b_has_DE)
-	m_ViaEpd[i].passBdyMassOut(NULL, &m_Dermis[i]); // pass the right/down boundary mass transfer to appropriate compartment
-    }
+	// update the concentration in boundary grids according to y[]
 
-    /* compute for dermis */
+	pCompBdyRight = pCompBdyDown = NULL;
+	concBdyRight = concBdyDown = NULL;
 
-    if (m_b_has_DE) {
-      idx += m_dim_ve;
-      if (m_b_has_blood)
-	m_Dermis[i].updateBlood(y[idx+m_dim_de]);
-      m_Dermis[i].compODE_dydt(t, y+idx, f+idx);
-      m_Dermis[i].passBdyMassOut(NULL, NULL); // pass the right/down boundary mass transfer to appropriate compartment
-    }
+	dim = getSizeBdyRight(k, i, j);
+	if (dim) {
+	  concBdyRight = new double[dim];
+	  pCompBdyRight = getConcBdyRight(y, idx, k, i, j, concBdyRight);
+	}
 
-    /* compute for blood */
+	dim = getSizeBdyDown(k, i, j);
+	if (dim) {
+	  concBdyDown = new double[dim];
+	  pCompBdyDown = getConcBdyDown(y, idx, k, i, j, concBdyDown);
+	}
+
+	pComp->setBoundaryConc(concBdyRight, concBdyDown);
+	if (concBdyRight != NULL) delete [] concBdyRight;
+	if (concBdyDown != NULL) delete [] concBdyDown;
+
+	cType = m_CompIdx[i][j].type;
+
+	switch (cType) {
+
+	case emVH :
+	  ((Vehicle *)pComp)->compODE_dydt(t, y+idx, f+idx); // calculate dydt
+	  if (m_bInfSrc)                              // infinite source, concentration doesn't change, but above dydt calculation is still needed
+	    memset(f+idx, 0, sizeof(double)*((Vehicle *)pComp)->m_dim);  //  since calling compODE_dydt will calculate the flux across boundaries properly
+	  break;
+
+	case emSC :
+	  ((StraCorn *)pComp)->compODE_dydt(t, y+idx, f+idx);
+	  break;
+
+	case emVE :
+	  ((ViaEpd *)pComp)->compODE_dydt(t, y+idx, f+idx);
+	  break;
+
+	case emDE :
+	  if (m_b_has_blood) // y[ k*m_dim_all+m_dim_all-1 ] contains the blood concentration, i.e. the last term in the differential equations
+	    ((Dermis *)pComp)->updateBlood( y[ k*m_dim_all+m_dim_all-1 ] );
+	  ((Dermis *)pComp)->compODE_dydt(t, y+idx, f+idx);
+	  break;
+
+	default :
+	  SayBye("Compartment type not implemented");
+	  break;
+	}	
+
+	pComp->passBdyMassOut(pCompBdyRight, pCompBdyDown);
+	idx += pComp->m_dim;
+
+      } // for j
+    } // for i
+    
+    // compute for blood 
 
     if (m_b_has_blood){
       // simulation is for a small skin area, but needs to multiple
       //  the mass transport due to blood flow by the actual topical application area
-      double factor = m_Vehicle_area / m_Dermis[i].compTotalArea(0);
-      idx += m_dim_de;
+      double factor = m_Vehicle_area / m_Dermis[k].compTotalArea(0);
 
-      m_Blood[i].updateMassInOutDermis(m_Dermis[i].m_mass_into_dermis, m_Dermis[i].m_mass_outof_dermis, factor);
-      m_Blood[i].compODE_dydt(t, y+idx, f+idx);
+      // todo: when more than one dermis compartments are involved, need to collate mass in-out of all dermis compartments
+
+      m_Blood[k].updateMassInOutDermis(m_Dermis[k].m_mass_into_dermis, m_Dermis[k].m_mass_outof_dermis, factor);
+      m_Blood[k].compODE_dydt(t, y+idx, f+idx);
     }
+    
+  } // for k, each chemical species
 
-  } // for i, each chemical species
 
-
-  /* Compute for reaction */
+  /* Compute for reaction 
+   todo: the following has not been fully tested and may contain bugs */
 
   int idx_s, idx_p;
   double C_s, C_p, mass_reacted;
@@ -536,11 +534,14 @@ void Skin::compReaction()
 /* Diffusion using method of lines (MoL) */
 void Skin::diffuseMoL(double t_start, double t_end)
 {		
-  int i, j, k, idx, gsl_status, flag;
+  int i, j, k, idx;
   double reltol, abstol, t;
   double *y = NULL;
+  double *pNVs = NULL;
   N_Vector y0;
   void *cvode_mem = NULL;
+
+  Comp *pComp = NULL;
 
   /* get current concentration, and set as initial conditions */
 
@@ -550,41 +551,16 @@ void Skin::diffuseMoL(double t_start, double t_end)
   
     idx = k*m_dim_all;
 
-    // from vehicle
-    for ( i=0; i<m_Vehicle[k].m_nx; i++ ) // x direction up to down
-      for ( j=0; j<m_Vehicle[k].m_ny; j++ ) // y direction left to right	
-	y[idx + i*m_Vehicle[k].m_ny + j] = m_Vehicle[k].m_grids[i*m_Vehicle[k].m_ny + j].m_concChem;
+    for (i=0; i<m_nxComp; i++) {
+      for (j=0; j<m_nyComp; j++) {
+	pComp = m_CompIdx[i][j].pComp[k];
+	pComp->getGridsConc(y+idx, pComp->m_dim);
+	idx += pComp->m_dim;
+      } // for j
+    } // for i
 
-    // from stratum corneum
-    if (m_b_has_SC) {
-      idx += m_dim_vh;
-      for ( i=0; i<m_StraCorn[k].m_nx; i++ ) // x direction up to down
-	for ( j=0; j<m_StraCorn[k].m_ny; j++ ) // y direction left to right	
-	  y[idx + i*m_StraCorn[k].m_ny + j] = m_StraCorn[k].m_grids[i*m_StraCorn[k].m_ny + j].m_concChem;
-    }
-
-    // from viable epidermis
-    if (m_b_has_VE) {
-      idx += m_dim_sc;
-      for ( i=0; i<m_ViaEpd[k].m_nx; i++ ) // x direction up to down
-	for ( j=0; j<m_ViaEpd[k].m_ny; j++ ) // y direction left to right	
-	  y[idx + i*m_ViaEpd[k].m_ny + j] = m_ViaEpd[k].m_grids[i*m_ViaEpd[k].m_ny + j].m_concChem;
-    }
-
-    // from dermis
-    if (m_b_has_DE) {
-      idx += m_dim_ve;
-      for ( i=0; i<m_Dermis[k].m_nx; i++ ) // x direction up to down
-	for ( j=0; j<m_Dermis[k].m_ny; j++ ) // y direction left to right	
-	  y[idx + i*m_Dermis[k].m_ny + j] = m_Dermis[k].m_grids[i*m_Dermis[k].m_ny + j].m_concChem;
-    }
-
-    // from blood
-    if (m_b_has_blood) {
-      idx += m_dim_de;
-      y[idx] = m_Blood[k].m_concChem;
-      y[idx+1] = m_Blood[k].m_concCleared;
-    }
+    if (m_b_has_blood)
+      m_Blood[k].getGridsConc(y+idx, m_Blood[k].m_dim);
 
   } // for k, each chemical
 
@@ -607,22 +583,11 @@ void Skin::diffuseMoL(double t_start, double t_end)
   // Set the pointer to user-defined data
   CVodeSetUserData(cvode_mem, this);
   CVodeSetMaxNumSteps(cvode_mem, 10000*5);
-	
-  // Call CVBand to specify the CVBAND band linear solver
-  //	m_ny is the bandwidth of the banded Jacobian matrix.
-  //	Then setup the Jacobian function
-  //CVBand(cvode_mem, dim, m_ny, m_ny);
-  //CVDlsSetBandJacFn(cvode_mem, static_cvJacobian);
-  
+ 
   CVDense(cvode_mem, m_dim_all*m_nChem);
-  // CVDlsSetDenseJacFn(cvode_mem, static_cvJacobian);
+  // CVDlsSetDenseJacFn(cvode_mem, static_cvJacobian); 
   
-  // prepare for the memory
-  // m_gsl_ode_Jacobian = new double [dim*dim];
-  // memset(m_gsl_ode_Jacobian, 0, sizeof(double)*dim*dim);
-  
-  CVode(cvode_mem, t_end, y0, &t, CV_NORMAL);
-	
+  CVode(cvode_mem, t_end, y0, &t, CV_NORMAL);	
 	
   /* Extract calculated values */
 		  
@@ -630,42 +595,17 @@ void Skin::diffuseMoL(double t_start, double t_end)
 
     idx = k*m_dim_all;
 
-    // for vehicle
-    for ( i=0; i<m_Vehicle[k].m_nx; i++ ) // x direction up to down
-      for ( j=0; j<m_Vehicle[k].m_ny; j++ ) // y direction left to right	
-	m_Vehicle[k].m_grids[i*m_Vehicle[k].m_ny + j].m_concChem = NV_Ith_S(y0, idx + i*m_Vehicle[k].m_ny + j); 
+    for (i=0; i<m_nxComp; i++) {
+      for (j=0; j<m_nyComp; j++) {
+	pNVs = NV_DATA_S(y0);
+	pComp = m_CompIdx[i][j].pComp[k];
+	pComp->setGridsConc(pNVs+idx, pComp->m_dim);
+	idx += pComp->m_dim;
+      } // for j
+    } // for i
 
-
-    // for stratum corneum
-    if (m_b_has_SC) {
-      idx += m_dim_vh;
-      for ( i=0; i<m_StraCorn[k].m_nx; i++ ) // x direction up to down
-	for ( j=0; j<m_StraCorn[k].m_ny; j++ ) // y direction left to right	
-	  m_StraCorn[k].m_grids[i*m_StraCorn[k].m_ny + j].m_concChem = NV_Ith_S(y0, idx + i*m_StraCorn[k].m_ny + j);
-    }
-    
-    // for viable epidermis
-    if (m_b_has_VE) {
-      idx += m_dim_sc;
-      for ( i=0; i<m_ViaEpd[k].m_nx; i++ ) // x direction up to down
-	for ( j=0; j<m_ViaEpd[k].m_ny; j++ ) // y direction left to right	
-	  m_ViaEpd[k].m_grids[i*m_ViaEpd[k].m_ny + j].m_concChem = NV_Ith_S(y0, idx + i*m_ViaEpd[k].m_ny + j);
-    }
-
-    // for dermis
-    if (m_b_has_DE) {
-      idx += m_dim_ve;
-      for ( i=0; i<m_Dermis[k].m_nx; i++ ) // x direction up to down
-	for ( j=0; j<m_Dermis[k].m_ny; j++ ) // y direction left to right	
-	  m_Dermis[k].m_grids[i*m_Dermis[k].m_ny + j].m_concChem = NV_Ith_S(y0, idx + i*m_Dermis[k].m_ny + j);
-    }
-
-    // for blood
-    if (m_b_has_blood){
-      idx += m_dim_de;
-      m_Blood[k].m_concChem = NV_Ith_S(y0, idx);
-      m_Blood[k].m_concCleared = NV_Ith_S(y0, idx+1);
-    }
+    if (m_b_has_blood)
+      m_Blood[k].setGridsConc(pNVs+idx, m_Blood[k].m_dim);
 
   } // for k, each chemical
 
@@ -788,6 +728,12 @@ void Skin::compFlux_sc2down(double *flux)
 
 }
 
+double Skin::getSCYlen()
+{
+  double g, d, s, t;
+  g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
+  return (d+s);
+}
 
 /* Compute the mass (or mol, depending on concentration unit used) of solute in 
    each layer
@@ -856,7 +802,7 @@ void Skin::get1DCoordSC(double *ret, int dim_ret, int idx_chem)
 void Skin::displayGrids()
 {
   m_Vehicle[0].displayGrids();
-  if (m_b_has_SC)
+  if (m_nStraCorn>0)
     m_StraCorn[0].displayGrids();
   if (m_b_has_VE)
     m_ViaEpd[0].displayGrids();
@@ -879,7 +825,7 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
     sprintf(fn_tmp, "%s_vh_chem%d.txt", fn, i);
     m_Vehicle[i].saveGrids(b_1st_time, fn_tmp);
 
-    if (m_b_has_SC) {
+    if (m_nStraCorn>0) {
       sprintf(fn_tmp, "%s_sc_chem%d.txt", fn, i);
       m_StraCorn[i].saveGrids(b_1st_time, fn_tmp);
     }
@@ -930,7 +876,7 @@ void Skin::getYCoord(double *coord_y, int dim)
 
 void Skin::saveCoord(const char fn_x[], const char fn_y[])
 {
-  if (m_b_has_SC)
+  if (m_nStraCorn>0)
     m_StraCorn[0].saveCoord(fn_x, fn_y);
   if (m_b_has_VE)
     m_ViaEpd[0].saveCoord(fn_x, fn_y); 

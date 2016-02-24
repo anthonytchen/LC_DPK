@@ -22,6 +22,7 @@ enum CoordSys {Cartesian, Cylindrical};
     -- ODE: to indicated boundary conditions are not needed if the compartment is ODE
  */
 enum BdyCond {ZeroFlux, ZeroConc, Periodic, FromOther, ODE };
+enum CompType {emVH, emSC, emVE, emDE, emBD, emSB};
 struct BdyCondStr { BdyCond up, left, right, down; };
 
 class Comp
@@ -33,7 +34,8 @@ class Comp
   double m_x_length, m_y_length, // compartment size in the x (verticle) and y (lateral) directions
                                  // if cylindrical coordinate (axisymmetric), y starts from centre to right
     m_dz_dtheta; // compartment size in the z (width) direction, either dz (Cartesian, metre) or dtheta (Cylindrical, degree)
-  int m_nx, m_ny; // number of grids at x and y directions of the compartment; within each compartment the grids are regular
+  int m_nx, m_ny, // number of grids at x and y directions of the compartment; within each compartment the grids are regular
+    m_dim; // m_nx * m_ny
 
   /* member variables to do with boundaries */
   int m_n_gridsBdyRight, m_n_gridsBdyDown;
@@ -51,8 +53,9 @@ class Comp
   double *m_conc1D, *m_coord1D; // 1-d concentration and corresponding coordinates, verticle direction
 
 public:
-  Comp(void) {};	
+  Comp(void) {};
   ~Comp(void) {};
+  virtual void Donothing(void) {};
   void Init(CoordSys, double, BdyCond, BdyCond, BdyCond, BdyCond);
   void Release();
   
@@ -80,6 +83,7 @@ public:
   void displayGrids();
   double getAmount();
   void getGridsConc(double*, int);
+  void setGridsConc(const double [], int);
   void saveGrids(bool, const char []);
   void getXCoord(double*, int);
   void getYCoord(double*, int);

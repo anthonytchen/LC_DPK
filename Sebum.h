@@ -15,7 +15,7 @@ class Sebum : public Comp
 public:
   Sebum(void) {};	
   ~Sebum(void) {};
-  void Init(double, double, double, int, int, double, double, double, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond);
+  void Init(double, double, double, int, int, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond, double K_sw=-1, double D_sebum=-1);
   
   void createGrids(Chemical, double, double);
  

@@ -656,6 +656,21 @@ void Comp::getGridsConc(double *fGridsConc, int dim)
   }
 }
 
+void Comp::setGridsConc(const double fGridsConc[], int dim)
+{
+  // Return concentration at the grids in fGridsConc
+  assert( m_grids && dim==m_nx*m_ny);
+
+  int i, j, idx;
+	
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+       idx = i*m_ny + j;
+       m_grids[idx].setConcChem(fGridsConc[idx]);
+     }
+  }
+}
+
 
 void Comp::saveGrids(bool b_1st_time, const char fn[])
 {

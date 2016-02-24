@@ -17,6 +17,7 @@ public:
   // solute mass transport into and out from dermis
   double m_mass_into_dermis, m_mass_outfrom_dermis;
 
+  int m_dim;
 
 public:
   Blood(void) {};	
@@ -31,6 +32,8 @@ public:
 	
   // I/O functions
   double getConcChem() { return m_concChem; };
+  void getGridsConc(double*, int);
+  void setGridsConc(const double[], int);
   double getAmount() { return m_concChem*m_vol_blood_body; };
   double getClearedAmount() { return m_concCleared*m_vol_cleared; };
   void displayGrids();

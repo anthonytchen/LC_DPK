@@ -15,6 +15,7 @@ void ViaEpd::Init(double x_length, double y_length, double dz_dtheta, int n_grid
 	
   m_nx = n_grids_x;
   m_ny = n_grids_y;
+  m_dim = m_nx * m_ny;
 }
 
 
