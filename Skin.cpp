@@ -10,13 +10,14 @@ void Skin::Init()
 
   m_Vehicle = NULL;
   m_SurSebum = NULL;
-  m_HarSebum = NULL;
+  m_Sebum = NULL;
   m_StraCorn = NULL;
   m_ViaEpd = NULL;
   m_Dermis = NULL;
   m_Blood = NULL;
 
-  m_nVehicle = m_nSebum_Sur = m_nSebum_Har = m_nStraCorn = m_nViaEpd = m_nDermis = m_nBlood = 0;
+  m_nVehicle = m_nSurSebum = m_nSebum = m_nStraCorn = m_nViaEpd = m_nDermis = 0;
+  m_b_has_blood = false;
   m_nxComp = m_nyComp = 0;
   m_CompIdx = NULL;
 
@@ -130,7 +131,6 @@ void Skin::createSurSB(const Chemical *chemSolute,
 {
   int i, idx;
 
-  m_b_has_SB_sur = true;
   assert (m_SurSebum);
 
   // should be done outside this function
@@ -151,24 +151,23 @@ void Skin::createSurSB(const Chemical *chemSolute,
 }
 
 
-void Skin::createHarSB(const Chemical *chemSolute,  
+void Skin::createSB(const Chemical *chemSolute,  
 		    double coord_x_start, double coord_y_start, double xlen, double ylen, int n_grids_x, int n_grids_y,
 		    BdyCondStr bdys,
 		    double *coord_x_end, double *coord_y_end, int idx_harsb)
 {
   int i, idx;
 
-  m_b_has_SB_har = true;
-  assert (m_HarSebum);
+  assert (m_Sebum);
 
   // should be done outside the function
   //  m_Sebum_Hur = new SurSebum[m_nChem];
 
   for (i=0; i<m_nChem; i++) {
     idx = i + idx_harsb*m_nChem;
-    m_HarSebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
-			  Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
-    m_HarSebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
+    m_Sebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
+		      Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+    m_Sebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
 
   m_dim_sb_har = n_grids_x*n_grids_y;
@@ -214,7 +213,6 @@ void Skin::createVE(const Chemical *chemSolute,
 
   int i;
 
-  m_b_has_VE = true;
   m_ViaEpd = new ViaEpd[m_nChem];
 
   for (i=0; i<m_nChem; i++) {
@@ -236,8 +234,6 @@ void Skin::createDE(const Chemical *chemSolute,
 {
   int i;
 
-  m_b_has_blood = b_has_blood;
-  m_b_has_DE = true;
   m_Dermis = new Dermis[m_nChem];
 
   for (i=0; i<m_nChem; i++) {
@@ -256,9 +252,7 @@ void Skin::createBD(const double *par_dermis2blood, const double *blood_k_clear)
 {
   int i;
 
-  assert(m_b_has_DE);
-
-  m_b_has_blood = true;
+  assert(m_b_has_blood);
   m_Blood = new Blood[m_nChem];
 
   for (i=0; i<m_nChem; i++) {
@@ -384,6 +378,11 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 
   CompType cType;
 
+  /*
+  if (t> 3e-12) {
+    printf("\n");
+  }
+  */
   for (k=0; k<m_nChem; k++) { // for each chemical
 
     idx = k*m_dim_all;
@@ -435,8 +434,25 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 	    memset(f+idx, 0, sizeof(double)*((Vehicle *)pComp)->m_dim);  //  since calling compODE_dydt will calculate the flux across boundaries properly
 	  break;
 
+	case emSB :
+	  ((Sebum *)pComp)->compODE_dydt(t, y+idx, f+idx);
+	  //((Sebum *)pComp)->displayGridsConc(f+idx);
+	  //printf("\n");
+	  break;
+
+	case emSurSB :
+	  ((SurSebum *)pComp)->compODE_dydt(t, y+idx, f+idx);
+	  //printf("y, t = %e, \n", t);
+	  //((SurSebum *)pComp)->displayGridsConc(y+idx);
+	  //printf("f, t = %e, \n", t);
+	  //((SurSebum *)pComp)->displayGridsConc(f+idx);
+	  //printf("\n\n");
+	  break;
+
 	case emSC :
 	  ((StraCorn *)pComp)->compODE_dydt(t, y+idx, f+idx);
+	  //((StraCorn *)pComp)->displayGridsConc(f+idx);
+	  //printf("\n");
 	  break;
 
 	case emVE :
@@ -455,12 +471,14 @@ int Skin::compODE_dydt (double t, const double y[], double f[])
 	}	
 
 	pComp->passBdyMassOut(pCompBdyRight, pCompBdyDown);
+	//pComp->passBdyMassOut(NULL, pCompBdyDown);
 	idx += pComp->m_dim;
 
       } // for j
     } // for i
     
     // compute for blood 
+    //exit(0);
 
     if (m_b_has_blood){
       // simulation is for a small skin area, but needs to multiple
@@ -694,7 +712,7 @@ void Skin::compFlux_sc2down(double *flux)
 
   for ( i=0; i<m_nChem; i++ ) {
 
-    if (m_b_has_VE) {
+    if (m_nViaEpd>0) {
       m_StraCorn[i].setBdyMassInOutZero();
 
       concBdy = new double[m_ViaEpd[i].m_ny];
@@ -712,7 +730,7 @@ void Skin::compFlux_sc2down(double *flux)
       gridThiis = &m_StraCorn[i].m_grids[idx+j];
       conc_this = gridThiis->m_concChem;      
 
-      if (m_b_has_VE)
+      if (m_nViaEpd>0)
 	mass_transfer_rate += - m_StraCorn[i].compMassIrregGridsDown( *gridThiis, conc_this );
       else { // sc down is sink
 	f = gridThiis->compFlux( &m_StraCorn[i].m_gridSink, conc_this, 0, gridThiis->m_dx/2, 0, &deriv_this, &deriv_other);
@@ -801,12 +819,15 @@ void Skin::get1DCoordSC(double *ret, int dim_ret, int idx_chem)
 
 void Skin::displayGrids()
 {
+  int j, idx;
+  SayBye("Todo: improve this function");
+
   m_Vehicle[0].displayGrids();
   if (m_nStraCorn>0)
     m_StraCorn[0].displayGrids();
-  if (m_b_has_VE)
+  if (m_nViaEpd>0)
     m_ViaEpd[0].displayGrids();
-  if (m_b_has_DE)
+  if (m_nDermis>0)
     m_Dermis[0].displayGrids();
   if (m_b_has_blood)
     m_Blood[0].displayGrids();
@@ -817,27 +838,45 @@ void Skin::displayGrids()
 
 void Skin::saveGrids(bool b_1st_time, const char fn[])
 {
-  int i;
+  int i, j, idx;
   char fn_tmp[1024];
 
   for (i=0; i<m_nChem; i++) {
 
-    sprintf(fn_tmp, "%s_vh_chem%d.txt", fn, i);
-    m_Vehicle[i].saveGrids(b_1st_time, fn_tmp);
-
-    if (m_nStraCorn>0) {
-      sprintf(fn_tmp, "%s_sc_chem%d.txt", fn, i);
-      m_StraCorn[i].saveGrids(b_1st_time, fn_tmp);
+    for (j=0; j<m_nVehicle; j++) {
+      idx = i*m_nVehicle+j;
+      sprintf(fn_tmp, "%s_vh_chem%d_comp%d.txt", fn, i, j);
+      m_Vehicle[idx].saveGrids(b_1st_time, fn_tmp);
     }
 
-    if (m_b_has_VE) {
-      sprintf(fn_tmp, "%s_ve_chem%d.txt", fn, i);
-      m_ViaEpd[i].saveGrids(b_1st_time, fn_tmp);
+    for (j=0; j<m_nStraCorn; j++) {
+      idx = i*m_nStraCorn+j;
+      sprintf(fn_tmp, "%s_sc_chem%d_comp%d.txt", fn, i, j);
+      m_StraCorn[idx].saveGrids(b_1st_time, fn_tmp);
     }
 
-    if (m_b_has_DE) {
-      sprintf(fn_tmp, "%s_de_chem%d.txt", fn, i);
-      m_Dermis[i].saveGrids(b_1st_time, fn_tmp);
+    for (j=0; j<m_nSurSebum; j++) {
+      idx = i*m_nSurSebum+j;
+      sprintf(fn_tmp, "%s_sursb_chem%d_comp%d.txt", fn, i, j);
+      m_SurSebum[idx].saveGrids(b_1st_time, fn_tmp);
+    }
+
+    for (j=0; j<m_nSebum; j++) {
+      idx = i*m_nSebum+j;
+      sprintf(fn_tmp, "%s_sb_chem%d_comp%d.txt", fn, i, j);
+      m_Sebum[idx].saveGrids(b_1st_time, fn_tmp);
+    }
+
+    for (j=0; j<m_nViaEpd; j++) {
+      idx = i*m_nViaEpd+j;
+      sprintf(fn_tmp, "%s_ve_chem%d_comp%d.txt", fn, i, j);
+      m_ViaEpd[idx].saveGrids(b_1st_time, fn_tmp);
+    }
+
+    for (j=0; j<m_nDermis; j++) {
+      idx = i*m_nDermis+j;
+      sprintf(fn_tmp, "%s_de_chem%d_comp%d.txt", fn, i, j);
+      m_Dermis[idx].saveGrids(b_1st_time, fn_tmp);
     }
 
     if (m_b_has_blood) {
@@ -878,9 +917,9 @@ void Skin::saveCoord(const char fn_x[], const char fn_y[])
 {
   if (m_nStraCorn>0)
     m_StraCorn[0].saveCoord(fn_x, fn_y);
-  if (m_b_has_VE)
+  if (m_nViaEpd>0)
     m_ViaEpd[0].saveCoord(fn_x, fn_y); 
-  if (m_b_has_DE)
+  if (m_nDermis>0)
     m_Dermis[0].saveCoord(fn_x, fn_y); 
 }
 /*  END <I/O functions>

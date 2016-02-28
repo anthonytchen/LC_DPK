@@ -85,13 +85,15 @@ void Grid::InitSB(const char name[], Chemical chem, double concChem, double x_co
   double K;
 
   if (D<0) { /* calculate diffusivity from QSPR model */
-    SayBye("QSPR for calculating sebum diffusion coefficient not yet implemented");
+    // SayBye("QSPR for calculating sebum diffusion coefficient not yet implemented");
+    m_D = 1e-10; // needing change
   }
   else
     m_D = D;
 
   if (K_sw<0) { /* calculate partition coefficient from QSPR model */
-    SayBye("QSPR for calculating sebum partition coefficient not yet implemented");
+    // SayBye("QSPR for calculating sebum partition coefficient not yet implemented");
+    m_Kw = 1;
   }
   else
     m_Kw = K_sw;

@@ -10,11 +10,12 @@
 int main (int argc, char* argv[])
 {
   double MW, log_K_ow, log_K_vh, K_vh, pKa,
+    x_len_sb_sur, y_len_sb_har, x_len_viaepd, x_len_dermis,
     conc_vehicle, diffu_vehicle, partition_dermis2blood, k_clear_blood, area_vehicle,
-    t_simu, t_end, t_inv, t_remove, offset_y_sc, dx_vehicle, x_len_viaepd, x_len_dermis;
+    t_simu, t_end, t_inv, t_remove, offset_y_sc;
   bool b_1st_save = true;
   int b_inf_src = 0;
-  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de;
+  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_sb_sur, n_grids_y_sb_har, n_grids_x_ve, n_grids_x_de;
   char fn_coord_x[1024], fn_coord_y[1024];
 	
   static int nDis = 1;
@@ -30,7 +31,8 @@ int main (int argc, char* argv[])
   offset_y_sc = 40.03751e-6;
   x_len_viaepd = 100e-6; // depth of viable epidermis
   x_len_dermis = 1200e-6; // depth of dermis
-  
+  n_grids_x_sb_sur = 10;  
+  n_grids_y_sb_har = 5;
 
   // Nicotine
   
@@ -38,20 +40,11 @@ int main (int argc, char* argv[])
   log_K_ow = 1.17;
   pKa = 3.12; // a base
 
-  /* bannon paper
-  dx_vehicle = 1e-4; // thickness of vehicle in meter
-  area_vehicle = 3.5*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 15.0*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
-  diffu_vehicle = 1e-13; // diffusivity of solute in vehicle
-  partition_vehicle = 1;
-  partition_dermis2blood = 1.0/pow(10,0.04);
-  k_clear_blood = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s, 1250 = 20.8e-6, 1540 = 25.7e-6
-  */
-
   /* vanakoski  paper */
-  dx_vehicle = 1.5e-4; // thickness of vehicle in meter
-  area_vehicle = 22.5*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 39.37*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
+  x_len_sb_sur = 20e-6; // thickness of surface sebum
+  y_len_sb_har = 20e-6; // width of hair follicle sebum
+  //area_vehicle = 22.5*1e-4; // cm2 patch, represented in m2
+  //conc_vehicle = 39.37*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
   diffu_vehicle = -1; // using diffusivity in water
   log_K_vh = log10(0.7);
   partition_dermis2blood = 1.0/pow(10,0.04);
@@ -82,6 +75,12 @@ int main (int argc, char* argv[])
     "n_layer_y_sc", "Number of layers (y-axis, lateral) of cells in stratum corneum",
     "-nysc", INT, (caddr_t)&n_layer_y_sc,
 
+    "x_len_sb_sur", "Depth of surface sebum (m)",
+    "-xsbs", DOUBLE, (caddr_t)&x_len_sb_sur,
+
+    "y_len_sb_har", "Width of hair sebum (m)",
+    "-ysbh", DOUBLE, (caddr_t)&y_len_sb_har,
+
     "x_len_viaepd", "Depth of viable epidermis (m)",
     "-xve", DOUBLE, (caddr_t)&x_len_viaepd,
 
@@ -90,13 +89,7 @@ int main (int argc, char* argv[])
 
     "fn", "File name prefix to store concentration, coordinates, etc",
     "-fn", STRING, (caddr_t)&fn,
-
-    "inf_src", "Whether the vehicle is an infinite source",
-    "-inf_src", INT, (caddr_t)&b_inf_src,
-
-    "t_remove", "Time when the vehicle is removed (hrs)",
-    "-trm", DOUBLE, (caddr_t)&t_remove,
-	   
+   
     "dis", "Display options; 0 - most parsimonious; 3 - most verbose",
     "-dis", INT, (caddr_t)&nDis,
 	  
@@ -125,9 +118,10 @@ int main (int argc, char* argv[])
   Skin_S3VDB _skin;
   K_vh = pow(10, log_K_vh);
   _skin.Init(&_chem, 1, &conc_vehicle, &K_vh, &diffu_vehicle,
-	     dx_vehicle, area_vehicle, n_layer_x_sc, n_layer_y_sc, offset_y_sc,
+	     x_len_sb_sur, n_grids_x_sb_sur, y_len_sb_har, n_grids_y_sb_har,
+	     n_layer_x_sc, n_layer_y_sc, offset_y_sc,
 	     x_len_viaepd, n_grids_x_ve, x_len_dermis, n_grids_x_de,
-	     &partition_dermis2blood, &k_clear_blood, b_inf_src); // BUG: needing change here
+	     &partition_dermis2blood, &k_clear_blood);
   _skin.saveCoord( fn_coord_x, fn_coord_y );
 	
   if ( nDis > 1 )

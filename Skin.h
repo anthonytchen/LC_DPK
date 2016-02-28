@@ -4,7 +4,7 @@
 #include "Chemical.h"
 #include "Vehicle.h"
 #include "SurSebum.h"
-#include "HarSebum.h"
+//#include "Sebum.h"
 #include "StraCorn.h"
 #include "ViaEpd.h"
 #include "Dermis.h"
@@ -36,22 +36,21 @@ public:
   double m_Vehicle_area; // The dimensions in m_gridVehicle is for the microscopic grid used for simulation.
                          // The actual vehicle application area is contained here.
   bool m_bInfSrc, 
-    m_b_has_VE, m_b_has_DE, // whether has viable epidermis, dermis
-    m_b_has_SB_sur, m_b_has_SB_har, // whether has sebum on the surface or in hair follicle
     m_b_has_blood; // whether has blood compartment
 
   struct Reaction m_React;
 
   /* The compartments */
   Vehicle *m_Vehicle;
-  Sebum *m_SurSebum, *m_HarSebum;
+  Sebum *m_Sebum;
+  SurSebum *m_SurSebum;
   StraCorn *m_StraCorn;
   ViaEpd *m_ViaEpd;
   Dermis *m_Dermis;
   Blood *m_Blood;
   
   // the number of compartments in each type of compartment for each chemical species
-  int m_nVehicle, m_nSebum_Sur, m_nSebum_Har, m_nStraCorn, m_nViaEpd, m_nDermis, m_nBlood;
+  int m_nVehicle, m_nSurSebum, m_nSebum, m_nStraCorn, m_nViaEpd, m_nDermis, m_nBlood;
   int m_nxComp, m_nyComp;
 
   CompIdx **m_CompIdx; // 2D array to contain the compartment matrix
@@ -70,7 +69,7 @@ public:
   void releaseCompMatrix();
   void createVH(const Chemical*, const double*, const double*, const double*, double, double, double, double, double, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // vehicle
   void createSurSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int); // surface sebum
-  void createHarSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int); // surface sebum
+  void createSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int); // surface sebum
   void createSC(const Chemical*, double, double, int, int, double, BdyCondStr, double *x_end_coord, double *y_end_coord); // stratum corneum
   void createVE(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord); // viable epidermis
   void createDE(const Chemical*, double, double, double, double, int, int, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // dermis

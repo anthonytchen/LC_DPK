@@ -16,7 +16,7 @@ class Skin_S3VDB : public Skin
 public:
 
 public:
-  void Init(Chemical*, int, double*, double*, double*, double, double, int, int, double, double, int, double, int, double*, double*, bool);
+  void Init(Chemical*, int, double*, double*, double*, double, int, double, int, int, int, double, int, int, double, int, double*, double*);
   void Release();
 
 };

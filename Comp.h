@@ -22,7 +22,7 @@ enum CoordSys {Cartesian, Cylindrical};
     -- ODE: to indicated boundary conditions are not needed if the compartment is ODE
  */
 enum BdyCond {ZeroFlux, ZeroConc, Periodic, FromOther, ODE };
-enum CompType {emVH, emSC, emVE, emDE, emBD, emSB};
+enum CompType {emVH, emSC, emVE, emDE, emSB, emSurSB};
 struct BdyCondStr { BdyCond up, left, right, down; };
 
 class Comp
@@ -81,9 +81,11 @@ public:
   
   // I/O functions
   void displayGrids();
+  void displayGridsConc(const double []);
   double getAmount();
   void getGridsConc(double*, int);
   void setGridsConc(const double [], int);
+  void setGridConc(double, int, int);
   void saveGrids(bool, const char []);
   void getXCoord(double*, int);
   void getYCoord(double*, int);

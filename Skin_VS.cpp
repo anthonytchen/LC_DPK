@@ -15,7 +15,7 @@ void Skin_VS::Init(Chemical *chemSolute, int nChem,
 
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
-  m_b_has_VE = m_b_has_DE = m_b_has_blood = false;
+  m_nVehicle = m_nStraCorn = 1;
 
   // setup compartment matrix
   nxComp = 2; nyComp = 1;

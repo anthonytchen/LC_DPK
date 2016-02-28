@@ -21,7 +21,7 @@ public:
 public:
   SurSebum(void) {};	
   ~SurSebum(void) {};
-  void Init(double, double, double, int, int, double, double, double, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond, double, double, double, double);
+  void Init(double, double, double, int, int, CoordSys, BdyCond, BdyCond, BdyCond, BdyCond, double init_mass_solid=-1, double k_disv_per_area = -1, double k_rect=-1, double Csat=-1);
   
   //  void createGrids(Chemical, double, double);
   void compODE_dydt (double, const double [], double []);

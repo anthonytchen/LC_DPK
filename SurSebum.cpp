@@ -2,12 +2,11 @@
 #include "SurSebum.h"
 
 void SurSebum::Init(double x_length, double y_length, double dz_dtheta, int n_grids_x, int n_grids_y,
-		    double init_concChem, double K_sw, double D_sebum, 
 		    CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down,
-		    double init_mass_solid=-1, double k_disv_per_area = -1, double k_rect=-1, double Csat=-1)
+		    double init_mass_solid, double k_disv_per_area, double k_rect, double Csat)
 {
   Sebum::Init(x_length, y_length, dz_dtheta, n_grids_x, n_grids_y, 
-	      coord_sys, bdy_cond_up, bdy_cond_left, bdy_cond_right, bdy_cond_down, K_sw, D_sebum);
+	      coord_sys, bdy_cond_up, bdy_cond_left, bdy_cond_right, bdy_cond_down);
 
   m_mass_solid = init_mass_solid;
   if (m_mass_solid>0) m_b_has_solid=true;

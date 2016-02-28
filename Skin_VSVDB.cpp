@@ -16,11 +16,10 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
 
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
-  m_b_has_VE = m_b_has_DE = m_b_has_blood = true;
-
   // setup compartment matrix
   nxComp = 4; nyComp = 1;
-  m_nVehicle = m_nStraCorn = m_nViaEpd = m_nDermis = m_nBlood = 1;
+  m_nVehicle = m_nStraCorn = m_nViaEpd = m_nDermis = 1;
+  m_b_has_blood = true;
   createCompMatrix(nxComp, nyComp);
 
   // boundary condition: up, left, right, down
@@ -66,7 +65,7 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
 
   // DE
   coord_x_start = coord_x_end; coord_y_start = 0;
-  createDE(chemSolute, coord_x_start, coord_y_start, x_len_de, y_len_sc, n_grids_x_de, 1, true,
+  createDE(chemSolute, coord_x_start, coord_y_start, x_len_de, y_len_sc, n_grids_x_de, 1, m_b_has_blood,
 	   bdys_de, &coord_x_end, &coord_y_end);
   m_CompIdx[3][0].type = emDE;
   m_CompIdx[3][0].pComp = new Comp*[1];

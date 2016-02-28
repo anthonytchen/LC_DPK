@@ -262,8 +262,6 @@ double Comp::compMassIrregGridsRight(Grid gridThiis, double conc_this)
   double massIntoThis, mass, conc_other, flux;
   Grid *gridOther = NULL;
   
-  //  thd = gridThiis.m_dx * 1e-3; // to compare whether two real numbers are the same
-
   massIntoThis = 0;
 
   z_length = compInterArea(gridThiis, 2) / gridThiis.m_dx; // interfacial z_length
@@ -277,10 +275,11 @@ double Comp::compMassIrregGridsRight(Grid gridThiis, double conc_this)
     nextX = currentX + m_gridsBdyRight[i].m_dx; //
 
     // to compare whether two real numbers are the same
-    thd = gridThiis.m_dx<m_gridsBdyDown[i].m_dx ? gridThiis.m_dx : m_gridsBdyDown[i].m_dx;
+    thd = gridThiis.m_dx<m_gridsBdyRight[i].m_dx ? gridThiis.m_dx : m_gridsBdyRight[i].m_dx;
     thd *= 1e-3;
 
-    if ( x1_this > currentX-thd ) {
+    //if ( x1_this > currentX-thd ) {
+    if ( x1_this > currentX-thd && x1_this < nextX-thd ) {
 
       if ( x2_this < nextX+thd ) { // gridThiis is contained between currentX & nextX
 	x_length = x2_this - x1_this;
@@ -295,7 +294,9 @@ double Comp::compMassIrregGridsRight(Grid gridThiis, double conc_this)
      
       flux = gridThiis.compFlux( gridOther, conc_this, conc_other, 
 				 gridThiis.m_dy/2, gridOther->m_dy/2, &deriv_this, &deriv_other);
-      area = z_length * x_length;
+
+      gridThiis.m_dx = x_length; // this is needed to calculate the correct interfacial area, especially for cylindrical coordinate
+      area = compInterArea(gridThiis, 2); // interfacial area
       mass = area * flux;
 
       massIntoThis += mass;
@@ -305,7 +306,7 @@ double Comp::compMassIrregGridsRight(Grid gridThiis, double conc_this)
 	break;
       else {
 	gridThiis.m_x_coord = nextX;
-	gridThiis.m_dx -= x_length;
+	gridThiis.m_dx = x2_this - x1_this - x_length;
       }
     } // if
 
@@ -322,11 +323,10 @@ double Comp::compMassIrregGridsDown(Grid gridThiis, double conc_this)
 {
   int i;
   bool bDone = false;
-  double y1_this, y2_this, currentY, nextY, y_length, z_length, thd, deriv_this, deriv_other, area;
+  double y1_this, y2_this, currentY, nextY, y_length, thd, deriv_this, deriv_other, area;
   double massIntoThis, mass, conc_other, flux;
   Grid *gridOther = NULL;
   
-  //  thd = gridThiis.m_dy * 1e-3; // to compare whether two real numbers are the same
   massIntoThis = 0;
 
   for (i=0; i<m_n_gridsBdyDown; i++) {
@@ -341,7 +341,8 @@ double Comp::compMassIrregGridsDown(Grid gridThiis, double conc_this)
     thd = gridThiis.m_dy<m_gridsBdyDown[i].m_dy ? gridThiis.m_dy : m_gridsBdyDown[i].m_dy;
     thd *= 1e-3;
 
-    if ( y1_this > currentY-thd ) {
+    //if ( y1_this > currentY-thd ) {
+    if ( y1_this > currentY-thd && y1_this < nextY-thd ) {
 
       if ( y2_this < nextY+thd ) { // gridThiis is contained between currentY & nextY
 	y_length = y2_this - y1_this;
@@ -350,6 +351,9 @@ double Comp::compMassIrregGridsDown(Grid gridThiis, double conc_this)
       else { // gridThiis extends beyond nextY
 	y_length = nextY - y1_this;
       }
+
+      if (y_length < thd )
+	printf("y_length = %e, thd = %e\n", y_length, thd);
 
       gridOther = &m_gridsBdyDown[i];
       conc_other = gridOther->m_concChem;
@@ -405,6 +409,7 @@ void Comp::compODE_dydt(double t, const double y[], double f[])
       assert(rc==0);
     }		
   }
+
 }
 
 // the static container function needed for using multipe threads
@@ -620,6 +625,17 @@ void Comp::displayGrids()
   fflush(stdout);
 }
 
+void Comp::displayGridsConc(const double f[])
+{
+  int i, j, idx;
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right		
+      idx = i*m_ny + j;
+      printf("%.5e\t", f[idx]);
+    }
+    printf("\n");
+  }
+}
 
 double Comp::getAmount()
 {
@@ -658,7 +674,6 @@ void Comp::getGridsConc(double *fGridsConc, int dim)
 
 void Comp::setGridsConc(const double fGridsConc[], int dim)
 {
-  // Return concentration at the grids in fGridsConc
   assert( m_grids && dim==m_nx*m_ny);
 
   int i, j, idx;
@@ -671,6 +686,14 @@ void Comp::setGridsConc(const double fGridsConc[], int dim)
   }
 }
 
+void Comp::setGridConc(double value, int idx_x, int idx_y)
+{
+  int idx;
+  assert( m_grids && idx_x<m_nx && idx_y<m_ny);
+
+  idx = idx_x*m_ny + idx_y;
+  m_grids[idx].setConcChem(value);
+}
 
 void Comp::saveGrids(bool b_1st_time, const char fn[])
 {
