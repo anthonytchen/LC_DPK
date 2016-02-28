@@ -17,7 +17,7 @@ LFLAGS=-g -O0 -Wno-write-strings
 
 
 all:	except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o HarSebum.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o \
 	StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Skin_VSVDB.o Skin_S3VDB.o Blood.o \
 	run_VS run_VSVDB run_S3VDB #LCK_metabo
 
@@ -28,24 +28,24 @@ clean:
 
 # vehicle & stratum corneum
 run_VS: run_VS.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Blood.o
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Blood.o
 	$(LD) $(LFLAGS)  run_VS.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Blood.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Blood.o \
 	$(LIBS) $(INC) -o run_VS
 
 # vehicle, stratum corneum, viable epidermis, dermis & blood
 run_VSVDB: run_VSVDB.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o
 	$(LD) $(LFLAGS)  run_VSVDB.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o \
 	$(LIBS) $(INC) -o run_VSVDB
 
 # surface sebum, stratum corneum, hair sebum
 run_S3VDB: run_S3VDB.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o HarSebum.o StraCorn.o ViaEpd.o Dermis.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o \
 	Skin.o Skin_S3VDB.o Blood.o
 	$(LD) $(LFLAGS)  run_S3VDB.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o HarSebum.o StraCorn.o ViaEpd.o Dermis.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o \
 	Skin.o Skin_S3VDB.o Blood.o \
 	$(LIBS) $(INC) -o run_S3VDB
 
@@ -72,8 +72,8 @@ Sebum.o: Sebum.h Sebum.cpp
 	$(CC) $(CFLAGS) Sebum.cpp $(INC) -o Sebum.o
 SurSebum.o: SurSebum.h SurSebum.cpp
 	$(CC) $(CFLAGS) SurSebum.cpp $(INC) -o SurSebum.o
-HarSebum.o: HarSebum.h HarSebum.cpp
-	$(CC) $(CFLAGS) HarSebum.cpp $(INC) -o HarSebum.o
+#HarSebum.o: HarSebum.h HarSebum.cpp
+#	$(CC) $(CFLAGS) HarSebum.cpp $(INC) -o HarSebum.o
 StraCorn.o: StraCorn.h StraCorn.cpp
 	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
 ViaEpd.o: ViaEpd.h ViaEpd.cpp
