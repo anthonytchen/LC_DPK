@@ -51,10 +51,22 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   m_Sebum = new Sebum[m_nChem*1];
 
   // SB, surface sebum
+
+  double sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat;
+  double d_particle, S_particle;
+  d_particle = 1.4e-6; // calculated from BET surface area measured in Davies 1985
+  S_particle = 6*d_particle*d_particle; // cuboid
+  
+  sursb_init_mass_solid = (0.5e-6*0.5e-6*0.5e-6)*1.782*1e3; // from EC Opinion on ZnPT
+  sursb_k_disv_per_area = 34.3e-6 / S_particle;
+  sursb_k_rect = 1.84e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
+  sursb_Csat = 30 * 1e-6/(1e-3*0.9105); // 30 ppm, sebum specific gravity is 0.9105
+
   coord_x_start = 0; coord_y_start = 0;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
-	      bdys_sb_sur1, &coord_x_end, &coord_y_end, 0);
-  m_SurSebum[0].setGridConc(1.0, 0, 0); // give the first grid some initial concentration
+	      bdys_sb_sur1, &coord_x_end, &coord_y_end, 0,
+	      sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat);
+  // m_SurSebum[0].setGridConc(1.0, 0, 0); // give the first grid some initial concentration
   m_CompIdx[0][0].type = emSurSB;
   m_CompIdx[0][0].pComp = new Comp*[1];
   m_CompIdx[0][0].pComp[0] = &m_SurSebum[0];
@@ -62,7 +74,8 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 
   coord_x_start = 0; coord_y_start = y_len_sc;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,
-	      bdys_sb_sur2, &coord_x_end, &coord_y_end, 1);
+	      bdys_sb_sur2, &coord_x_end, &coord_y_end, 1,
+	      -1, -1, sursb_k_rect, -1);
   m_CompIdx[0][1].type = emSurSB;
   m_CompIdx[0][1].pComp = new Comp*[1];
   m_CompIdx[0][1].pComp[0] = &m_SurSebum[1];

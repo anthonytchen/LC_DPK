@@ -31,20 +31,20 @@ int main (int argc, char* argv[])
   offset_y_sc = 40.03751e-6;
   x_len_viaepd = 100e-6; // depth of viable epidermis
   x_len_dermis = 1200e-6; // depth of dermis
-  n_grids_x_sb_sur = 10;  
-  n_grids_y_sb_har = 5;
+  n_grids_x_sb_sur = 1;  
+  n_grids_y_sb_har = 10;
 
-  // Nicotine
+  // ZnPT (zinc pyrithione)
   
-  MW = 162.23;
-  log_K_ow = 1.17;
-  pKa = 3.12; // a base
+  MW = 317.7;
+  log_K_ow = 0.97;
+  pKa = 3.12; // not used!!!
 
   /* vanakoski  paper */
-  x_len_sb_sur = 20e-6; // thickness of surface sebum
+  x_len_sb_sur = 10e-6; // thickness of surface sebum
   y_len_sb_har = 20e-6; // width of hair follicle sebum
-  //area_vehicle = 22.5*1e-4; // cm2 patch, represented in m2
-  //conc_vehicle = 39.37*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
+
+  // the following 4 parameters are not used
   diffu_vehicle = -1; // using diffusivity in water
   log_K_vh = log10(0.7);
   partition_dermis2blood = 1.0/pow(10,0.04);
@@ -147,8 +147,6 @@ int main (int argc, char* argv[])
       fflush(stdout);
     }
 
-    if ( t_simu+t_inv-3600*t_remove > -1 )
-      _skin.removeVehicle();
   }
 
   _skin.Release();

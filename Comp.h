@@ -49,6 +49,10 @@ class Comp
   /* the main grids */
   Grid *m_grids;
 
+  /* ad hoc settings for solids*/
+  bool m_b_has_solid;
+  double m_mass_solid;
+
   /* member variables for I/O and MISC */
   double *m_conc1D, *m_coord1D; // 1-d concentration and corresponding coordinates, verticle direction
 

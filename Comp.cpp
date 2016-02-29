@@ -17,6 +17,8 @@ void Comp::Init( CoordSys coord_sys, double dz_dtheta,
   m_n_gridsBdyRight = 0;
   m_n_gridsBdyDown = 0;
 
+  m_b_has_solid = false;
+  
   // m_gridsBdyUp = NULL;
   // m_gridsBdyLeft = NULL;
   m_gridsBdyRight = NULL;
@@ -660,7 +662,7 @@ double Comp::getAmount()
 void Comp::getGridsConc(double *fGridsConc, int dim)
 {
   // Return concentration at the grids in fGridsConc
-  assert( m_grids && fGridsConc && dim==m_nx*m_ny);
+  assert( m_grids );
 
   int i, j, idx;
 	
@@ -670,11 +672,19 @@ void Comp::getGridsConc(double *fGridsConc, int dim)
        fGridsConc[idx] = m_grids[idx].getConcChem();
      }
   }
+
+  if (m_b_has_solid) {
+    assert(dim==m_nx*m_ny+1);
+    fGridsConc[dim-1] = m_mass_solid;
+  }
+  else
+    assert(dim==m_nx*m_ny);
+
 }
 
 void Comp::setGridsConc(const double fGridsConc[], int dim)
 {
-  assert( m_grids && dim==m_nx*m_ny);
+  assert( m_grids );
 
   int i, j, idx;
 	
@@ -684,6 +694,13 @@ void Comp::setGridsConc(const double fGridsConc[], int dim)
        m_grids[idx].setConcChem(fGridsConc[idx]);
      }
   }
+
+  if (m_b_has_solid) {
+    assert(dim==m_nx*m_ny+1);
+    m_mass_solid = fGridsConc[dim-1];
+  }
+  else
+    assert(dim==m_nx*m_ny);
 }
 
 void Comp::setGridConc(double value, int idx_x, int idx_y)

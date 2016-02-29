@@ -86,14 +86,14 @@ void Grid::InitSB(const char name[], Chemical chem, double concChem, double x_co
 
   if (D<0) { /* calculate diffusivity from QSPR model */
     // SayBye("QSPR for calculating sebum diffusion coefficient not yet implemented");
-    m_D = 1e-10; // needing change
+    m_D = 1.3e-13; // as reported in Rush et al. for ZnPT in water-CMC vehicle, needing change
   }
   else
     m_D = D;
 
   if (K_sw<0) { /* calculate partition coefficient from QSPR model */
     // SayBye("QSPR for calculating sebum partition coefficient not yet implemented");
-    m_Kw = 1;
+    m_Kw = pow(10, -0.5608) * pow(chem.m_K_ow,0.9465);
   }
   else
     m_Kw = K_sw;

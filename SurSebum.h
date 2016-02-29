@@ -12,11 +12,9 @@ public:
   double m_k_disv, m_k_rect, // rate constant of dissolution, reaction
     m_k_disv_per_area,
     m_Csat; // satuation concentration in sebum
-  double m_mass_reacted, // accumulated mass due to reaction-induced breakdown
-    m_mass_solid, // remaining mass in the solid
-    m_rho_solid, // solid density
+  double m_rho_solid, // solid density
     m_radius_solid, m_V_solid; // radius and volume of solid
-  bool m_b_has_solid, m_b_has_react;
+  bool m_b_has_react;
 
 public:
   SurSebum(void) {};	
@@ -26,9 +24,15 @@ public:
   //  void createGrids(Chemical, double, double);
   void compODE_dydt (double, const double [], double []);
 
-  void updateKdisv(CryShape shape);
+  void updateKdisv(CryShape);
+  void updateKdisv(CryShape, double);
+
+  void getGridsConc(double*, int);
+  void setGridsConc(const double [], int);
+
   // I/O functions
   //  void saveCoord(const char [], const char []);
+  void saveGrids(bool, const char []);
 };
 
 #endif
