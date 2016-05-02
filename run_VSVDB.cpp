@@ -55,6 +55,7 @@ int main (int argc, char* argv[])
   diffu_vehicle = -1; // using diffusivity in water
   log_K_vh = log10(0.7);
   partition_dermis2blood = 1.0/pow(10,0.04);
+  // partition_dermis2blood /= 2;
   k_clear_blood = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s, 1250 = 20.8e-6, 1540 = 25.7e-6
 
 	

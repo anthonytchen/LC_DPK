@@ -35,8 +35,8 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   // boundary condition: up, left, right, down
   BdyCondStr bdys_sb_sur1 = {ZeroFlux,  ZeroFlux, FromOther, FromOther};
   BdyCondStr bdys_sb_sur2 = {ZeroFlux,  FromOther, ZeroFlux, FromOther};
-  BdyCondStr bdys_sb_har = {FromOther,  FromOther, ZeroFlux, ZeroFlux};
-  BdyCondStr bdys_sc = {FromOther, ZeroFlux, FromOther, ZeroFlux};
+  BdyCondStr bdys_sb_har = {FromOther,  FromOther, ZeroFlux, ZeroConc};
+  BdyCondStr bdys_sc = {FromOther, ZeroFlux, FromOther, ZeroConc};
   //BdyCondStr bdys_ve = bdys_sc;
   //BdyCondStr bdys_de = {FromOther, Periodic, Periodic, ZeroFlux};
 
@@ -54,13 +54,16 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 
   double sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat;
   double d_particle, S_particle;
+  /*
   d_particle = 1.4e-6; // calculated from BET surface area measured in Davies 1985
-  S_particle = 6*d_particle*d_particle; // cuboid
+  S_particle = 6*d_particle*d_particle; // cuboid  
   
-  sursb_init_mass_solid = (0.5e-6*0.5e-6*0.5e-6)*1.782*1e3; // from EC Opinion on ZnPT
   sursb_k_disv_per_area = 34.3e-6 / S_particle;
-  sursb_k_rect = 1.84e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
-  sursb_Csat = 30 * 1e-6/(1e-3*0.9105); // 30 ppm, sebum specific gravity is 0.9105
+  */
+  sursb_init_mass_solid = (0.5e-6*0.5e-6*m_dz_dtheta)*1.782*1e3; // from EC Opinion on ZnPT
+  sursb_k_disv_per_area = 5e-7;
+  sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
+  sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
 
   coord_x_start = 0; coord_y_start = 0;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
@@ -91,8 +94,9 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   dim += m_StraCorn[0].m_dim;
 
   // SB, hair sebum
+  double n_grids_x_sb_har = 10;
   coord_x_start = coord_x_start; coord_y_start = y_len_sc;
-  createSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,
+  createSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_har, 1,
 	   bdys_sb_har, &coord_x_end, &coord_y_end, 0);
   m_CompIdx[1][1].type = emSB;
   m_CompIdx[1][1].pComp = new Comp*[1];

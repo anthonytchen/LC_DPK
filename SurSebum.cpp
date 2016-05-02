@@ -50,11 +50,11 @@ void SurSebum::compODE_dydt (double t, const double y[], double f[])
 
     idx = 0; // assume the solid only disolves into the left-most grid of sebum
     Cdiff =  m_Csat - y[idx];
-    f[idx] += m_k_disv * Cdiff;
     V = compVolume(m_grids[idx]);
+    f[idx] += m_k_disv * Cdiff / V;
     
     idx = m_dim-1; // this is the solid index
-    f[idx] = -m_k_disv * Cdiff * V; // mass balance for the solid
+    f[idx] = -m_k_disv * Cdiff; // mass balance for the solid
   }
 
   if (m_b_has_react){
@@ -86,9 +86,13 @@ void SurSebum::updateKdisv(CryShape shape, double mass_solid)
     len = pow(volume, 1.0/3);
     area = len*len*3; // only half of the surface, assuming axis-symmetric at the centre of the crystal
     */
+    /*
     len = 1.0/3 * log10(volume);
     area = log10(3.0) + 2 * len;
     area = pow(10.0, area);
+    */
+    len = sqrt(volume/m_dz_dtheta);
+    area = len*len + len*m_dz_dtheta*2;
     if ( isnan(area) )
       area = .0;
 
@@ -136,8 +140,10 @@ void SurSebum::saveGrids(bool b_1st_time, const char fn[])
   FILE *file = NULL;
 
   if (m_b_has_solid) {
-    if ( b_1st_time )
+    if ( b_1st_time ) {
       file = fopen(fn, "w");
+      b_1st_time = false;
+    }
     else 
       file = fopen(fn, "a");
 

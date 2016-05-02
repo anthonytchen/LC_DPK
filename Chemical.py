@@ -90,6 +90,9 @@ class Chemical(_object):
     __swig_setmethods__["m_frac_unbound"] = _Chemical.Chemical_m_frac_unbound_set
     __swig_getmethods__["m_frac_unbound"] = _Chemical.Chemical_m_frac_unbound_get
     if _newclass:m_frac_unbound = _swig_property(_Chemical.Chemical_m_frac_unbound_get, _Chemical.Chemical_m_frac_unbound_set)
+    __swig_setmethods__["m_r_s"] = _Chemical.Chemical_m_r_s_set
+    __swig_getmethods__["m_r_s"] = _Chemical.Chemical_m_r_s_get
+    if _newclass:m_r_s = _swig_property(_Chemical.Chemical_m_r_s_get, _Chemical.Chemical_m_r_s_set)
     __swig_setmethods__["m_acid_base"] = _Chemical.Chemical_m_acid_base_set
     __swig_getmethods__["m_acid_base"] = _Chemical.Chemical_m_acid_base_get
     if _newclass:m_acid_base = _swig_property(_Chemical.Chemical_m_acid_base_get, _Chemical.Chemical_m_acid_base_set)
@@ -100,6 +103,8 @@ class Chemical(_object):
     __swig_destroy__ = _Chemical.delete_Chemical
     __del__ = lambda self : None;
     def Init(self, *args): return _Chemical.Chemical_Init(self, *args)
+    def calcIon(self): return _Chemical.Chemical_calcIon(self)
+    def calcBinding(self): return _Chemical.Chemical_calcBinding(self)
 Chemical_swigregister = _Chemical.Chemical_swigregister
 Chemical_swigregister(Chemical)
 
