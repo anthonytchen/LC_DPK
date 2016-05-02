@@ -1,0 +1,4 @@
+def qspr():
+    ''' Function to build a QSPR model and to calculate parameter uncertainty'''
+
+    import numpy as np
