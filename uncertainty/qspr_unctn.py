@@ -1,65 +1,66 @@
-def qspr():
+def qspr(func_post):
     ''' Function to build a QSPR model and to calculate parameter uncertainty'''
 
     import numpy as np
     from scipy.optimize import minimize
 
     dat = np.loadtxt("K_ow_sc.txt")
-    K_ow = dat[:,0]
-    K_sc = dat[:,1]
+    K_ow = np.copy(dat[:,0])
+    K_sc = np.copy(dat[:,1])
 
     paras0 = [4.2, 0.31]
     bnds = ((0, None), (0, None))
     disp = 0
 
-    res = minimize(qspr_Kcc, paras0, args=(dat,disp), method='L-BFGS-B', bounds=bnds, options={'disp': True, 'maxiter': 100})
-    print res.x
+    res = minimize(func_post, paras0, args=(K_ow,K_sc), method='L-BFGS-B', bounds=bnds, options={'disp': True, 'maxiter': 100})
+    sig2 = func_post(res.x, K_ow, K_sc, retSig2=True)
 
-    disp = 1
-    #qspr_Kcc(res.x, dat, disp)
-    qspr_Kcc(paras0, dat, disp)
+    H = calcHess(func_post, res.x, K_ow, K_sc, sig2)
+    # print H
+    # qspr_Kcc(paras0, dat, disp)
+    return (res.x, np.linalg.inv(H))
 
-
-def qspr_Kcc(paras, dat, disp):
-    ''' Function to build a QSPR model for the partition coefficient in corneocyte'''
+def calcHess(func_post, paras, X, Y, sig2=1):
+    ''' Function to calculate the Hessian of negative
+        log posterior w.r.t. model parameters '''
 
     import numpy as np
-    import matplotlib.pyplot as plt
 
-    a = paras[0]
-    b = paras[1]
-    K_ow = dat[:,0] # partition coefficient octanol -- water
-    K_sc = dat[:,1] # partition coefficient stratum corneum -- water
+    n_paras = len(paras)
+    H = np.zeros( (n_paras, n_paras) )
+    
+    delta_paras = np.fabs(paras) * 1e-3
+    delta_paras[ delta_paras<1e-8 ] = 1e-8 # to avoid too small values
 
-    w_pro = 0.77
-    w_lip = 0.23
-    w_wat = 2.99
+    for i in range(n_paras):
+        for j in range(n_paras):
 
-    #w_pro = 0.45*0.875; 
-    #w_lip = 0.45*0.125; 
-    #w_wat = 0.55; 
+            if (i>j):
+                H[i,j] = H[j,i]
 
-    rho_pro = 1.37
-    v_pro = w_pro/rho_pro
-    rho_lip = 0.90
-    v_lip = w_lip/rho_lip
-    rho_wat = 1.00
-    v_wat = w_wat/rho_wat
+            else:
+                p1 = np.copy(paras)                
+                p1[i] += delta_paras[i]
+                p1[j] += delta_paras[j]
+                t1 = func_post(p1, X, Y, sig2)
 
-    v_total = v_pro + v_lip + v_wat
-    phi_pro = v_pro / v_total
-    phi_lip = v_lip / v_total
-    phi_wat = v_wat / v_total
+                p2 = np.copy(paras)                
+                p2[i] += delta_paras[i]
+                p2[j] -= delta_paras[j]
+                t2 = func_post(p2, X, Y, sig2)
 
-    K_sc_pred = phi_pro*rho_pro/rho_wat* np.power(a*K_ow,b) + phi_lip*rho_lip/rho_wat* np.power(K_ow,0.69) + phi_wat;
-    err = np.log10(K_sc) - np.log10(K_sc_pred)
+                p3 = np.copy(paras)                
+                p3[i] -= delta_paras[i]
+                p3[j] += delta_paras[j]
+                t3 = func_post(p3, X, Y, sig2)
 
-    rase = np.sqrt( np.mean( np.square(err) ) )
+                p4 = np.copy(paras)                
+                p4[i] -= delta_paras[i]
+                p4[j] -= delta_paras[j]
+                t4 = func_post(p4, X, Y, sig2)
 
-    if (disp):
-        plt.plot( np.log10(K_sc), np.log10(K_sc_pred), 'ro');
-        plt.show()
-        #refline(1,0);    
-        
-    return rase
+                H[i,j] = (t1-t2-t3+t4) / (4*delta_paras[i]*delta_paras[j])            
+
+    return H
+
 
