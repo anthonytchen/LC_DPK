@@ -1,0 +1,54 @@
+''' The module for QSPR model of **volumetric** partition coefficient
+    between lipid (in stratum corneum) (and water) '''
+
+import numpy as np
+
+###########################################################
+def qspr_lg10Klp_nlh(paras, K_ow, K_lp, sig2=1, retSig2=False):
+    ''' Function to calculate the negative log likelihood given <paras>, <K_ow>, <K_lp> and [sig2]'''
+
+    import math
+    import matplotlib.pyplot as plt
+
+    n_dat = len(K_ow)
+
+    sse = qspr_lg10Klp_sse(paras, K_ow, K_lp)
+    likelihood = -0.5*n_dat*np.log(sig2) - 0.5*n_dat*np.log(2*math.pi) - 0.5*sse/sig2
+    nlh = -likelihood
+        
+    if (retSig2):
+        return sse/n_dat
+    else:
+        return nlh
+
+###########################################################
+def qspr_lg10Klp_sse(paras, K_ow, K_lp, disp=False):
+    ''' Function to calculate the SSE (sum of square error) given <paras>, <K_ow>, <K_lp>'''
+
+    n_dat = len(K_ow)
+
+    lg10Klp_pred = qspr_lg10Klp(paras, K_ow)
+    err = np.log10(K_lp) - lg10Klp_pred
+    sse =  np.sum( np.square(err) )
+
+    if (disp):
+        plt.plot( np.log10(K_lp), lg10Klp_pred, 'ro')
+        ax.plot(ax.get_xlim(), ax.get_ylim(), ls='r-', c=".c")
+        plt.show()       
+
+    return sse
+
+###########################################################
+def qspr_lg10Klp(paras, K_ow):
+    ''' Function to predict the log10 partition coefficient between lipid (and water)'''
+    
+    K_lp_pred = qspr_Klp(paras, K_ow)        
+    return np.log10(K_lp_pred)
+
+
+###########################################################
+def qspr_Klp(paras, K_ow):
+    ''' Function to predict the partition coefficient between lipid (and water)'''
+
+    K_lp_pred = np.power(K_ow,paras)
+    return K_lp_pred

@@ -5,74 +5,64 @@ import scipy.sparse.linalg as spln
 import matplotlib.pyplot as plt
 
 # Example:
-# qspr_unctn.qspr(qspr_Kcc.qspr_Ksc_nlh, qspr_Kcc.qspr_lg10Ksc)
+# qspr_unctn.qspr(qspr_Kcc.qspr_lg10Ksc_nlh, qspr_Kcc.qspr_lg10Ksc, "Kow_Ksc_lg10.txt", np.log([4.2, 0.31]))
+# qspr_unctn.qspr(qspr_Klp.qspr_lg10Plp_nlh, qspr_Klp.qspr_lg10Plp, "Kow_Klp_lg10.txt", np.log([0.69]))
+# qspr_unctn.qspr(qspr_Dlp.qspr_lnDlp_nlh, qspr_Dlp.qspr_lnDlp, "MW_Dlp_ln.txt", np.log([2.54e-5, 0.4652]))
 
 # todo list:
-# 1. add qspr for Klip, Kcc, Dlip, Dcc
+# 1. add qspr for Dcc
 # 2. propagate the uncertainty in those parameters to prediction of permeability
 
 ###########################################################
-def qspr(func_post, func_pred):
+def qspr(func_post, func_pred, fn_data, paras0, Xtest=False):
     ''' Function to build a QSPR model and to calculate parameter uncertainty
     Args:
     - func_post: the function to calculate the negative log posterior (or likelihood) of the QSPR model
     - func_pred: the function to predict the property
+    - fn_data: the file that contains the data
+    - paras0: initial guess of parameter values, in natural log scale
     '''
 
     from scipy.optimize import minimize
 
-    dat = np.loadtxt("K_ow_sc.txt")
-    K_ow = np.copy(dat[:,0])
-    K_sc = np.copy(dat[:,1])
-    n_dat = len(K_ow)
+    dat = np.loadtxt(fn_data)
+    X = np.copy(dat[:,0]) # predictor(s)
+    Y = np.copy(dat[:,1]) # property to be predicted
 
-    paras0 = [4.2, 0.31]
-    bnds = ((0, None), (0, None))
-    disp = 0
+    n_dat = X.shape[0]
+    n_paras = len(paras0)
 
-    res = minimize(func_post, paras0, args=(K_ow,K_sc), method='L-BFGS-B', bounds=bnds, options={'disp': True, 'maxiter': 100})
-    sig2 = func_post(res.x, K_ow, K_sc, retSig2=True)
-    print sig2
+    #bnds = ((0, None), ) * n_paras
 
-    H = calcHess(func_post, res.x, K_ow, K_sc, sig2)
+    # res = minimize(func_post, paras0, args=(X,Y), method='L-BFGS-B', bounds=bnds, options={'disp': True, 'maxiter': 1000})
+    res = minimize(func_post, paras0, args=(X,Y), method='BFGS', options={'disp': False, 'maxiter': 1000})
+    paras1 = res.x
+    sig2 = func_post(paras1, X, Y, retSig2=True)
 
-    norm_approx_mean = res.x
+    print "  Estimated model parameters are " + str(np.exp(paras1))
+    print "  Estimated standard deviation is " + str(np.sqrt(sig2))
+
+    H = calcHess(func_post, paras1, X, Y, sig2)
+    norm_approx_mean = paras1
     norm_approx_cov = np.linalg.inv(H)
 
-    if (0):
-        N = 200
-        Samples = ImpSam(func_post, res.x, K_ow, K_sc, sig2, (norm_approx_mean, norm_approx_cov), N)
-
-        K_sc_pred = np.zeros((N,n_dat))
-
-        fig, ax = plt.subplots()
-
-        for i in range(N):
-            K_sc_pred[i,:] = func_pred(Samples[0][i,:], K_ow)# + np.random.normal(0, np.sqrt(sig2))
-            plt.plot( np.log10(K_ow), np.log10(K_sc_pred[i,:])+np.sqrt(sig2)*1.96, 'y.');
-            plt.plot( np.log10(K_ow), np.log10(K_sc_pred[i,:])-np.sqrt(sig2)*1.96, 'y.');
-
-            K_sc_pred_mean = func_pred(res.x, K_ow)
-            plt.plot( np.log10(K_ow), np.log10(K_sc_pred_mean), 'bx')
-            plt.plot( np.log10(K_ow), np.log10(K_sc), 'ro')
-            
-        plt.show()       
+    # make predictions
 
     fig, ax = plt.subplots()
-    lg10Ksc_pred = np.zeros((n_dat,2)) # 2 columns: mean & std
+    Y_pred = np.zeros((n_dat,2)) # 2 columns: mean & std
     for i in range(n_dat):
-        lg10Ksc_pred[i,0], lg10Ksc_pred[i,1] = TransUnctnKF(func_pred, norm_approx_mean, norm_approx_cov, K_ow[i])
-        lg10Ksc_pred[i,1] += sig2
-        lg10Ksc_pred[i,1] = np.sqrt(lg10Ksc_pred[i,1])
+        Y_pred[i,0], Y_pred[i,1] = TransUnctnKF(func_pred, norm_approx_mean, norm_approx_cov, X[i])
+        Y_pred[i,1] += sig2
+        Y_pred[i,1] = np.sqrt(Y_pred[i,1])
 
-        plt.plot( np.log10(K_ow[i]), lg10Ksc_pred[i,0]+lg10Ksc_pred[i,1]*1.96, 'y.');
-        plt.plot( np.log10(K_ow[i]), lg10Ksc_pred[i,0]-lg10Ksc_pred[i,1]*1.96, 'y.');
+        plt.plot( X[i], Y_pred[i,0]+Y_pred[i,1]*1.96, 'y.');
+        plt.plot( X[i], Y_pred[i,0]-Y_pred[i,1]*1.96, 'y.');
 
-    plt.plot( np.log10(K_ow), lg10Ksc_pred[:,0], 'bx')
-    plt.plot( np.log10(K_ow), np.log10(K_sc), 'ro')
-    plt.show()       
+    plt.plot( X, Y_pred[:,0], 'bx')
+    plt.plot( X, Y, 'ro')
+    plt.show()
 
-    return (norm_approx_mean, norm_approx_cov, Samples, lg10Ksc_pred)
+    return (norm_approx_mean, norm_approx_cov, Y_pred)
 
 
 ###########################################################
