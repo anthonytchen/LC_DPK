@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Example:
 # qspr_unctn.qspr(qspr_Kcc.qspr_lg10Ksc_nlh, qspr_Kcc.qspr_lg10Ksc, "Kow_Ksc_lg10.txt", np.log([4.2, 0.31]))
-# qspr_unctn.qspr(qspr_Klp.qspr_lg10Plp_nlh, qspr_Klp.qspr_lg10Plp, "Kow_Klp_lg10.txt", np.log([0.69]))
+# qspr_unctn.qspr(qspr_Klp.qspr_lg10Plp_nlh, qspr_Klp.qspr_lg10Plp, "Kow_Plp_lg10.txt", np.log([0.69]))
 # qspr_unctn.qspr(qspr_Dlp.qspr_lnDlp_nlh, qspr_Dlp.qspr_lnDlp, "MW_Dlp_ln.txt", np.log([2.54e-5, 0.4652]))
 
 # todo list:

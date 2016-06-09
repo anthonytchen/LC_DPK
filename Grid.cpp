@@ -248,9 +248,11 @@ void Grid::InitVE_DE(const char name[], Chemical chem, double concChem, double x
 	+++++++++++++++++++++++++++++++++++++++++++ */
 
 
-// Compute the flux of solute from <other> to <this> grid
-//  However, do not use concentration values in the Grid objects,
-//  instead use <conc_this> and <conc_other>
+/*! 
+  Compute the flux of solute from <other> to <this> grid
+  However, do not use concentration values in the Grid objects,
+  instead use <conc_this> and <conc_other>
+*/
 double Grid::compFlux(Grid* other, double conc_this, double conc_other, 
 		      double dist_this, double dist_other, double *deriv_this, double *deriv_other)
 {

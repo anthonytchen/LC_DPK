@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Chemical.h"
 
+/*!
+  Assign <other> to this
+*/
 void Chemical::operator=(const Chemical &other)
 {
   m_mw = other.m_mw;
@@ -30,8 +33,9 @@ void Chemical::Init(double mw, double K_ow, double pKa, double frac_non_ion, dou
   m_r_s = pow( 0.9087 * mw * 3/4/M_PI, 1.0/3 )*1e-10; // from A to meter
 }
 
-/* calculate the fraction of solute non-ionised at pH 7.4 (m_frac_non_ion) 
-  Refs: Florence AT, Attwood D (2006). Physicochemical Principles of Pharmacy, Pharmaceutical Press, London, p. 77. */
+/*! calculate the fraction of solute non-ionised at pH 7.4 (m_frac_non_ion) 
+  Refs: Florence AT, Attwood D (2006). Physicochemical Principles of Pharmacy, Pharmaceutical Press, London, p. 77. 
+*/
 void Chemical::calcIon()
 {
   switch (m_acid_base) {
@@ -46,8 +50,10 @@ void Chemical::calcIon()
   }
 }
 
-/* calculate the fraction of unbound in a 2.7% albumin solution at pH 7.4 (m_frac_unbound)
-   Refs:  Yamazaki K, Kanaoka M (2004). Journal of Pharmaceutical Sciences, 93: 1480. */
+/*! 
+  Calculate the fraction of unbound in a 2.7% albumin solution at pH 7.4 (m_frac_unbound)
+   Refs:  Yamazaki K, Kanaoka M (2004). Journal of Pharmaceutical Sciences, 93: 1480. 
+*/
 void Chemical::calcBinding()
 {
   switch (m_acid_base) {

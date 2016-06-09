@@ -551,7 +551,10 @@ void Skin::compReaction()
 }
 
 
-/* Diffusion using method of lines (MoL) */
+/*!
+  Diffusion using method of lines (MoL) to discretise the
+  PDE into ODEs
+*/
 void Skin::diffuseMoL(double t_start, double t_end)
 {		
   int i, j, k, idx;
@@ -755,9 +758,10 @@ double Skin::getSCYlen()
   return (d+s);
 }
 
-/* Compute the mass (or mol, depending on concentration unit used) of solute in 
+/*!
+  Compute the mass (or mol, depending on concentration unit used) of solute in 
    each layer
- */
+*/
 void Skin::getLayersAmount(double *fLayersAmount, int dim, int idx_chem)
 {
   // order of values (9 items):
