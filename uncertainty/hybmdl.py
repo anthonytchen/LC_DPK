@@ -1,5 +1,6 @@
-# The module that contains computational routines for hybrid model
-#   identification and uncertainty quantification
+''' The module that contains computational routines for hybrid model
+identification and uncertainty quantification
+'''
 
 import numpy as np
 import math
@@ -13,14 +14,14 @@ import matplotlib.pyplot as plt
 
 
 ###########################################################
-def Estep(func_top, func_low, X, Y, theta, sig2_y, sig2_z, N=100):
+def Estep(func_top, func_low, theta, X, Y, sig2_y, sig2_z, N=100):
     ''' The E-step of the Monte Carlo EM algorithm
     Args:
-    - func_top: top level function;  y = f(x,z,theta) + epsilon
-    - func_low: low level function;  z = h(x,theta)   + zeta
+    - func_top: top level function;  y = f(theta,x,z) + epsilon
+    - func_low: low level function;  z = h(theta,x)   + zeta
+    - theta: model parameters
     - X: data for input variables
     - Y: data for top level output variables
-    - theta: model parameters
     - sig2_y: variance of top level function noise (epsilon)
     - sig2_z: variance of low level function noise (zeta)
     - N: number of MC samples
@@ -29,7 +30,7 @@ def Estep(func_top, func_low, X, Y, theta, sig2_y, sig2_z, N=100):
 
     n_dat = X.shape[0]
     d_y = Y.shape[1]
-    d_z = func_low(X[0,:], theta).shape[0] # dimension of z
+    d_z = func_low(theta, X[0,:]).shape[0] # dimension of z
 
     Ymc = np.zeros((N, d_y))
     Z = np.zeros((N, d_z, n_dat)) # MC samples
@@ -40,7 +41,7 @@ def Estep(func_top, func_low, X, Y, theta, sig2_y, sig2_z, N=100):
 
     for n in range(n_dat):
 
-        z_n = func_low(X[n,:], theta)
+        z_n = func_low(theta, X[n,:])
         Z[:,:,n] = np.tile(z_n,(N,1))
 
         # MC sampling
@@ -48,7 +49,7 @@ def Estep(func_top, func_low, X, Y, theta, sig2_y, sig2_z, N=100):
             rd = np.random.normal(0, sig_z[d], N)
             Z[:,d,n] += rd
 
-        Ymc = func_top( X[n,:], Z[:,:,n], theta )
+        Ymc = func_top( theta, X[n,:], Z[:,:,n] )
         s = .0;
         for i in range(N):
             W[i,n] = np.exp( lognormpdf( Ymc[i,:], Y[n,:], np.diag(sig2_y) ) )
@@ -60,9 +61,9 @@ def Estep(func_top, func_low, X, Y, theta, sig2_y, sig2_z, N=100):
 
 ###########################################################
 def Mstep_main():
+    return 0
 
-
-def Mstep_theta_obj(func_top, func_low, X, Y, theta, sig2_y, sig2_z, Z, W):
+def Mstep_theta_obj(func_top, func_low, theta, X, Y, sig2_y, sig2_z, Z, W):
     ''' The objective function (negative log-likelihood) for optimising theta
     Terms that are not dependent on theta (thus constant as far as optimisation is concerned)
     are not calculated.
@@ -79,8 +80,8 @@ def Mstep_theta_obj(func_top, func_low, X, Y, theta, sig2_y, sig2_z, Z, W):
     neg_lnlik = .0
     for n in range(n_dat):
         
-        z_func = func_low(X[n,:], theta)
-        y_func = func_top(X[n,:], Z[:,:,n], theta )
+        z_func = func_low(theta, X[n,:])
+        y_func = func_top(theta, X[n,:], Z[:,:,n])
 
         for i in range(n_mc):
             err = Z[i,:,n] - z_func
@@ -91,7 +92,7 @@ def Mstep_theta_obj(func_top, func_low, X, Y, theta, sig2_y, sig2_z, Z, W):
     return neg_lnlik
 
 
-def Mstep_theta_grad(func_top, func_low, X, Y, theta, sig2_y, sig2_z, Z, W):
+def Mstep_theta_grad(func_top, func_low, theta, X, Y, sig2_y, sig2_z, Z, W):
     ''' The gradient of the objective function with respect to theta
     '''
     n_dat = X.shape[0]
@@ -105,22 +106,42 @@ def Mstep_theta_grad(func_top, func_low, X, Y, theta, sig2_y, sig2_z, Z, W):
     grad = np.zeros(theta.shape)
     for n in range(n_dat):
         
-        z_func = func_low(X[n,:], theta)
-        y_func = func_top(X[n,:], Z[:,:,n], theta )
-        gd_h = calc_grad(func_low, X[n,:], theta)
+        z_func = func_low(theta, X[n,:])
+        y_func = func_top(theta, X[n,:], Z[:,:,n])
+        gd_h = calc_grad(func_low, theta, X[n,:])
 
         for i in range(n_mc):
             err = Z[i,:,n] - z_func
             gd1 = beta*err* gd_h
             err = Y[n,:] - y_func
-            gd2 = alpha*err* calc_grad(func_top, X[n,:], Z[i,:,n], theta)
+            gd2 = alpha*err* calc_grad(func_top, theta, X[n,:], Z[i,:,n])
             grad += W[i,n]* (gd1+gd2)
 
-    return neg_lnlik
+    return grad
 
-def calc_grad(func, X, Z=None, thetea):
+def calc_grad(func, theta, X, Z=None):
     '''Calculate the gradient of <func> w.r.t parameters <theta> with given <X> and <Z>
+    using finite difference
     '''
+    n_theta = theta.shape[0]
+    theta1 = np.array(theta.shape)
+    grad = np.array(theta.shape)
+
+    for i in range(n_theta):
+        delta = theta[i]*1e-4
+        theta1 = theta
+        if np.abs(delta) < 1e-5:
+            delta = 1e-5
+        theta1[i] += delta
+
+        if Z is not None:
+            f = func(theta, X, Z)
+            f1 = func(theta1, X, Z)
+        else:
+            f = func(theta, X)
+            f1 = func(theta1, X)
+
+        grad[i] = (f1-f) / delta
     
 
 def Mstep_var(func_top, func_low, X, Y, theta, Z, W):
@@ -137,8 +158,8 @@ def Mstep_var(func_top, func_low, X, Y, theta, Z, W):
 
     for n in range(n_dat):
         
-        z_func = func_low(X[n,:], theta)
-        y_func = func_top(X[n,:], Z[:,:,n], theta )
+        z_func = func_low(theta, X[n,:])
+        y_func = func_top(theta, X[n,:], Z[:,:,n])
 
         for i in range(n_mc):
             beta += W[i,n]* ( Z[i,:,n] - z_func )**2
@@ -149,6 +170,76 @@ def Mstep_var(func_top, func_low, X, Y, theta, Z, W):
 
     return (alpha, beta)
 
+def testFunc_top(theta, X, Z):
+    ''' Function to predict the partition coefficient between stratum corneum (and water)
+    Note that the prediction is the VOLUMETRIC partition coefficient between stratum corneum and water 
+    Here used as a test function of the top-level model
+    Args:
+      theta -- model parameters
+      X -- lg10Kow, np.mat, dim: [n_dat, 1]
+      Z -- lg10Kcc & lg10Klp, np.mat, dim: [n_dat, 2]
+    Rtns:
+      Y -- Ksc_pred, predicted coefficient between stratum corneum (and water)
+    '''
+
+    w_pro = 0.77
+    w_lip = 0.23
+    w_wat = 2.99
+
+    rho_pro = 1.37
+    v_pro = w_pro/rho_pro
+    rho_lip = 0.90
+    v_lip = w_lip/rho_lip
+    rho_wat = 1.00
+    v_wat = w_wat/rho_wat
+
+    v_total = v_pro + v_lip + v_wat
+    phi_pro = v_pro / v_total
+    phi_lip = v_lip / v_total
+    phi_wat = v_wat / v_total
+
+    Kcc = np.power(10, Z[:,0])
+    Klp = np.power(10, Z[:,1])
+
+    Ksc_pred = phi_pro*rho_pro/rho_wat* Kcc + phi_lip*rho_lip/rho_wat* Klp + phi_wat
+    Y =  Ksc_pred
+        
+    return Y
+
+
+def testFunc_low(theta, X):
+    ''' Function to predict the volumetric partition coefficient between corneocyte (and water)
+    and that between lipid (and water)
+    Here used as a test function of the low-level model
+    Args:
+      theta -- model parameters
+      X -- lg10Kow, dim: [n_dat, 2]
+    Rtns:
+      Z -- dim: [n_dat, 2]
+    '''
+    a = np.exp(paras[0])
+    b = np.exp(paras[1])
+    c = np.exp(paras[2])
+
+    n_dat = X.shape[0]
+    n_x = X.shape[1]
+
+    Z = np.zeros(X.shape)
+    Z = np.mat(Z)
+
+    rho_pro = 1.37
+    rho_lip = 0.90
+    rho_wat = 1.00
+
+    for i in range(n_dat):
+        if ( X[i, 0] != None ):
+            Z[i, 0] = rho_pro/rho_wat* a*np.power(K_ow,b) # stratum corneum
+        else if ( X[i, 1] != None ):
+            Z[i, 1] = rho_lip/rho_wat* np.power(K_ow,c) # lipid
+        else:
+            print "error"
+        
+    return Z
 
 
 ###########################################################
