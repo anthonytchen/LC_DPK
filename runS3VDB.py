@@ -136,7 +136,7 @@ def runS3VDBfunc(t_range, fnchem):
     import matplotlib.patches as patches
 
     nt = len(t_range)
-    t = 0
+    t = 50
 
     nx_sursb = 1
     ny_sursb = 5
@@ -212,7 +212,7 @@ def runS3VDBfunc(t_range, fnchem):
 
 
     ax = plt.subplot(gs[2,0])
-    dat = dat_sc.reshape(nx_sc, ny_sc)
+    dat = dat_sc[t,:].reshape(nx_sc, ny_sc)
     plot_stracorn()
     plt.imshow(dat,  vmin=0, vmax=0.08, interpolation='none', aspect='auto')
     #cb = plt.colorbar(shrink=0.98, pad=0.05)
@@ -221,7 +221,7 @@ def runS3VDBfunc(t_range, fnchem):
     plt.axis('off')
 
     ax = plt.subplot(gs[2,1])
-    dat = dat_sb_har.reshape(nx_sb_har, ny_sb_har)
+    dat = dat_sb_har[t,:].reshape(nx_sb_har, ny_sb_har)
     dat = np.hstack( (dat, dat) )
     im = plt.imshow(dat,  vmin=0, vmax=0.08, interpolation='none', aspect='auto')
     #cb = plt.colorbar(shrink=0.98, pad=0.05)

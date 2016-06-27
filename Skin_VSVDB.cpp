@@ -10,6 +10,8 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
 		      bool bInfSrc)
 {
 
+  Skin::Init();
+  
   int i, nxComp, nyComp;
   double coord_x_start, coord_y_start, coord_x_end, coord_y_end;
   double x_len_sc, y_len_sc;

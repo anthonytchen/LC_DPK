@@ -15,6 +15,9 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 		      int x_len_ve, int n_grids_x_ve, double x_len_de, int n_grids_x_de,
 		      double *par_dermis2blood=NULL, double *blood_k_clear=NULL)
 {
+
+  Skin::Init();
+  
   int i, nxComp, nyComp, n_grids_y_sb_sur, dim;
   double coord_x_start, coord_y_start, coord_x_end, coord_y_end;
   double x_len_sc, y_len_sc;
