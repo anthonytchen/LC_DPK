@@ -68,7 +68,7 @@ public:
   void createCompMatrix(int, int);
   void releaseCompMatrix();
   void createVH(const Chemical*, const double*, const double*, const double*, double, double, double, double, double, bool, BdyCondStr, double *x_end_coord, double *y_end_coord); // vehicle
-  void createSurSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int, double, double, double, double); // surface sebum
+  void createSurSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int, Crystal, double, double, double, double); // surface sebum
   void createSB(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord, int); // surface sebum
   void createSC(const Chemical*, double, double, int, int, double, BdyCondStr, double *x_end_coord, double *y_end_coord); // stratum corneum
   void createVE(const Chemical*, double, double, double, double, int, int, BdyCondStr, double *x_end_coord, double *y_end_coord); // viable epidermis

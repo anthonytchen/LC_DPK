@@ -128,7 +128,7 @@ void Skin::createSurSB(const Chemical *chemSolute,
 		       double coord_x_start, double coord_y_start, double xlen, double ylen, int n_grids_x, int n_grids_y,
 		       BdyCondStr bdys,
 		       double *coord_x_end, double *coord_y_end, int idx_sursb,
-		       double init_mass_solid, double k_disv_per_area, double k_rect, double Csat)
+		       Crystal crystal, double init_mass_solid, double k_disv_per_area, double k_rect, double Csat)
 {
   int i, idx;
 
@@ -142,7 +142,7 @@ void Skin::createSurSB(const Chemical *chemSolute,
     idx = i + idx_sursb*m_nChem;
     m_SurSebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
 			 Cartesian, bdys.up, bdys.left, bdys.right, bdys.down, 
-			 init_mass_solid, k_disv_per_area, k_rect, Csat);
+			 crystal, init_mass_solid, k_disv_per_area, k_rect, Csat);
     m_SurSebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
 

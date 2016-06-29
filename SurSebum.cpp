@@ -1,9 +1,14 @@
 #include "stdafx.h"
 #include "SurSebum.h"
 
+/*!
+  Initialise surface sebum (SurSebum).
+  Args:
+      init_mass_solid: initial mass of solid particle; if negative it doesn't exist
+ */
 void SurSebum::Init(double x_length, double y_length, double dz_dtheta, int n_grids_x, int n_grids_y,
 		    CoordSys coord_sys, BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down,
-		    double init_mass_solid, double k_disv_per_area, double k_rect, double Csat)
+		    Crystal crystal, double init_mass_solid, double k_disv_per_area, double k_rect, double Csat)
 {
   Sebum::Init(x_length, y_length, dz_dtheta, n_grids_x, n_grids_y, 
 	      coord_sys, bdy_cond_up, bdy_cond_left, bdy_cond_right, bdy_cond_down);
@@ -19,9 +24,15 @@ void SurSebum::Init(double x_length, double y_length, double dz_dtheta, int n_gr
   if (m_b_has_solid) {
     // add one dimension for the solid dissolution
     //   currently only implemented to dissolve into the first grid in the surface sebum
-    m_rho_solid = 1.782e3; // kg / m^3, ZnPT
+    m_crystal.shape = crystal.shape;
+    m_crystal.density = crystal.density;
+    m_crystal.dim = crystal.dim;
+    m_crystal.area = crystal.area;
+    for (int i=0; i<crystal.dim; i++)
+      m_crystal.len[i] = crystal.len[i];
+    
     m_k_disv_per_area = k_disv_per_area;
-    updateKdisv(Cube);
+    updateKdisv(m_crystal.shape);
 
     m_dim += 1; 
   }
@@ -46,7 +57,7 @@ void SurSebum::compODE_dydt (double t, const double y[], double f[])
 
   if (m_b_has_solid){
     idx = m_dim-1; // this is the solid index
-    updateKdisv(Cube, y[idx]);
+    updateKdisv(m_crystal.shape, y[idx]);
 
     idx = 0; // assume the solid only disolves into the left-most grid of sebum
     Cdiff =  m_Csat - y[idx];
@@ -73,36 +84,37 @@ void SurSebum::compODE_dydt (double t, const double y[], double f[])
 
 void SurSebum::updateKdisv(CryShape shape, double mass_solid)
 {
-  double volume, area, len;
+  double volume, area, len1, len, tmp, factor;
 
-  volume = mass_solid / m_rho_solid;
+  volume = mass_solid / m_crystal.density;
 
   switch (shape) {
   case Sphere :
     SayBye("Crystal shape not implemented yet");
     break;
+    
   case Cube :
-    /*
-    len = pow(volume, 1.0/3);
-    area = len*len*3; // only half of the surface, assuming axis-symmetric at the centre of the crystal
-    */
-    /*
-    len = 1.0/3 * log10(volume);
-    area = log10(3.0) + 2 * len;
-    area = pow(10.0, area);
-    */
-    len = sqrt(volume/m_dz_dtheta);
-    area = len*len + len*m_dz_dtheta*2;
-    if ( isnan(area) )
-      area = .0;
 
-    m_k_disv = m_k_disv_per_area * area;
-    // printf("\t k_disv = %.5e\n", m_k_disv);
+    len = sqrt(volume/m_dz_dtheta);
+    area = len*len*2 + len*m_dz_dtheta*4;
     break;
+    
+  case HyperRect : // hyper-rectangular
+
+    factor = sqrt( volume/m_dz_dtheta / m_crystal.area);
+    len = m_crystal.len[0]*factor;
+    len1 = m_crystal.len[1]*factor;
+    area = len*len1*2 + (len+len1)*m_dz_dtheta*2;
+    break;
+    
   default :
     SayBye("Crystal shape not implemented");
     break;
   }
+
+  if ( isnan(area) )
+    area = .0;
+  m_k_disv = m_k_disv_per_area * area;
 
 }
 

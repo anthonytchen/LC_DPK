@@ -67,11 +67,18 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   sursb_k_disv_per_area = 5e-7;
   sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
   sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
+  Crystal crystal;
+  crystal.shape = HyperRect;
+  crystal.density = 1.782e3; // kg/m^3, ZnPT
+  crystal.dim = 2;
+  crystal.len[0] = 0.05e-6;
+  crystal.len[1] = 5e-6;
+  crystal.area = crystal.len[0]*crystal.len[1];
 
   coord_x_start = 0; coord_y_start = 0;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
 	      bdys_sb_sur1, &coord_x_end, &coord_y_end, 0,
-	      sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat);
+	      crystal, sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat);
   // m_SurSebum[0].setGridConc(1.0, 0, 0); // give the first grid some initial concentration
   m_CompIdx[0][0].type = emSurSB;
   m_CompIdx[0][0].pComp = new Comp*[1];
@@ -81,7 +88,7 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   coord_x_start = 0; coord_y_start = y_len_sc;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,
 	      bdys_sb_sur2, &coord_x_end, &coord_y_end, 1,
-	      -1, -1, sursb_k_rect, -1);
+	      crystal, -1, -1, sursb_k_rect, -1);
   m_CompIdx[0][1].type = emSurSB;
   m_CompIdx[0][1].pComp = new Comp*[1];
   m_CompIdx[0][1].pComp[0] = &m_SurSebum[1];
