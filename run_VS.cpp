@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "arg.h"
+#include "Config.h"
 #include "Chemical.h"
 #include "Skin_VS.h"
 
@@ -20,6 +21,7 @@ int main (int argc, char* argv[])
 	
   static int nDis = 1;
   static char *fn = "chemical_name";
+  static char *cfn = "Nicotine.cfg";
   char fn_conc[1024] = "conc";
 	
   t_end = 900; t_inv = 10; // simulation time and interval in seconds
@@ -62,6 +64,9 @@ int main (int argc, char* argv[])
     "n_layer_x_sc", "Number of (verticle) cell layers in stratum corneum",
     "-nx", INT, (caddr_t)&n_layer_x_sc,
 
+    "cfn", "File name of the configuration file",
+    "-cfn", STRING, (caddr_t)&cfn,
+    
     "fn", "File name prefix to store concentration, coordinates, and flux history",
     "-fn", STRING, (caddr_t)&fn,
 
@@ -91,8 +96,13 @@ int main (int argc, char* argv[])
   clock_t start, end;
   double cpu_time_used;
   
+  Config _conf;
+  _conf.ReadConfigFile(cfn);
+
   Chemical _chem;
-  _chem.Init(MW, pow(10, log_K_ow), pKa, 1, 1, 'B'); // the last 3 inputs are not used when calculating permeability through SC
+  //_conf.InitChemical(_chem);
+
+   _chem.Init(MW, pow(10, log_K_ow), pKa, 1, 1, 'B'); // the last 3 inputs are not used when calculating permeability through SC
 
   Skin_VS _skin;
 

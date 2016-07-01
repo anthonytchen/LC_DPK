@@ -6,17 +6,17 @@ LIBS=-L/usr/local/lib -lm -pthread -lsundials_cvode -lsundials_nvecserial
 INC=-I/usr/local/include/
 
 #CFLAGS=-O2 -ffast-math -Wno-deprecated -c
-CFLAGS=-g -O0 -c -Wno-write-strings
+CFLAGS=-g -O0 -c -Wno-write-strings -std=c++11
 
 
 # linker
 LD=g++
 
 #LFLAGS=-O2 -ffast-math -Wno-deprecated
-LFLAGS=-g -O0 -Wno-write-strings
+LFLAGS=-g -O0 -Wno-write-strings -std=c++11
 
 
-all:	except.o arg.o Chemical.o \
+all:	except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o \
 	StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Skin_VSVDB.o Skin_S3VDB.o Blood.o \
 	run_VS run_VSVDB run_S3VDB #LCK_metabo
@@ -27,9 +27,9 @@ clean:
 ### executables ##
 
 # vehicle & stratum corneum
-run_VS: run_VS.cpp except.o arg.o Chemical.o \
+run_VS: run_VS.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Blood.o
-	$(LD) $(LFLAGS)  run_VS.cpp except.o arg.o Chemical.o \
+	$(LD) $(LFLAGS)  run_VS.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VS.o Blood.o \
 	$(LIBS) $(INC) -o run_VS
 
@@ -66,6 +66,8 @@ except.o: except.cpp except.h
 	$(CC) $(CFLAGS) except.cpp $(INC) -o except.o
 arg.o: arg.h arg.c
 	$(CC) $(CFLAGS) arg.c $(INC) -o arg.o
+Config.o: Config.h Config.cpp
+	$(CC) $(CFLAGS) Config.cpp $(INC) -o Config.o
 Chemical.o: Chemical.h Chemical.cpp
 	$(CC) $(CFLAGS) Chemical.cpp $(INC) -o Chemical.o
 Grid.o: Grid.h Grid.cpp

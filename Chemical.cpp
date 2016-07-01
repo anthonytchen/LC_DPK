@@ -15,9 +15,12 @@ void Chemical::operator=(const Chemical &other)
   m_r_s = other.m_r_s;
 }
 
+/*!
+  Initialise the object
+ */
 void Chemical::Init(double mw, double K_ow, double pKa, double frac_non_ion, double frac_unbound, char acid_base)
 {
-  m_mw = mw;   // 119.12; // Da, i.e. g/mol
+  m_mw = mw;   // Da, i.e. g/mol
   m_K_ow = K_ow;
   m_pKa = pKa;
 
@@ -32,6 +35,7 @@ void Chemical::Init(double mw, double K_ow, double pKa, double frac_non_ion, dou
   m_acid_base = acid_base;
   m_r_s = pow( 0.9087 * mw * 3/4/M_PI, 1.0/3 )*1e-10; // from A to meter
 }
+
 
 /*! calculate the fraction of solute non-ionised at pH 7.4 (m_frac_non_ion) 
   Refs: Florence AT, Attwood D (2006). Physicochemical Principles of Pharmacy, Pharmaceutical Press, London, p. 77. 

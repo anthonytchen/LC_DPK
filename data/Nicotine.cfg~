@@ -1,8 +1,0 @@
-# Configuration file for DermatoPK-PBPK simulation
-# Any text following # will be ignored by the program reading this file
-# Format: <name> <value>
-
-N_LAYER_X_SC 23 # Number of layers at x (verticle) direction in stratum corneum
-N_LAYER_Y_SC 1 # Number of layers at y (lateral) direction in skin
-N_GRIDS_X_VE 10 # Number of grids at x (verticle) direction in viable epidermis
-N_GRIDS_X_DE 10 # Number of grids at x (verticle) direction in dermis

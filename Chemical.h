@@ -23,6 +23,7 @@ class Chemical
   void operator=(const Chemical &other);
 
   void Init(double, double, double, double, double, char);
+  void Init(const Chemical &other);
   void calcIon();
   void calcBinding();
 };
