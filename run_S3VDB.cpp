@@ -1,8 +1,10 @@
-// The console application for predicting dermal and systemic kinetics
-//
+/*! 
+  The console application for predicting dermal absorption kinetics with surface sebum
+*/
 
 #include "stdafx.h"
 #include "arg.h"
+#include "Config.h"
 #include "Chemical.h"
 #include "Skin_S3VDB.h"
 
@@ -19,7 +21,8 @@ int main (int argc, char* argv[])
   char fn_coord_x[1024], fn_coord_y[1024];
 	
   static int nDis = 1;
-  static char *fn = "chemical_name";
+  static char *dir = "Dir";
+  static char *cfn = "ZnPT.cfg";
   char fn_conc[1024] = "conc";
 
 	
@@ -60,12 +63,6 @@ int main (int argc, char* argv[])
     "tend", "Simulation end time (s)",
     "-tend", DOUBLE, (caddr_t)&t_end,  
 
-    "MW", "molecular weight",
-    "-MW", DOUBLE, (caddr_t)&MW,
-
-    "log_Kow", "log10 of partition octanol:water",
-    "-Kow", DOUBLE, (caddr_t)&log_K_ow,
-
     "log_K_vh", "log10 of partition vehicle:water",
     "-Kvh", DOUBLE, (caddr_t)&log_K_vh,
 
@@ -87,8 +84,12 @@ int main (int argc, char* argv[])
     "x_len_dermis", "Depth of dermis (m)",
     "-xde", DOUBLE, (caddr_t)&x_len_dermis,
 
-    "fn", "File name prefix to store concentration, coordinates, etc",
-    "-fn", STRING, (caddr_t)&fn,
+    "cfn", "File name of the configuration file",
+    "-cfn", STRING, (caddr_t)&cfn,
+    
+    "dir", "Directory to store simulation data",
+    "-dir", STRING, (caddr_t)&dir,
+
    
     "dis", "Display options; 0 - most parsimonious; 3 - most verbose",
     "-dis", INT, (caddr_t)&nDis,
@@ -104,16 +105,22 @@ int main (int argc, char* argv[])
     pusage (argv[0], params);
     exit (1);
   }
-  
-  sprintf(fn_conc, "%s.conc", fn);
-  sprintf(fn_coord_x, "%s.coord_x", fn);
-  sprintf(fn_coord_y, "%s.coord_y", fn);
+
+  sprintf(fn_conc, "mkdir -p ./%s", dir);
+  system(fn_conc);
+  sprintf(fn_conc, "./%s/conc", dir);
+  sprintf(fn_coord_x, "./%s/coord_x", dir);
+  sprintf(fn_coord_y, "./%s/coord_y", dir);
 
   clock_t start, end;
   double cpu_time_used;
+
+  Config _conf;
+  _conf.ReadConfigFile(cfn);
   
   Chemical _chem;
-  _chem.Init(MW, pow(10, log_K_ow), pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
+  _conf.InitChemical(_chem);
+  //_chem.Init(MW, pow(10, log_K_ow), pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
 
   Skin_S3VDB _skin;
   K_vh = pow(10, log_K_vh);

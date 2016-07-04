@@ -1,8 +1,9 @@
-/* The header file for Comp -- Compartment.
-   This will be the parent class that combines grids into a compartment.
-   From this class the compartments of stratum corneum, viable epidermis,
-   dermis, blood, hair follicle, sebum layer on top of skin, vehicle etc.
-   will be derived.
+/*!
+  The header file for Comp -- Compartment.
+  This will be the parent class that combines grids into a compartment.
+  From this class the compartments of stratum corneum, viable epidermis,
+  dermis, blood, hair follicle, sebum layer on top of skin, vehicle etc.
+  will be derived.
 */
 #ifndef _H_COMP_
 #define _H_COMP_

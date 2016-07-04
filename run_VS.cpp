@@ -20,7 +20,7 @@ int main (int argc, char* argv[])
   char fn_coord_x[1024], fn_coord_y[1024], fn_flux[1024];
 	
   static int nDis = 1;
-  static char *fn = "chemical_name";
+  static char *dir = "Dir";
   static char *cfn = "Nicotine.cfg";
   char fn_conc[1024] = "conc";
 	
@@ -49,12 +49,6 @@ int main (int argc, char* argv[])
     "tend", "Simulation end time (s)",
     "-tend", DOUBLE, (caddr_t)&t_end,  
 
-    "MW", "molecular weight",
-    "-MW", DOUBLE, (caddr_t)&MW,
-
-    "log_Kow", "log10 of partition octanol:water",
-    "-Kow", DOUBLE, (caddr_t)&log_K_ow,
-
     "log_K_vh", "log10 of partition vehicle:water",
     "-Kvh", DOUBLE, (caddr_t)&log_K_vh,
 
@@ -67,8 +61,8 @@ int main (int argc, char* argv[])
     "cfn", "File name of the configuration file",
     "-cfn", STRING, (caddr_t)&cfn,
     
-    "fn", "File name prefix to store concentration, coordinates, and flux history",
-    "-fn", STRING, (caddr_t)&fn,
+    "dir", "Directory to store simulation data",
+    "-dir", STRING, (caddr_t)&dir,
 
     "inf_src", "Whether the vehicle is an infinite source",
     "-inf_src", INT, (caddr_t)&b_inf_src,
@@ -87,11 +81,13 @@ int main (int argc, char* argv[])
     pusage (argv[0], params);
     exit (1);
   }
-  
-  sprintf(fn_conc, "%s.conc", fn);
-  sprintf(fn_coord_x, "%s.coord_x", fn);
-  sprintf(fn_coord_y, "%s.coord_y", fn);
-  sprintf(fn_flux, "%s.flux", fn);
+
+  sprintf(fn_conc, "mkdir -p ./%s", dir);
+  system(fn_conc);
+  sprintf(fn_conc, "./%s/conc", dir);
+  sprintf(fn_coord_x, "./%s/coord_x", dir);
+  sprintf(fn_coord_y, "./%s/coord_y", dir);
+  sprintf(fn_flux, "./%s/flux", dir);
 
   clock_t start, end;
   double cpu_time_used;
@@ -100,9 +96,8 @@ int main (int argc, char* argv[])
   _conf.ReadConfigFile(cfn);
 
   Chemical _chem;
-  //_conf.InitChemical(_chem);
+  _conf.InitChemical(_chem);
 
-   _chem.Init(MW, pow(10, log_K_ow), pKa, 1, 1, 'B'); // the last 3 inputs are not used when calculating permeability through SC
 
   Skin_VS _skin;
 

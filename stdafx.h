@@ -13,8 +13,6 @@
 #include <pthread.h>
 #include <time.h>
 
-//#include <gsl/gsl_errno.h>
-
 #include <cvode/cvode.h>             /* prototypes for CVODE fcts., consts. */
 #include <cvode/cvode_band.h>        /* prototype for CVBand */
 #include <cvode/cvode_dense.h>   
@@ -22,6 +20,10 @@
 #include <sundials/sundials_band.h>  /* definitions of type DlsMat and macros */
 #include <sundials/sundials_types.h> /* definition of type realtype */
 #include <sundials/sundials_math.h>  /* definition of ABS and EXP */
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 // TODO: reference additional headers your program requires here
 #include "except.h"

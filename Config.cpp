@@ -5,7 +5,7 @@ void Config::ReadConfigFile(const char fn[])
 {
   int i;
   bool blank_line;
-  string line, name, value;
+  string line, name, value, msg;
   char value_c;
   double value_d;
   vector<string> tokens;
@@ -52,12 +52,19 @@ void Config::ReadConfigFile(const char fn[])
 	m_chem.m_frac_unbound = value_d; 
       else if ( !name.compare("CHEM_ACIDBASE") )
 	m_chem.m_acid_base = value_c;
-      else
-	SayBye("Config name not known");
+      // else if ( !name.compare("CHEM_ACIDBASE") )
+      else {
+	msg = "Config name <" + name + "> not known";
+	SayBye(msg.c_str());
+      }
       
 		
     }
     file.close();
+  }
+  else {
+    msg = "Config file <" + string(fn) + "> doesn't exist";
+    SayBye(msg.c_str());
   }
 }
 

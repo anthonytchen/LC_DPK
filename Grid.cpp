@@ -1,10 +1,6 @@
 #include "stdafx.h"
 #include "Grid.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 /* functions relating to points for creating grids */
 
 void setPoint(struct Point& pt, double x_coord, double y_coord, double dx, double dy, const char x_type[], const char y_type[])

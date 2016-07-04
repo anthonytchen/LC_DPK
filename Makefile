@@ -40,17 +40,11 @@ run_VSVDB: run_VSVDB.cpp except.o arg.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o \
 	$(LIBS) $(INC) -o run_VSVDB
 
-run_VSVDB_caf: run_VSVDB_caf.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o
-	$(LD) $(LFLAGS)  run_VSVDB_caf.cpp except.o arg.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o \
-	$(LIBS) $(INC) -o run_VSVDB_caf
-
 # surface sebum, stratum corneum, hair sebum
-run_S3VDB: run_S3VDB.cpp except.o arg.o Chemical.o \
+run_S3VDB: run_S3VDB.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o \
 	Skin.o Skin_S3VDB.o Blood.o
-	$(LD) $(LFLAGS)  run_S3VDB.cpp except.o arg.o Chemical.o \
+	$(LD) $(LFLAGS)  run_S3VDB.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o \
 	Skin.o Skin_S3VDB.o Blood.o \
 	$(LIBS) $(INC) -o run_S3VDB

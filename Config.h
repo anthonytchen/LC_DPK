@@ -20,6 +20,7 @@ class Config
  private:
   /* parameters relating to chemical (s) */
   Chemical m_chem;
+  int m_nChem; // number of compounds
   
   /* parameters relating to skin */
   /* parameters relating to simulation */
