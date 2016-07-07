@@ -1,6 +1,7 @@
-// The console application for predicting stratum corneum permeability
-//    of infinite dose (default) and sink conditions
-//
+/*! 
+  The console application for predicting stratum corneum permeability
+    of infinite dose (default) and sink conditions
+*/
 
 #include "stdafx.h"
 #include "arg.h"
@@ -11,12 +12,9 @@
 
 int main (int argc, char* argv[])
 {
-  double MW, log_K_ow, log_K_vh, K_vh, pKa,
-    conc_vehicle, diffu_vehicle, area_vehicle,
-    t_simu, t_end, t_inv, dx_vehicle;
+  double t_simu, t_end, t_inv;
   bool b_1st_save = true;
-  int b_inf_src = 1;
-  int i, n_layer_x_sc, n_layer_y_sc;
+  int i;
   char fn_coord_x[1024], fn_coord_y[1024], fn_flux[1024];
 	
   static int nDis = 1;
@@ -25,21 +23,7 @@ int main (int argc, char* argv[])
   char fn_conc[1024] = "conc";
 	
   t_end = 900; t_inv = 10; // simulation time and interval in seconds
-  n_layer_x_sc = 12;
-  n_layer_y_sc = 1;
-  
-  // Nicotine
-  
-  MW = 162.23;
-  log_K_ow = 1.17;
-  pKa = 3.12; // a base
 
-  dx_vehicle = 1e-4; // thickness of vehicle in meter
-  area_vehicle = 3.5*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 1; // in kg/m3, same as mg/ml
-  diffu_vehicle = -1; // diffusivity of solute in vehicle; negative value means using diffusivity in water
-  log_K_vh = 0; // essentially water vehicle
-	
   // Provide a command line user interface
   static Config_t params[] = {
 
@@ -49,24 +33,12 @@ int main (int argc, char* argv[])
     "tend", "Simulation end time (s)",
     "-tend", DOUBLE, (caddr_t)&t_end,  
 
-    "log_K_vh", "log10 of partition vehicle:water",
-    "-Kvh", DOUBLE, (caddr_t)&log_K_vh,
-
-    "C_vh", "concentration (kg/m3 = mg/ml) in vehicle",
-    "-Cvh", DOUBLE, (caddr_t)&conc_vehicle,
-    
-    "n_layer_x_sc", "Number of (verticle) cell layers in stratum corneum",
-    "-nx", INT, (caddr_t)&n_layer_x_sc,
-
     "cfn", "File name of the configuration file",
     "-cfn", STRING, (caddr_t)&cfn,
     
     "dir", "Directory to store simulation data",
     "-dir", STRING, (caddr_t)&dir,
 
-    "inf_src", "Whether the vehicle is an infinite source",
-    "-inf_src", INT, (caddr_t)&b_inf_src,
-	  
     "dis", "Display options; 0 - most parsimonious; 3 - most verbose",
     "-dis", INT, (caddr_t)&nDis,
 	  
@@ -96,14 +68,12 @@ int main (int argc, char* argv[])
   _conf.ReadConfigFile(cfn);
 
   Chemical _chem;
-  _conf.InitChemical(_chem);
+  _chem.InitConfig(_conf);
 
 
   Skin_VS _skin;
+  _skin.InitConfig(&_chem, _conf);
 
-  K_vh = pow(10, log_K_vh);
-  _skin.Init(&_chem, 1, &conc_vehicle, &K_vh, &diffu_vehicle,
-	     dx_vehicle, area_vehicle, n_layer_x_sc, n_layer_y_sc, 40.03751e-6, b_inf_src);
   _skin.saveCoord( fn_coord_x, fn_coord_y );
   if ( nDis > 1 )
     _skin.displayGrids();	
@@ -135,7 +105,7 @@ int main (int argc, char* argv[])
     if ( fabs(flux1-flux2)/flux1 < 1e-4 )
       break;
   }
-  printf("Steady-state flux = %e, permeability = %e\n", flux1, flux1/conc_vehicle);
+  printf("Steady-state flux = %e, permeability = %e\n", flux1, flux1/_conf.m_conc_vehicle);
 
   fclose(file);
   _skin.Release();

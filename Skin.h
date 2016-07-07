@@ -2,6 +2,7 @@
 #define _H_SKIN_
 
 #include "Chemical.h"
+#include "Config.h"
 #include "Vehicle.h"
 #include "SurSebum.h"
 //#include "Sebum.h"

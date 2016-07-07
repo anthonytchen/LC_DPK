@@ -3,6 +3,8 @@
 #ifndef _H_CHEMICAL_
 #define _H_CHEMICAL_
 
+#include "Config.h"
+
 class Chemical
 {
  public:
@@ -23,7 +25,8 @@ class Chemical
   void operator=(const Chemical &other);
 
   void Init(double, double, double, double, double, char);
-  void Init(const Chemical &other);
+  // void Init(const Chemical &other);
+  void InitConfig(const Config &conf);
   void calcIon();
   void calcBinding();
 };

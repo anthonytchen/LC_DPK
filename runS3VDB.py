@@ -127,7 +127,7 @@ def calcAUC(t, conc):
 
     return (auc, t_max, C_max)
 
-def runS3VDBfunc(t_range, fnchem):
+def runS3VDBfunc(t_range, t, fnchem):
     '''Read data and visualise
     '''
     import numpy as np
@@ -136,75 +136,107 @@ def runS3VDBfunc(t_range, fnchem):
     import matplotlib.patches as patches
 
     nt = len(t_range)
-    t = 50
+    #t = 50
 
     nx_sursb = 1
-    ny_sursb = 5
+    ny_sursb = 20
 
     nx_sb_har = 10
     ny_sb_har = 1
 
-    nx_sc = 74
+    nx_layers = 12
+    nx_sc = (4+2)*nx_layers+2 # 74
     ny_sc = 22
+    ny_cc_cells = 1
 
     # load data
-    fn_str = fnchem + ".conc_sursb_chem0_comp0.txt"
+    fn_str = fnchem + "conc_sursb_chem0_comp0.txt"
     with open(fn_str) as f :
         dat_sursb = np.array(f.read().split(), dtype=float).reshape(nt, nx_sursb*ny_sursb+1)
 
-    fn_str = fnchem + ".conc_sursb_chem0_comp1.txt"
+    conc_max = np.max(dat_sursb)
+    
+    fn_str = fnchem + "conc_sursb_chem0_comp1.txt"
     dat_sursb_har = np.loadtxt(fn_str).reshape(nt, nx_sursb*ny_sb_har)
 
-    fn_str = fnchem + ".conc_sc_chem0_comp0.txt"
-    dat_sc = np.loadtxt(fn_str).reshape(nt, nx_sc*ny_sc);
+    conc1 = np.max(dat_sursb_har)
+    if (conc1 > conc_max):
+        conc_max = conc1[:]
 
-    fn_str = fnchem + ".conc_sb_chem0_comp0.txt"
+    fn_str = fnchem + "conc_sc_chem0_comp0.txt"
+    dat_sc = np.loadtxt(fn_str).reshape(nt, nx_sc*ny_sc*ny_cc_cells);
+
+    conc1 = np.max(dat_sc)
+    if (conc1 > conc_max):
+        conc_max = conc1[:]
+        
+    fn_str = fnchem + "conc_sb_chem0_comp0.txt"
     dat_sb_har = np.loadtxt(fn_str).reshape(nt, nx_sb_har*ny_sb_har)
 
+    conc1 = np.max(dat_sb_har)
+    if (conc1 > conc_max):
+        conc_max = conc1[:]
+        
+    # plot time course in dat_sursb_har
+    fig = plt.figure(figsize=(8,6))
+    plt.plot(np.array(t_range)/3600.0, dat_sursb_har*1e3)
+    plt.xlabel('Time (hr)')
+    plt.ylabel('Concentration ($\mu$g/mL)')
+    plt.savefig("conc_hf.png", bbox_inches='tight', dpi=300)
+    plt.close()
+    
     # plot
     fig = plt.figure(figsize=(8,6))
-    gs = gridspec.GridSpec(3, 2, width_ratios=[5, 1], height_ratios=[1, 1, 5]) 
+    gs = gridspec.GridSpec(3, 2, width_ratios=[5, 0.4], height_ratios=[1, 1, 5]) 
     # plt.subplots(figsize=(8,8))
 
     solid_mass_ini = (0.5e-6*0.5e-6*0.01)*1.782*1e3
+    #solid_mass_ini = (0.01e-6*10e-6*0.01)*1.782*1e3
     solid_mass_now = dat_sursb[t,0]
-    ratio_mass = solid_mass_now / solid_mass_ini
+    ratio_mass = solid_mass_now / solid_mass_ini * 100
     ratio_len = np.sqrt(ratio_mass)
-    tx = "Cubic solid side length is " + ratio_len.astype('|S6') + " of the original 0.5 $\mu$m"
+    tx = "Time = " + str(t_range[t]/3600.0) + \
+         " hr; Concentration in $\mu$g/mL; \n Solid mass " + "{:.1f}".format(ratio_mass) + "% of the initial value"
 
+    
     ax = plt.subplot(gs[0,0:1])
-    ax.add_patch(
-        patches.Rectangle(
-            (0, 0),   # (x,y)
-            0.1,          # width
-            0.7,          # height
-            facecolor="none"
+    if 0:
+        ax.add_patch(
+            patches.Rectangle(
+                (0, 0),   # (x,y)
+                0.1,          # width
+                0.7,          # height
+                facecolor="none"
+            )
         )
-    )
-    ax.add_patch(
-        patches.Rectangle(
-            (0, 0),   # (x,y)
-            0.1*ratio_len,          # width
-            0.7*ratio_len,          # height
-            facecolor=None
+        ax.add_patch(
+            patches.Rectangle(
+                (0, 0),   # (x,y)
+                0.1*ratio_len,          # width
+                0.7*ratio_len,          # height
+                facecolor=None
+            )
         )
-    )
+
     plt.text(0.2, 0.3, tx)
     plt.axis('off')
 
+    conc_max *= 1e3
+    
     ax = plt.subplot(gs[1,0])
-    dat = dat_sursb[t,1:]
+    dat = dat_sursb[t,1:] *1e3
     dat = np.vstack( (dat, dat) )
-    plt.imshow(dat, vmin=0, vmax=0.08, interpolation='none', aspect='auto')
+    plt.imshow(dat, vmin=0, vmax=conc_max, interpolation='none', aspect='auto')
     #cb = plt.colorbar(shrink=0.98, pad=0.05)
     #cb.set_clim(0, 0.03)
     plt.tight_layout()
     plt.axis('off')
 
     ax = plt.subplot(gs[1,1])
-    dat = dat_sursb_har
+    dat = dat_sursb_har[t,:].reshape(nx_sursb, ny_sb_har) *1e3
+    #print dat
     dat = np.hstack( (dat, dat) )
-    plt.imshow(dat,  vmin=0, vmax=0.08, interpolation='none', aspect='auto')
+    plt.imshow(dat,  vmin=0, vmax=conc_max, interpolation='none', aspect='auto')
 
     #cb.set_clim(0, 0.03)
     plt.tight_layout()
@@ -212,18 +244,18 @@ def runS3VDBfunc(t_range, fnchem):
 
 
     ax = plt.subplot(gs[2,0])
-    dat = dat_sc[t,:].reshape(nx_sc, ny_sc)
-    plot_stracorn()
-    plt.imshow(dat,  vmin=0, vmax=0.08, interpolation='none', aspect='auto')
+    dat = dat_sc[t,:].reshape(nx_sc, ny_sc*ny_cc_cells) *1e3
+    # plot_stracorn()
+    plt.imshow(dat,  vmin=0, vmax=conc_max, interpolation='none', aspect='auto')
     #cb = plt.colorbar(shrink=0.98, pad=0.05)
     #cb.set_clim(0, 0.03)
     plt.tight_layout()
     plt.axis('off')
 
     ax = plt.subplot(gs[2,1])
-    dat = dat_sb_har[t,:].reshape(nx_sb_har, ny_sb_har)
+    dat = dat_sb_har[t,:].reshape(nx_sb_har, ny_sb_har) *1e3
     dat = np.hstack( (dat, dat) )
-    im = plt.imshow(dat,  vmin=0, vmax=0.08, interpolation='none', aspect='auto')
+    im = plt.imshow(dat,  vmin=0, vmax=conc_max, interpolation='none', aspect='auto')
     #cb = plt.colorbar(shrink=0.98, pad=0.05)
     plt.tight_layout()
     plt.axis('off')
@@ -231,7 +263,8 @@ def runS3VDBfunc(t_range, fnchem):
     cax = fig.add_axes([1.05, 0.05, 0.03, 0.8])
     fig.colorbar(im, cax=cax)
 
-    plt.savefig("tmp.png", bbox_inches='tight')
+#    fnsav = 
+    plt.savefig("2D_" + str(t_range[t]/3600.0) + "hr.png", bbox_inches='tight', dpi=300)
     plt.close()
 
     return;

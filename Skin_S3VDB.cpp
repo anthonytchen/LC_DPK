@@ -1,16 +1,13 @@
 #include "stdafx.h"
 #include "Skin_S3VDB.h"
 
-/*void Skin_S3VDB::Init(Chemical *chemSolute, int nChem, 
-		      double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
-		      double x_len_sb, double y_len_sb, 
-		      int n_layer_x_sc, int n_layer_y_sc, double offset_y_sc,
-		      double x_len_ve, int n_grids_x_ve, double x_len_de, int n_grids_x_de,
-		      double *par_dermis2blood, double *blood_k_clear,
-		      bool bInfSrc)*/
+/*!
+ */
 void Skin_S3VDB::Init(Chemical *chemSolute, int nChem, 
 		      double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
-		      double x_len_sb_sur, int n_grids_x_sb_sur, double y_len_sb_har, int n_grids_y_sb_har,
+		      //double x_len_sb_sur, int n_grids_x_sb_sur, double y_len_sb_har, int n_grids_y_sb_har,
+		      double x_len_sb_sur, int n_grids_x_sb_sur, int n_grids_y_sb_sur,
+		      int n_grids_x_sb_har, double y_len_sb_har, int n_grids_y_sb_har,		      
 		      int n_layer_x_sc, int n_layer_y_sc, double offset_y_sc,
 		      int x_len_ve, int n_grids_x_ve, double x_len_de, int n_grids_x_de,
 		      double *par_dermis2blood=NULL, double *blood_k_clear=NULL)
@@ -18,7 +15,7 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 
   Skin::Init();
   
-  int i, nxComp, nyComp, n_grids_y_sb_sur, dim;
+  int i, nxComp, nyComp, dim;
   double coord_x_start, coord_y_start, coord_x_end, coord_y_end;
   double x_len_sc, y_len_sc;
 
@@ -33,7 +30,7 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   m_nVehicle = m_nViaEpd = m_nDermis = m_nBlood = 0;
   createCompMatrix(nxComp, nyComp);
 
-  n_grids_y_sb_sur = 5;
+  // n_grids_y_sb_sur = 5;
 
   // boundary condition: up, left, right, down
   BdyCondStr bdys_sb_sur1 = {ZeroFlux,  ZeroFlux, FromOther, FromOther};
@@ -63,17 +60,21 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   
   sursb_k_disv_per_area = 34.3e-6 / S_particle;
   */
-  sursb_init_mass_solid = (0.5e-6*0.5e-6*m_dz_dtheta)*1.782*1e3; // from EC Opinion on ZnPT
-  sursb_k_disv_per_area = 5e-7;
-  sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
-  sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
   Crystal crystal;
-  crystal.shape = HyperRect;
+  //crystal.shape = HyperRect;
+  crystal.shape = BottomOnly;
   crystal.density = 1.782e3; // kg/m^3, ZnPT
   crystal.dim = 2;
-  crystal.len[0] = 0.05e-6;
-  crystal.len[1] = 5e-6;
+  crystal.len[0] = 0.5e-6;// 10e-6; // 0.5e-6;
+  crystal.len[1] = 0.5e-6; //0.01e-6;   // 0.5e-6;
   crystal.area = crystal.len[0]*crystal.len[1];
+  
+  sursb_init_mass_solid = crystal.area*m_dz_dtheta * 1.782e3; // from EC Opinion on ZnPT
+  sursb_k_disv_per_area = 5e-7;
+  // sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
+  sursb_k_rect = 0;
+  // sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
+  sursb_Csat = 40 * 1e-3; // 40 ppm, converted to kg/m3
 
   coord_x_start = 0; coord_y_start = 0;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
@@ -104,9 +105,9 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   dim += m_StraCorn[0].m_dim;
 
   // SB, hair sebum
-  double n_grids_x_sb_har = 10;
+  // double n_grids_x_sb_har = 10;
   coord_x_start = coord_x_start; coord_y_start = y_len_sc;
-  createSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_har, 1,
+  createSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_har, n_grids_y_sb_har,
 	   bdys_sb_har, &coord_x_end, &coord_y_end, 0);
   m_CompIdx[1][1].type = emSB;
   m_CompIdx[1][1].pComp = new Comp*[1];
@@ -152,6 +153,21 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 
   // If InitReaction() is not called, set m_React.idx_substrate to -1 to indicate no reaction
   m_React.idx_substrate = -1;
+}
+
+void Skin_S3VDB::InitConfig(Chemical *chemSolute, Config &conf)
+			    /*int nChem, 
+		      double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
+		      double x_len_sb_sur, int n_grids_x_sb_sur, double y_len_sb_har, int n_grids_y_sb_har,
+		      int n_layer_x_sc, int n_layer_y_sc, double offset_y_sc,
+		      int x_len_ve, int n_grids_x_ve, double x_len_de, int n_grids_x_de,
+		      double *par_dermis2blood=NULL, double *blood_k_clear=NULL)*/
+{
+  Init(chemSolute, conf.m_nChem, &conf.m_conc_vehicle, &conf.m_partition_vehicle, &conf.m_diffu_vehicle,       
+       conf.m_x_len_sb_sur, conf.m_n_grids_x_sb_sur, conf.m_n_grids_y_sb_sur,
+       conf.m_n_grids_x_sb_har, conf.m_y_len_sb_har, conf.m_n_grids_y_sb_har,
+       conf.m_n_layer_x_sc, conf.m_n_layer_y_sc, conf.m_offset_y_sc,
+       conf.m_x_len_ve, conf.m_n_grids_x_ve, conf.m_x_len_de, conf.m_n_grids_x_de);
 }
 
 void Skin_S3VDB::Release(void)

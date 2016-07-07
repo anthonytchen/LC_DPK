@@ -4,7 +4,7 @@
 
 #include "Sebum.h"
 
-enum CryShape { Sphere, Cube, HyperRect };
+enum CryShape { Sphere, Cube, HyperRect, BottomOnly };
 struct Crystal {
   CryShape shape;
   double density; // kg / m^3

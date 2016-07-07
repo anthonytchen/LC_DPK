@@ -23,7 +23,8 @@ void Sebum::Init(double x_length, double y_length, double dz_dtheta, int n_grids
   m_T = 309; // temperature (Kelvin)
   // m_eta = 7.1E-4; // water viscosity at above temperature (Pa s),
   m_K_sw = K_sw; 
-  m_D = D_sebum; 
+  m_D = D_sebum;
+  m_init_concChem = 0;
 }
 
 

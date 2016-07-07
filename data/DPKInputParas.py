@@ -13,6 +13,7 @@ class DPKInputParas:
         self.n_grids_x_de = 10
         self.offset_y_sc = 0
         self.b_inf_src = 0
+        self.nChem = 0
 
         # solute parameters
         self.MW = []
@@ -28,3 +29,24 @@ class DPKInputParas:
         self.x_len_vehicle = [] # depth of vehicle
         self.diffu_vehicle = [] # diffusivity of solute in vehicle
         self.par_vehicle = [] # partition coefficient from vehicle to water
+
+
+        
+    def read_conf(self, fn):
+        ''' Read configuration file and fill into class 
+        '''
+
+        with open(fn) as f:
+            for line in f:
+                if not line.strip():
+                    continue;
+                if (line[0] == '#'): 
+                    continue
+
+                wds = line.split()
+                print wds[0]
+                
+
+                if ( wds[0] == "CHEM_NO" ):
+                    self.nChem = 1
+                    break

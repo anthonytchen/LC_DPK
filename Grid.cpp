@@ -81,15 +81,18 @@ void Grid::InitSB(const char name[], Chemical chem, double concChem, double x_co
   double K;
 
   if (D<0) { /* calculate diffusivity from QSPR model */
-    // SayBye("QSPR for calculating sebum diffusion coefficient not yet implemented");
-    m_D = 1.3e-13; // as reported in Rush et al. for ZnPT in water-CMC vehicle, needing change
+    // m_D = 1.3e-13; // as reported in Rush et al. for ZnPT in water-CMC vehicle, needing change
+    m_D = 2.35e-10; // as reported in Valiveti et al. for Dodecyl 4-hydroxybenzoate (MW=306.44) similar to ZnPT (MW=317.7)
+    // but the measured value can be inaccurate because of the high partition sebum:water (55012, or in log scale 4.74)
+    // m_D = 1e-11;
   }
   else
     m_D = D;
 
   if (K_sw<0) { /* calculate partition coefficient from QSPR model */
     // SayBye("QSPR for calculating sebum partition coefficient not yet implemented");
-    m_Kw = pow(10, -0.5608) * pow(chem.m_K_ow,0.9465);
+    // m_Kw = pow(10, -0.5608) * pow(chem.m_K_ow,0.9465);
+    m_Kw = 5.62; // measured by Senpei Yang @ Chinese Agricultural University for ZnPT only
   }
   else
     m_Kw = K_sw;

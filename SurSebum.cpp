@@ -86,6 +86,11 @@ void SurSebum::updateKdisv(CryShape shape, double mass_solid)
 {
   double volume, area, len1, len, tmp, factor;
 
+  if ( mass_solid < 0 ) {
+    m_k_disv = .0;
+    return;
+  }
+  
   volume = mass_solid / m_crystal.density;
 
   switch (shape) {
@@ -106,14 +111,17 @@ void SurSebum::updateKdisv(CryShape shape, double mass_solid)
     len1 = m_crystal.len[1]*factor;
     area = len*len1*2 + (len+len1)*m_dz_dtheta*2;
     break;
-    
+
+  case BottomOnly : // dissolution only depends on the bottom area which is fixed
+    area = m_crystal.len[0] * m_dz_dtheta;
+    break;
+
   default :
     SayBye("Crystal shape not implemented");
     break;
   }
+  // printf("area = %.5e\n", area);
 
-  if ( isnan(area) )
-    area = .0;
   m_k_disv = m_k_disv_per_area * area;
 
 }

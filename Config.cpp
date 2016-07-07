@@ -3,7 +3,7 @@
 
 void Config::ReadConfigFile(const char fn[])
 {
-  int i;
+  int i, value_i;
   bool blank_line;
   string line, name, value, msg;
   char value_c;
@@ -39,20 +39,71 @@ void Config::ReadConfigFile(const char fn[])
       value = tokens.at(1);
       value_c = value.at( value.find_first_not_of(" \n\r\t") );
       value_d = strtod( value.c_str(), NULL );
-		
-      if ( !name.compare("CHEM_MW") ) // molecular weight
-	m_chem.m_mw = value_d;      
+      value_i = strtol( value.c_str(), NULL, 10 );
+
+      // parameters relating to chemical(s)
+      if ( !name.compare("CHEM_NO") ) // number of compounds
+	m_nChem = value_i;
+      else if ( !name.compare("CHEM_MW") ) // molecular weight
+	m_mw = value_d;      
       else if ( !name.compare("CHEM_KOW") ) // partition coefficient between octanol and water
-	m_chem.m_K_ow = value_d;	
+	m_K_ow = value_d;	
       else if ( !name.compare("CHEM_PKA") ) // pKa -- acide dissociation constant
-	m_chem.m_pKa = value_d ; 
+	m_pKa = value_d ; 
       else if ( !name.compare("CHEM_NONION") ) // fraction of solute non-ionised at pH 7.4
-	m_chem.m_frac_non_ion = value_d; 
+	m_frac_non_ion = value_d; 
       else if ( !name.compare("CHEM_UNBND") )  // fraction of solute unbound in a 2.7% albumin solution at pH 7.4    
-	m_chem.m_frac_unbound = value_d; 
+	m_frac_unbound = value_d; 
       else if ( !name.compare("CHEM_ACIDBASE") )
-	m_chem.m_acid_base = value_c;
-      // else if ( !name.compare("CHEM_ACIDBASE") )
+	m_acid_base = value_c;
+      else if ( !name.compare("CHEM_PAR_VEH") )
+	m_partition_vehicle = value_d;
+      else if ( !name.compare("CHEM_DIF_VEH") )
+	m_diffu_vehicle = value_d;
+      
+      // parameters relating to the compartments
+
+      else if ( !name.compare("VEH_INIT_CONC") )
+	m_conc_vehicle = value_d;
+      else if ( !name.compare("VEH_DX") )
+	m_dx_vehicle = value_d;
+      else if ( !name.compare("VEH_AREA") )
+	m_area_vehicle = value_d;
+      else if ( !name.compare("VEH_INFINITE") )
+	m_bInfSrc = value_i;
+      
+      else if ( !name.compare("SKIN_N_LAYER_X_SC") )
+	m_n_layer_x_sc = value_i;
+      else if ( !name.compare("SKIN_N_LAYER_Y_SC") )
+	m_n_layer_y_sc = value_i;
+      else if ( !name.compare("SKIN_OFFSET_Y_SC") )
+	m_offset_y_sc = value_d;
+
+      else if ( !name.compare("SKIN_N_GRIDS_X_VE") )
+	m_n_grids_x_ve = value_i;
+      else if ( !name.compare("SKIN_N_GRIDS_X_DE") )
+	m_n_grids_x_de = value_i;
+      else if ( !name.compare("SKIN_LEN_X_VE") )
+	m_x_len_ve = value_d;
+      else if ( !name.compare("SKIN_LEN_X_DE") )
+	m_x_len_de = value_d;
+
+      else if ( !name.compare("SKIN_N_GRIDS_X_SB_SUR") )
+	m_n_grids_x_sb_sur = value_i;
+      else if ( !name.compare("SKIN_LEN_X_SB_SUR") )
+	m_x_len_sb_sur = value_d;
+      else if ( !name.compare("SKIN_N_GRIDS_Y_SB_SUR") )
+	m_n_grids_y_sb_sur = value_i;
+      
+      else if ( !name.compare("SKIN_N_GRIDS_X_SB_HAR") )
+	m_n_grids_x_sb_har = value_i;      
+      else if ( !name.compare("SKIN_N_GRIDS_Y_SB_HAR") )
+	m_n_grids_y_sb_har = value_i;
+      else if ( !name.compare("SKIN_LEN_Y_SB_HAR") )
+	m_y_len_sb_har = value_d;
+
+
+      // name not found
       else {
 	msg = "Config name <" + name + "> not known";
 	SayBye(msg.c_str());
@@ -70,11 +121,12 @@ void Config::ReadConfigFile(const char fn[])
 
 /*!
   Initialise objective <Chemical>
-*/
+
 void Config::InitChemical(Chemical& target)
 {
   target.Init(m_chem.m_mw, m_chem.m_K_ow, m_chem.m_pKa, m_chem.m_frac_non_ion, m_chem.m_frac_unbound, m_chem.m_acid_base);
 }
+*/
 
 /*!
   Tokenize copied from (as at 30 June 2016)

@@ -1,0 +1,13 @@
+# This is the configuration file to run dermal absorption simulation
+
+# Properties of the chemical
+
+CHEM_MW      162.23
+# 10**1.17 = 14.791
+CHEM_KOW     14.791
+CHEM_PKA     3.12
+CHEM_NONION  0.31
+CHEM_UNBND   0.95
+CHEM_ACIDBASE B
+    
+	

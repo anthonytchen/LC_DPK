@@ -69,6 +69,12 @@ void Skin_VS::Init(Chemical *chemSolute, int nChem,
  
 }
 
+void Skin_VS::InitConfig(Chemical *chemSolute, Config &conf)
+{
+  Init(chemSolute, conf.m_nChem, &conf.m_conc_vehicle, &conf.m_partition_vehicle, &conf.m_diffu_vehicle,
+       conf.m_dx_vehicle, conf.m_area_vehicle, conf.m_n_layer_x_sc, conf.m_n_layer_y_sc, conf.m_offset_y_sc, conf.m_bInfSrc);
+}
+
 void Skin_VS::Release(void)
 {
   Skin::Release();
