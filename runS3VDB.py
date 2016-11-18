@@ -196,7 +196,7 @@ def runS3VDBfunc(t_range, t, fnchem):
     ratio_mass = solid_mass_now / solid_mass_ini * 100
     ratio_len = np.sqrt(ratio_mass)
     tx = "Time = " + str(t_range[t]/3600.0) + \
-         " hr; Concentration in $\mu$g/mL; \n Solid mass " + "{:.1f}".format(ratio_mass) + "% of the initial value"
+         " hr; Concentration in $\mu$g/mL"#; \n Solid mass " + "{:.1f}".format(ratio_mass) + "% of the initial value"
 
     
     ax = plt.subplot(gs[0,0:1])

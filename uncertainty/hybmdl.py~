@@ -6,8 +6,7 @@ import numpy as np
 import math
 import scipy.sparse as sp
 import scipy.sparse.linalg as spln
-#import matplotlib.pyplot as plt
-from scipy.optimize import minimize, basinhopping, brute
+import matplotlib.pyplot as plt
 
 # Example:
 
@@ -42,7 +41,7 @@ def Estep(func_top, func_low, theta, X, Y, sig2_y, sig2_z, N=100):
 
     for n in range(n_dat):
 
-        z_n = func_low(theta, np.array(X[n,:]))        
+        z_n = func_low(theta, np.array(X[n,:]))
         Z[:,:,n] = np.tile(z_n,(N,1))
         np.tile(z_n,(N,1))
 
@@ -51,9 +50,9 @@ def Estep(func_top, func_low, theta, X, Y, sig2_y, sig2_z, N=100):
             rd = np.random.normal(0, sig_z[d], N)
             Z[:,d,n] += rd
 
+        Ymc = func_top( theta, np.array(X[n,:]), Z[:,:,n] )
         s = .0;
         for i in range(N):
-            Ymc[i,:] = func_top( theta, np.array(X[n,:]), Z[i,:,n] )
             W[i,n] = np.exp( lognormpdf( Ymc[i,:], Y[n,:], np.diag(sig2_y) ) )
             s += W[i,n]
         W[:,n] /= s # normalising the weights
@@ -62,59 +61,35 @@ def Estep(func_top, func_low, theta, X, Y, sig2_y, sig2_z, N=100):
 
 
 ###########################################################
-def Mstep_main(func_top, func_low, theta0, Xy, Y, Zsamples, Xz, Z, sig2_y, sig2_z):
-    
-    res = minimize(Mstep_theta_obj, theta0, args=(func_top, func_low, Xy, Y, Zsamples, Xz, Z, sig2_y, sig2_z), 
-                   method='CG', options={'disp': True, 'maxiter': 100})
+def Mstep_main():
+    return 0
 
-    theta1 = res.x      
-    #theta1 = theta0
-    #var = Mstep_var(theta1, func_top, func_low, X, Y, Z, W)                   
-    var = 0
-    
-    return (theta1, var)
-
-def Mstep_theta_obj(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z, sig2_y, sig2_z):
+def Mstep_theta_obj(func_top, func_low, theta, X, Y, sig2_y, sig2_z, Z, W):
     ''' The objective function (negative log-likelihood) for optimising theta
     Terms that are not dependent on theta (thus constant as far as optimisation is concerned)
     are not calculated.
     '''
 
-    n_dat_Xy = Xy.shape[0]
-    Zmc = Zsamples[0]
-    Wmc = Zsamples[1]    
-    n_mc = Zmc.shape[0]
-    
+    n_dat = X.shape[0]
+    d_y = Y.shape[1]
+    n_mc = Z.shape[0]
+    d_z = Z.shape[1]
+
     beta = 1.0/sig2_z
     alpha = 1.0/sig2_y
 
     neg_lnlik = .0
-    
-    # For high-level X-Y data
-    for n in range(n_dat_Xy):
+    for n in range(n_dat):
         
-        z_func = func_low(theta, np.array(Xy[n,:]))
+        z_func = func_low(theta, X[n,:])
+        y_func = func_top(theta, X[n,:], Z[:,:,n])
 
         for i in range(n_mc):
-            err = Zmc[i,:,n] - z_func
-            neg_lnlik += Wmc[i,n]* 0.5* np.sum( beta* (np.array(err)**2) )
-            y_func = func_top(theta, Xy[n,:], Zmc[i,:,n])
+            err = Z[i,:,n] - z_func
+            neg_lnlik += W[i,n]* 0.5*(beta*err*err)
             err = Y[n,:] - y_func
-            neg_lnlik += Wmc[i,n]* 0.5*(alpha*err*err)
+            neg_lnlik += W[i,n]* 0.5*(alpha*err*err)
 
-    # For low-level X-Z data
-    d_z = len(Xz)
-    
-    for i in range (d_z):
-        Xtmp = Xz[i]
-        Ztmp = Z[i]
-        n_dat_Xz = Xtmp.shape[0]   
-        for n in range(n_dat_Xz):       
-            z_func = func_low(theta, np.array(Xtmp[n,:]))
-            err = Ztmp[n] - z_func[:,i]
-            neg_lnlik += 0.5* np.sum( beta[i]* (np.array(err)**2) )
-            
-            
     return neg_lnlik
 
 
@@ -169,8 +144,8 @@ def calc_grad(func, theta, X, Z=None):
 
         grad[i] = (f1-f) / delta
     
-# to be updated, and need to be optimised iteratively as well
-def Mstep_var(theta, func_top, func_low, X, Y, Z, W):
+
+def Mstep_var(func_top, func_low, X, Y, theta, Z, W):
     ''' The function to calculate the optimal values of the variance terms
     '''
 
@@ -179,20 +154,20 @@ def Mstep_var(theta, func_top, func_low, X, Y, Z, W):
     n_mc = Z.shape[0]
     d_z = Z.shape[1]
 
-    beta = np.zeros([1,d_z])
-    alpha = np.zeros([1,d_y])
+    beta = np.zeros((d_z,1))
+    alpha = np.zeros((d_y,1))
 
     for n in range(n_dat):
         
-        z_func = func_low(theta, np.array(X[n,:]))        
+        z_func = func_low(theta, X[n,:])
+        y_func = func_top(theta, X[n,:], Z[:,:,n])
 
         for i in range(n_mc):
-            beta += W[i,n]* np.array( Z[i,:,n] - z_func )**2
-            y_func = func_top(theta, X[n,:], Z[i,:,n])
-            alpha += W[i,n]* np.array( Y[n,:] - y_func )**2
+            beta += W[i,n]* ( Z[i,:,n] - z_func )**2
+            alpha += W[i,n]* ( Y[n,:] - f_func )**2
 
-    #beta = N/beta;
-    #alpha = N/alpha;      
+    beta = N/beta;
+    alpha = N/alpha;      
 
     return (alpha, beta)
 

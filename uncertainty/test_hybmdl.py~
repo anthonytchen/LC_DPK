@@ -1,0 +1,25 @@
+from hybmdl import * 
+from qspr_Kcc import *
+from qspr_Klp import *
+
+# dat_Plp = np.loadtxt("Kow_Plp_lg10.txt")
+# dat_Ksc = np.loadtxt("Kow_Ksc_lg10.txt")
+# dat_Kcc = np.loadtxt("Kow_Kcc_lg10.txt")
+# paras = np.array([4.2, 0.31, 0.69])
+
+#Estep(qspr_lg10Ksc, func_low, theta, X, Y, sig2_y, sig2_z, N=100)
+
+
+def qspr_lg10K_cc_lip(paras, lg10Kow):
+    ''' Calculate log10 partition in CC-water and LP-water, and return a Nx2 matrix
+    '''
+
+    paras_Kcc = paras[:2]
+    lg10Kcc = qspr_lg10Kcc(paras_Kcc, lg10Kow)
+
+    paras_Klp = paras[2]
+    lg10Klip = qspr_lg10Klp(paras_Klp, lg10Kow)
+
+    return np.matrix([lg10Kcc, lg10Klip])
+
+    

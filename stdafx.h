@@ -3,7 +3,7 @@
 // are changed infrequently
 //
 
-#pragma once
+//#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,4 +28,4 @@
 // TODO: reference additional headers your program requires here
 #include "except.h"
 #define NTHREADS 1 // number of threads for parallel computing
-//#define _DEBUG_3_
+//#define _DEBUG_

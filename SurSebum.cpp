@@ -99,21 +99,36 @@ void SurSebum::updateKdisv(CryShape shape, double mass_solid)
     break;
     
   case Cube :
-
+    SayBye ("Crystal shape out of date; please use HyperRect");
     len = sqrt(volume/m_dz_dtheta);
     area = len*len*2 + len*m_dz_dtheta*4;
     break;
     
   case HyperRect : // hyper-rectangular
 
-    factor = sqrt( volume/m_dz_dtheta / m_crystal.area);
-    len = m_crystal.len[0]*factor;
-    len1 = m_crystal.len[1]*factor;
-    area = len*len1*2 + (len+len1)*m_dz_dtheta*2;
+    if (m_coord_sys == Cartesian){
+      factor = sqrt( volume/m_dz_dtheta / m_crystal.area);
+      len = m_crystal.len[0]*factor;
+      len1 = m_crystal.len[1]*factor;
+      area = len*len1*2 + (len+len1)*m_dz_dtheta*2;
+    }
+    else if (m_coord_sys == Cylindrical ) {
+      SayBye("Cylindrical coordinate for hyper-reactangular solids is not implmented");
+    }
+    else
+      SayBye("Coordinate system not implemented");
+
     break;
 
   case BottomOnly : // dissolution only depends on the bottom area which is fixed
-    area = m_crystal.len[0] * m_dz_dtheta;
+
+    if (m_coord_sys == Cartesian)
+      area = m_crystal.len[0] * m_dz_dtheta;
+    else if (m_coord_sys == Cylindrical )
+      area = M_PI * (m_crystal.len[0]*m_crystal.len[0]) * m_dz_dtheta / 360; // top view area, same as bottom area
+    else
+      SayBye("Coordinate system not implemented");
+    
     break;
 
   default :
@@ -169,6 +184,9 @@ void SurSebum::saveGrids(bool b_1st_time, const char fn[])
 
     fprintf(file, "%.5e\n", m_mass_solid);
     fclose(file);
+#ifdef _DEBUG_
+      printf( "\tSolid\t\t %.3e\n", m_mass_solid );
+#endif
   }
 
   Comp::saveGrids(b_1st_time, fn);

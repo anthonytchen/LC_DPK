@@ -21,6 +21,8 @@ void Skin::Init()
   m_nxComp = m_nyComp = 0;
   m_CompIdx = NULL;
 
+  m_coord_sys = Cartesian;
+
   // If InitReaction() is not called, set m_React.idx_substrate to -1 to indicate no reaction
   m_React.idx_substrate = -1;
 }
@@ -113,7 +115,7 @@ void Skin::createVH(const Chemical *chemSolute, const double *conc_vehicle, cons
   for (i=0; i<m_nChem; i++) {
     m_concVehicleInit[i] = conc_vehicle[i];
     m_Vehicle[i].Init(xlen, ylen, m_dz_dtheta, nx, ny, conc_vehicle[i], partition_vehicle[i], diffu_vehicle[i],
-		      Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+		      m_coord_sys, bdys.up, bdys.left, bdys.right, bdys.down);
     m_Vehicle[i].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
   m_dim_vh = m_Vehicle[0].m_nx * m_Vehicle[0].m_ny;
@@ -141,7 +143,7 @@ void Skin::createSurSB(const Chemical *chemSolute,
   for (i=0; i<m_nChem; i++) {
     idx = i + idx_sursb*m_nChem;
     m_SurSebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
-			 Cartesian, bdys.up, bdys.left, bdys.right, bdys.down, 
+			 m_coord_sys, bdys.up, bdys.left, bdys.right, bdys.down, 
 			 crystal, init_mass_solid, k_disv_per_area, k_rect, Csat);
     m_SurSebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
@@ -168,7 +170,7 @@ void Skin::createSB(const Chemical *chemSolute,
   for (i=0; i<m_nChem; i++) {
     idx = i + idx_harsb*m_nChem;
     m_Sebum[idx].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
-		      Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+		      m_coord_sys, bdys.up, bdys.left, bdys.right, bdys.down);
     m_Sebum[idx].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
 
@@ -195,7 +197,7 @@ void Skin::createSC(const Chemical *chemSolute,
 
   for (i=0; i<m_nChem; i++) {
     m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc,
-		       Cartesian, bdys.up, bdys.left, bdys.right, bdys.down); // bdy conditions: u/l/r/d
+		       m_coord_sys, bdys.up, bdys.left, bdys.right, bdys.down); // bdy conditions: u/l/r/d
     m_StraCorn[i].createGrids(chemSolute[i], water_frac_surface, coord_x_start, coord_y_start);     
   }
 
@@ -219,7 +221,7 @@ void Skin::createVE(const Chemical *chemSolute,
 
   for (i=0; i<m_nChem; i++) {
     m_ViaEpd[i].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y,
-		     Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+		     m_coord_sys, bdys.up, bdys.left, bdys.right, bdys.down);
     m_ViaEpd[i].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
 
@@ -240,7 +242,7 @@ void Skin::createDE(const Chemical *chemSolute,
 
   for (i=0; i<m_nChem; i++) {
     m_Dermis[i].Init(xlen, ylen, m_dz_dtheta, n_grids_x, n_grids_y, b_has_blood,
-		     Cartesian, bdys.up, bdys.left, bdys.right, bdys.down);
+		     m_coord_sys, bdys.up, bdys.left, bdys.right, bdys.down);
     m_Dermis[i].createGrids(chemSolute[i], coord_x_start, coord_y_start);
   }
 
@@ -847,42 +849,64 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
   int i, j, idx;
   char fn_tmp[1024];
 
+#ifdef _DEBUG_
+  printf("  Mass in components:\n");
+#endif
+  
   for (i=0; i<m_nChem; i++) {
 
     for (j=0; j<m_nVehicle; j++) {
       idx = i*m_nVehicle+j;
       sprintf(fn_tmp, "%s_vh_chem%d_comp%d.txt", fn, i, j);
       m_Vehicle[idx].saveGrids(b_1st_time, fn_tmp);
+#ifdef _DEBUG_
+      printf( "\tVehicle #%d \t %.3e\n", idx, m_Vehicle[idx].getAmount() );
+#endif
     }
 
     for (j=0; j<m_nStraCorn; j++) {
       idx = i*m_nStraCorn+j;
       sprintf(fn_tmp, "%s_sc_chem%d_comp%d.txt", fn, i, j);
       m_StraCorn[idx].saveGrids(b_1st_time, fn_tmp);
+#ifdef _DEBUG_
+      printf( "\tStraCorn #%d \t %.3e\n", idx, m_StraCorn[idx].Comp::getAmount() );
+#endif
     }
 
     for (j=0; j<m_nSurSebum; j++) {
       idx = i*m_nSurSebum+j;
       sprintf(fn_tmp, "%s_sursb_chem%d_comp%d.txt", fn, i, j);
       m_SurSebum[idx].saveGrids(b_1st_time, fn_tmp);
+#ifdef _DEBUG_
+      printf( "\tSurSebum #%d \t %.3e\n", idx, m_SurSebum[idx].getAmount() );
+#endif
     }
 
     for (j=0; j<m_nSebum; j++) {
       idx = i*m_nSebum+j;
       sprintf(fn_tmp, "%s_sb_chem%d_comp%d.txt", fn, i, j);
       m_Sebum[idx].saveGrids(b_1st_time, fn_tmp);
+#ifdef _DEBUG_
+      printf( "\tSebum #%d \t %.3e\n", idx, m_Sebum[idx].getAmount() );
+#endif
     }
 
     for (j=0; j<m_nViaEpd; j++) {
       idx = i*m_nViaEpd+j;
       sprintf(fn_tmp, "%s_ve_chem%d_comp%d.txt", fn, i, j);
       m_ViaEpd[idx].saveGrids(b_1st_time, fn_tmp);
+#ifdef _DEBUG_
+      printf( "\tViaEpd #%d \t %.3e\n", idx, m_ViaEpd[idx].getAmount() );
+#endif
     }
 
     for (j=0; j<m_nDermis; j++) {
       idx = i*m_nDermis+j;
       sprintf(fn_tmp, "%s_de_chem%d_comp%d.txt", fn, i, j);
       m_Dermis[idx].saveGrids(b_1st_time, fn_tmp);
+#ifdef _DEBUG_
+      printf( "\tDermis #%d \t %.3e\n", idx, m_Dermis[idx].getAmount() );
+#endif
     }
 
     if (m_b_has_blood) {

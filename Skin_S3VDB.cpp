@@ -21,6 +21,9 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
+  m_coord_sys = Cylindrical;
+  
+
   // setup compartment matrix
   //  [ SurSB, SurSB ]
   //  [ SC   , HarSB ]
@@ -35,8 +38,14 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   // boundary condition: up, left, right, down
   BdyCondStr bdys_sb_sur1 = {ZeroFlux,  ZeroFlux, FromOther, FromOther};
   BdyCondStr bdys_sb_sur2 = {ZeroFlux,  FromOther, ZeroFlux, FromOther};
+#ifdef _DEBUG_ // in debug mode, switch off the sink below sb_har & sc
+  BdyCondStr bdys_sb_har = {FromOther,  FromOther, ZeroFlux, ZeroFlux};
+  BdyCondStr bdys_sc = {FromOther, ZeroFlux, FromOther, ZeroFlux};
+#else
   BdyCondStr bdys_sb_har = {FromOther,  FromOther, ZeroFlux, ZeroConc};
   BdyCondStr bdys_sc = {FromOther, ZeroFlux, FromOther, ZeroConc};
+#endif
+  
   //BdyCondStr bdys_ve = bdys_sc;
   //BdyCondStr bdys_de = {FromOther, Periodic, Periodic, ZeroFlux};
 
@@ -63,16 +72,27 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   Crystal crystal;
   //crystal.shape = HyperRect;
   crystal.shape = BottomOnly;
-  crystal.density = 1.782e3; // kg/m^3, ZnPT
+  crystal.density = 1.782e3; // kg/m^3, ZnPT, from EC Opinion on ZnPT
   crystal.dim = 2;
   crystal.len[0] = 0.5e-6;// 10e-6; // 0.5e-6;
   crystal.len[1] = 0.5e-6; //0.01e-6;   // 0.5e-6;
+  //crystal.len[0] = 10e-6; 
+  //crystal.len[1] = 0.01e-6;
   crystal.area = crystal.len[0]*crystal.len[1];
+
+  if (m_coord_sys == Cartesian)
+    sursb_init_mass_solid = crystal.area*m_dz_dtheta * crystal.density;
+  else if (m_coord_sys == Cylindrical ){
+    sursb_init_mass_solid = M_PI * (crystal.len[0]*crystal.len[0]) * m_dz_dtheta / 360; // top view area
+    sursb_init_mass_solid *= crystal.len[1] * crystal.density;
+  }
+  else
+    SayBye("Coordinate system not implemented");
   
-  sursb_init_mass_solid = crystal.area*m_dz_dtheta * 1.782e3; // from EC Opinion on ZnPT
   sursb_k_disv_per_area = 5e-7;
-  // sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
-  sursb_k_rect = 0;
+  sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
+  // sursb_k_rect = 1.736e-5; // from Unilever, only use the first 2 data points (i.e. up to day 1) for estimation
+  //sursb_k_rect *= 0; //0.1;
   // sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
   sursb_Csat = 40 * 1e-3; // 40 ppm, converted to kg/m3
 
@@ -85,6 +105,7 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   m_CompIdx[0][0].pComp = new Comp*[1];
   m_CompIdx[0][0].pComp[0] = &m_SurSebum[0];
   dim += m_SurSebum[0].m_dim;
+  // m_SurSebum[0].m_grids[19].m_concChem = 1;
 
   coord_x_start = 0; coord_y_start = y_len_sc;
   createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,

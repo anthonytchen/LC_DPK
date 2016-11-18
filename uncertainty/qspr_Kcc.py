@@ -86,6 +86,41 @@ def qspr_Ksc(paras, lg10Kow):
         
     return Ksc_pred
 
+
+def qspr_lg10Ksc(paras, lg10Kow, lg10Z=None):
+    ''' Function to predict the VOLUMETRIC partition coefficient between stratum corneum (and water)
+    Args:
+        paras, lg10Kow are not used if lg10Z is present
+        lg10Z contains [lg10Kcc, lg10Klp]
+    '''
+
+    if lg10Z is None:
+        return qspr_lg10Ksc(paras, lg10Kow)
+
+    lg10Kcc = lg10Z[0]
+    lg10Klp = lg10Z[1]
+    
+    w_pro = 0.77
+    w_lip = 0.23
+    w_wat = 2.99
+
+    rho_pro = 1.37
+    v_pro = w_pro/rho_pro
+    rho_lip = 0.90
+    v_lip = w_lip/rho_lip
+    rho_wat = 1.00
+    v_wat = w_wat/rho_wat
+
+    v_total = v_pro + v_lip + v_wat
+    phi_pro = v_pro / v_total
+    phi_lip = v_lip / v_total
+    phi_wat = v_wat / v_total
+
+    Ksc_pred = phi_pro*rho_pro/rho_wat* (10**lg10Kcc) + phi_lip*rho_lip/rho_wat* (10**lg10Klp) + phi_wat
+        
+    return np.log10(Ksc_pred)
+
+
 ###########################################################
 def qspr_lg10Kcc(paras, lg10Kow):
     ''' Function to predict the log10 volumetric partition coefficient between corneocyte (and water)'''
