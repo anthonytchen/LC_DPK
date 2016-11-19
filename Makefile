@@ -2,8 +2,8 @@
 CC=g++
 
 # libraries
-LIBS=-L/usr/local/lib -lm -pthread -lsundials_cvode -lsundials_nvecserial
-INC=-I/usr/local/include/
+LIBS=-L/usr/local/lib -L/user/HS104/tc0008/work/lib/ -lm -pthread -lsundials_cvode -lsundials_nvecserial
+INC=-I/usr/local/include/ -I/user/HS104/tc0008/work/include/
 
 #CFLAGS=-O2 -ffast-math -Wno-deprecated -c
 CFLAGS=-g -O0 -c -Wno-write-strings -std=c++11

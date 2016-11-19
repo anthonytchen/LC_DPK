@@ -3,26 +3,31 @@
 
 #include "stdafx.h"
 #include "arg.h"
+#include "Config.h"
 #include "Chemical.h"
 #include "Skin_VSVDB.h"
 
 
 int main (int argc, char* argv[])
 {
-  double MW, log_K_ow, log_K_vh, K_vh, pKa,
+  /*double MW, log_K_ow, log_K_vh, K_vh, pKa,
     conc_vehicle, diffu_vehicle, partition_dermis2blood, k_clear_blood, area_vehicle,
     t_simu, t_end, t_inv, t_remove, offset_y_sc, dx_vehicle, x_len_viaepd, x_len_dermis;
+  */
+  double t_simu, t_end, t_inv, t_remove;
   bool b_1st_save = true;
-  int b_inf_src = 0;
-  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de;
+  // int b_inf_src = 0;
+  int i; // , n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de;
   char fn_coord_x[1024], fn_coord_y[1024];
 	
   static int nDis = 1;
-  static char *fn = "chemical_name";
+  static char *dir = "Dir";  
+  static char *cfn = "Caffeine.cfg";
   char fn_conc[1024] = "conc";
 
 	
   t_end = 900; t_inv = 10; t_remove = t_end/3600; // simulation time and interval in seconds
+  
   n_layer_x_sc = 23; //16
   n_layer_y_sc = 1; // 2
   n_grids_x_ve = 10;
@@ -30,8 +35,44 @@ int main (int argc, char* argv[])
   offset_y_sc = 40.03751e-6;
   x_len_viaepd = 100e-6; // depth of viable epidermis
   x_len_dermis = 1200e-6; // depth of dermis
-  
 
+  // Provide a command line user interface
+  static Config_t params[] = {
+
+    "tinv", "Simulation time interval (s)",
+    "-tinv", DOUBLE, (caddr_t)&t_inv,
+
+    "tend", "Simulation end time (s)",
+    "-tend", DOUBLE, (caddr_t)&t_end,  
+
+    "cfn", "File name of the configuration file",
+    "-cfn", STRING, (caddr_t)&cfn,
+    
+    "dir", "Directory to store simulation data",
+    "-dir", STRING, (caddr_t)&dir,
+
+    "dis", "Display options; 0 - most parsimonious; 3 - most verbose",
+    "-dis", INT, (caddr_t)&nDis,
+	  
+    0, 0, 0, NOTYPE, 0
+
+  };
+  if ( argc < 2) {
+    pusage ( argv[0], params );
+    exit (0);
+  }
+  if ( ppconf (argc, argv, params, true) ) {
+    pusage (argv[0], params);
+    exit (1);
+  }
+
+  sprintf(fn_conc, "mkdir -p ./%s", dir);
+  system(fn_conc);
+  sprintf(fn_conc, "./%s/conc", dir);
+  sprintf(fn_coord_x, "./%s/coord_x", dir);
+  sprintf(fn_coord_y, "./%s/coord_y", dir);
+
+  
   // Nicotine
   
   MW = 162.23;
