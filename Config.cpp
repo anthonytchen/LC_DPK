@@ -66,7 +66,7 @@ void Config::ReadConfigFile(const char fn[])
       else if ( !name.compare("VEH_INIT_CONC") )
 	m_conc_vehicle = value_d;
       else if ( !name.compare("VEH_DX") )
-	m_dx_vehicle = value_d;
+	m_x_len_vehicle = value_d;
       else if ( !name.compare("VEH_AREA") )
 	m_area_vehicle = value_d;
       else if ( !name.compare("VEH_INFINITE") )
@@ -87,6 +87,10 @@ void Config::ReadConfigFile(const char fn[])
 	m_x_len_ve = value_d;
       else if ( !name.compare("SKIN_LEN_X_DE") )
 	m_x_len_de = value_d;
+      else if ( !name.compare("SKIN_PARTITION_DE2BD") ) // dermis to blood partition
+	m_partition_dermis2blood = value_d;
+      else if ( !name.compare("SKIN_CLEAR_BD") ) // blood clearance rate
+	m_Kclear_blood = value_d;
 
       else if ( !name.compare("SKIN_N_GRIDS_X_SB_SUR") )
 	m_n_grids_x_sb_sur = value_i;

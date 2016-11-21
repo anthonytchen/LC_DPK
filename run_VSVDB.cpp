@@ -3,62 +3,25 @@
 
 #include "stdafx.h"
 #include "arg.h"
+#include "Config.h"
 #include "Chemical.h"
 #include "Skin_VSVDB.h"
 
 
 int main (int argc, char* argv[])
 {
-  double MW, log_K_ow, log_K_vh, K_vh, pKa,
-    conc_vehicle, diffu_vehicle, partition_dermis2blood, k_clear_blood, area_vehicle,
-    t_simu, t_end, t_inv, t_remove, offset_y_sc, dx_vehicle, x_len_viaepd, x_len_dermis;
+  double t_simu, t_end, t_inv, t_remove;
   bool b_1st_save = true;
-  int b_inf_src = 0;
-  int i, n_layer_x_sc, n_layer_y_sc, n_grids_x_ve, n_grids_x_de;
+  int i;
   char fn_coord_x[1024], fn_coord_y[1024];
 	
   static int nDis = 1;
-  static char *fn = "chemical_name";
+  static char *dir = "Dir";
+  static char *cfn = "Caffeine.cfg";
   char fn_conc[1024] = "conc";
-
 	
-  t_end = 900; t_inv = 10; t_remove = t_end/3600; // simulation time and interval in seconds
-  n_layer_x_sc = 23; //16
-  n_layer_y_sc = 1; // 2
-  n_grids_x_ve = 10;
-  n_grids_x_de = 10;
-  offset_y_sc = 40.03751e-6;
-  x_len_viaepd = 100e-6; // depth of viable epidermis
-  x_len_dermis = 1200e-6; // depth of dermis
+  t_end = 900; t_inv = 10; t_remove = 1e10;  // simulation time and interval in seconds
   
-
-  // Nicotine
-  
-  MW = 162.23;
-  log_K_ow = 1.17;
-  pKa = 3.12; // a base
-
-  /* bannon paper
-  dx_vehicle = 1e-4; // thickness of vehicle in meter
-  area_vehicle = 3.5*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 15.0*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
-  diffu_vehicle = 1e-13; // diffusivity of solute in vehicle
-  partition_vehicle = 1;
-  partition_dermis2blood = 1.0/pow(10,0.04);
-  k_clear_blood = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s, 1250 = 20.8e-6, 1540 = 25.7e-6
-  */
-
-  /* vanakoski  paper */
-  dx_vehicle = 1.5e-4; // thickness of vehicle in meter
-  area_vehicle = 22.5*1e-4; // cm2 patch, represented in m2
-  conc_vehicle = 39.37*1e-6/(area_vehicle*dx_vehicle); // mg in cm2 patch, with patch thickness 0.1cm; in kg/m3
-  diffu_vehicle = -1; // using diffusivity in water
-  log_K_vh = log10(0.7);
-  partition_dermis2blood = 1.0/pow(10,0.04);
-  // partition_dermis2blood /= 2;
-  k_clear_blood = 23.3e-6; // 1400 ml/min = 23.3e-6 m3/s, 1250 = 20.8e-6, 1540 = 25.7e-6
-
-	
   // Provide a command line user interface
   static Config_t params[] = {
 
@@ -68,39 +31,18 @@ int main (int argc, char* argv[])
     "tend", "Simulation end time (s)",
     "-tend", DOUBLE, (caddr_t)&t_end,  
 
-    "MW", "molecular weight",
-    "-MW", DOUBLE, (caddr_t)&MW,
-
-    "log_Kow", "log10 of partition octanol:water",
-    "-Kow", DOUBLE, (caddr_t)&log_K_ow,
-
-    "log_K_vh", "log10 of partition vehicle:water",
-    "-Kvh", DOUBLE, (caddr_t)&log_K_vh,
-
-    "n_layer_x_sc", "Number of layers (x-axis, verticle) of cells in stratum corneum",
-    "-nxsc", INT, (caddr_t)&n_layer_x_sc,
+    "cfn", "File name of the configuration file",
+    "-cfn", STRING, (caddr_t)&cfn,
     
-    "n_layer_y_sc", "Number of layers (y-axis, lateral) of cells in stratum corneum",
-    "-nysc", INT, (caddr_t)&n_layer_y_sc,
+    "dir", "Directory to store simulation data",
+    "-dir", STRING, (caddr_t)&dir,
 
-    "x_len_viaepd", "Depth of viable epidermis (m)",
-    "-xve", DOUBLE, (caddr_t)&x_len_viaepd,
-
-    "x_len_dermis", "Depth of dermis (m)",
-    "-xde", DOUBLE, (caddr_t)&x_len_dermis,
-
-    "fn", "File name prefix to store concentration, coordinates, etc",
-    "-fn", STRING, (caddr_t)&fn,
-
-    "inf_src", "Whether the vehicle is an infinite source",
-    "-inf_src", INT, (caddr_t)&b_inf_src,
+    "dis", "Display options; 0 - most parsimonious; 3 - most verbose",
+    "-dis", INT, (caddr_t)&nDis,
 
     "t_remove", "Time when the vehicle is removed (hrs)",
     "-trm", DOUBLE, (caddr_t)&t_remove,
-	   
-    "dis", "Display options; 0 - most parsimonious; 3 - most verbose",
-    "-dis", INT, (caddr_t)&nDis,
-	  
+	     
     0, 0, 0, NOTYPE, 0
 
   };
@@ -112,31 +54,30 @@ int main (int argc, char* argv[])
     pusage (argv[0], params);
     exit (1);
   }
+
   
-  sprintf(fn_conc, "%s.conc", fn);
-  sprintf(fn_coord_x, "%s.coord_x", fn);
-  sprintf(fn_coord_y, "%s.coord_y", fn);
+  sprintf(fn_conc, "mkdir -p ./%s", dir);
+  system(fn_conc);
+  sprintf(fn_conc, "./%s/conc", dir);
+  sprintf(fn_coord_x, "./%s/coord_x", dir);
+  sprintf(fn_coord_y, "./%s/coord_y", dir);
 
   clock_t start, end;
   double cpu_time_used;
-  
+
+  Config _conf;
+  _conf.ReadConfigFile(cfn);
+
   Chemical _chem;
-  _chem.Init(MW, pow(10, log_K_ow), pKa, 0.31, 0.95, 'B'); // the last letter denotes acid (A) or base (B)
+  _chem.InitConfig(_conf);
 
   Skin_VSVDB _skin;
-  K_vh = pow(10, log_K_vh);
-  _skin.Init(&_chem, 1, &conc_vehicle, &K_vh, &diffu_vehicle,
-	     dx_vehicle, area_vehicle, n_layer_x_sc, n_layer_y_sc, offset_y_sc,
-	     x_len_viaepd, n_grids_x_ve, x_len_dermis, n_grids_x_de,
-	     &partition_dermis2blood, &k_clear_blood, b_inf_src);
+  _skin.InitConfig(&_chem, _conf);
+
   _skin.saveCoord( fn_coord_x, fn_coord_y );
-	
   if ( nDis > 1 )
     _skin.displayGrids();	
 
-
-  double flux1, flux2, flux3, flux4;
-  
   for ( t_simu=.0; t_simu<t_end; t_simu+=t_inv ){
     start = clock();
    

@@ -103,6 +103,16 @@ void Skin_VSVDB::Init(Chemical *chemSolute, int nChem,
   m_React.idx_substrate = -1;
 }
 
+void Skin_VSVDB::InitConfig(Chemical *chemSolute, Config &conf)
+{
+  Init(chemSolute, conf.m_nChem, &conf.m_conc_vehicle, &conf.m_partition_vehicle, &conf.m_diffu_vehicle,       
+       conf.m_x_len_vehicle, conf.m_area_vehicle,
+       conf.m_n_layer_x_sc, conf.m_n_layer_y_sc, conf.m_offset_y_sc,
+       conf.m_x_len_ve, conf.m_n_grids_x_ve, conf.m_x_len_de, conf.m_n_grids_x_de,
+       &conf.m_partition_dermis2blood, &conf.m_Kclear_blood, conf.m_bInfSrc);
+}
+
+
 void Skin_VSVDB::Release(void)
 {
   Skin::Release();

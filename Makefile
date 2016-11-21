@@ -34,9 +34,9 @@ run_VS: run_VS.cpp except.o arg.o Config.o Chemical.o \
 	$(LIBS) $(INC) -o run_VS
 
 # vehicle, stratum corneum, viable epidermis, dermis & blood
-run_VSVDB: run_VSVDB.cpp except.o arg.o Chemical.o \
+run_VSVDB: run_VSVDB.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o
-	$(LD) $(LFLAGS)  run_VSVDB.cpp except.o arg.o Chemical.o \
+	$(LD) $(LFLAGS)  run_VSVDB.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_VSVDB.o Blood.o \
 	$(LIBS) $(INC) -o run_VSVDB
 

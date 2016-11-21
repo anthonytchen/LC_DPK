@@ -24,7 +24,7 @@ class Config
     m_partition_vehicle, m_diffu_vehicle;
   
   /* parameters relating to compartments (vehicle, skin, etc.) */
-  double m_conc_vehicle, m_dx_vehicle, m_area_vehicle;
+  double m_conc_vehicle, m_x_len_vehicle, m_area_vehicle;
   int m_bInfSrc;
   
   int m_n_layer_x_sc, m_n_layer_y_sc;
@@ -32,6 +32,8 @@ class Config
 
   int m_n_grids_x_ve, m_n_grids_x_de;
   double m_x_len_ve, m_x_len_de;
+
+  double m_partition_dermis2blood, m_Kclear_blood;
 
   int m_n_grids_x_sb_sur, m_n_grids_y_sb_sur, m_n_grids_x_sb_har, m_n_grids_y_sb_har;
   double m_x_len_sb_sur, m_y_len_sb_har;

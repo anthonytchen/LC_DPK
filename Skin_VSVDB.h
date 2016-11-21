@@ -17,6 +17,7 @@ public:
 
 public:
   void Init(Chemical*, int, double*, double*, double*, double, double, int, int, double, double, int, double, int, double*, double*, bool);
+  void InitConfig(Chemical *, Config&);
   void Release();
 
 };
