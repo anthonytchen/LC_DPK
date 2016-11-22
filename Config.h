@@ -18,6 +18,9 @@ using namespace std;
 class Config
 {
  public:
+  /* configuration of compartments */
+  char m_sComps[1024];
+  
   /* parameters relating to chemical (s) */
   int m_nChem; // number of compounds
   double m_mw, m_K_ow, m_pKa, m_frac_non_ion, m_frac_unbound, m_acid_base,

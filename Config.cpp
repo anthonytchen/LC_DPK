@@ -41,8 +41,12 @@ void Config::ReadConfigFile(const char fn[])
       value_d = strtod( value.c_str(), NULL );
       value_i = strtol( value.c_str(), NULL, 10 );
 
+      // setup compartments
+      if ( !name.compare("COMPARTMENT_SETUP") ) 
+	strcpy( m_sComps, value.c_str() );
+
       // parameters relating to chemical(s)
-      if ( !name.compare("CHEM_NO") ) // number of compounds
+      else if ( !name.compare("CHEM_NO") ) // number of compounds
 	m_nChem = value_i;
       else if ( !name.compare("CHEM_MW") ) // molecular weight
 	m_mw = value_d;      
