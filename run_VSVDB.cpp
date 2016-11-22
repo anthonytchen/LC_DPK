@@ -1,5 +1,10 @@
-// The console application for predicting dermal and systemic kinetics
-//
+/*! The console application for predicting dermal and systemic kinetics
+  V - vehicle
+  S - stratum corneum
+  V - viable dermis
+  D - dermis
+  B - blood
+ */
 
 #include "stdafx.h"
 #include "arg.h"

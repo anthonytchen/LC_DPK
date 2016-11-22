@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "Comp.h"
 
-/* This function will be called at the beginning of the compartment-specific Init function
-   thus it only sets up member variables generic to all types of compartment
+/*! This function will be called at the beginning of the compartment-specific Init function
+  thus it only sets up member variables generic to all types of compartment
  */
 void Comp::Init( CoordSys coord_sys, double dz_dtheta,
 		 BdyCond bdy_cond_up, BdyCond bdy_cond_left, BdyCond bdy_cond_right, BdyCond bdy_cond_down)
@@ -30,6 +30,8 @@ void Comp::Init( CoordSys coord_sys, double dz_dtheta,
   m_gridSink.InitSK(); // setup a sink grid
 }
 
+/*! Release the memory allocated
+ */
 void Comp::Release()
 {
   int i, j, idx;
@@ -136,7 +138,7 @@ void Comp::passBdyMassOut(Comp *bdyRight, Comp *bdyDown)
     memcpy(bdyDown->m_MassIn_up, m_MassOut_down, sizeof(double)*m_n_gridsBdyDown);
 }
 
-/* Calculate the interfacial area between gridThiis and a neighbouring grid
+/*! Calculate the interfacial area between gridThiis and a neighbouring grid
    direction: [0] = up; [1] = left; [2] = right; [3] = down
 */
 double Comp::compInterArea(Grid gridThiis, int direction)
@@ -180,7 +182,8 @@ double Comp::compInterArea(Grid gridThiis, int direction)
 
 }
 
-/* compute the volume of this grid */
+/*! compute the volume of this grid 
+ */
 double Comp::compVolume(Grid gridThiis)
 {
   double volume, r1, r2;
@@ -204,8 +207,9 @@ double Comp::compVolume(Grid gridThiis)
   return volume;
 }
 
-/* compute this compartment's total area to a certain direction defined below
-   direction: [0] = up; [1] = left; [2] = right; [3] = down */
+/*! compute this compartment's total area to a certain direction defined below
+   direction: [0] = up; [1] = left; [2] = right; [3] = down 
+*/
 double Comp::compTotalArea(int direction)
 {
   double area, r1, r2, pi_alpha_360;
@@ -244,7 +248,8 @@ double Comp::compTotalArea(int direction)
   return area;
 }
 
-/* compute this compartment's total volume */
+/*! compute this compartment's total volume 
+ */
 double Comp::compTotalVolume()
 {
   double volume;
