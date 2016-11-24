@@ -42,6 +42,10 @@ public:
   CoordSys m_coord_sys;
   struct Reaction m_React;
 
+  /* The amount of mass in individual compartments, row dominating arrangement */
+  int m_n_amount;
+  double *m_amount;
+  
   /* The compartments */
   Vehicle *m_Vehicle;
   Sebum *m_Sebum;
@@ -87,6 +91,7 @@ public:
   void resetVehicle(double[], double[], double[]); // reset vehicle concentration, partition coefficient, diffusivity
   void removeVehicle(); 
 
+  double compCompartAmount();
   void compFlux_2sc(double *flux);
   void compFlux_sc2down(double *flux);
   void compFlux_ve2down(double *flux);
@@ -114,6 +119,7 @@ public:
 
   void displayGrids();
   void saveGrids(bool, const char []);
+  void saveAmount(bool, const char []);
   void getXCoord(double *coord_x, int dim);
   void getYCoord(double *coord_y, int dim);
   void saveCoord(const char [], const char []);

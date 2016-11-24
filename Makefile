@@ -19,13 +19,20 @@ LFLAGS=-g -O0 -Wno-write-strings -std=c++11
 all:	except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o \
 	StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Skin_VSVDB.o Skin_S3VDB.o Blood.o \
-	run_VS run_VSVDB run_S3VDB #LCK_metabo
+	run_VecCompart run_VS run_VSVDB run_S3VDB #LCK_metabo
 
 clean:
 	rm -f *.o *.lnk
 
 ### executables ##
 
+# vector compartments
+run_VecCompart: run_VecCompart.cpp except.o arg.o Config.o Chemical.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o
+	$(LD) $(LFLAGS)  run_VecCompart.cpp except.o arg.o Config.o Chemical.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o \
+	$(LIBS) $(INC) -o run_VecCompart
+	
 # vehicle & stratum corneum
 run_VS: run_VS.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o

@@ -43,7 +43,7 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
   
   Skin::Init();
   
-  int i, nxComp, nyComp;
+  int i, nxComp, nxCompAll, nyComp;
   double coord_x_start, coord_y_start, coord_x_end, coord_y_end;
   double x_len_sc, y_len_sc;
 
@@ -52,13 +52,14 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
   /* setup compartment matrix, actually a vector here */
   
   nyComp = 1;
-  nxComp = strlen(m_sComps);
+  nxCompAll = strlen(m_sComps); // potentially it contains blood compartment
+  nxComp = nxCompAll;
 
-  if ( nxComp < 2 )
+  if ( nxCompAll < 2 )
     SayBye("Error! At least two compartments are needed");
   m_nVehicle = m_nStraCorn = 1;
   
-  if ( nxComp > 4 ) { // VSVDB
+  if ( nxCompAll > 4 ) { // VSVDB
     m_b_has_blood = true;
     nxComp = 4; // blood is not a 2D diffusion compartment, thus doesn't count here
   }
@@ -67,7 +68,8 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
   /* define possible boundary condition (up, left, right, down) */
   BdyCondStr bdys_top = {ZeroFlux,  Periodic, Periodic, FromOther}; // top compartment
   BdyCondStr bdys_mid = {FromOther, Periodic, Periodic, FromOther}; // middle compartment
-  BdyCondStr bdys_bot = {FromOther, Periodic, Periodic, ZeroFlux};  // bottom compartment
+  BdyCondStr bdys_bot_0conc = {FromOther, Periodic, Periodic, ZeroConc}; // bottom compartment, below is receptor (thus ZeroConc)
+  BdyCondStr bdys_bot_0flux = {FromOther, Periodic, Periodic, ZeroFlux}; // bottom compartment, below is ZeroFlux
 
   
   /*  set up the compartments */
@@ -89,7 +91,7 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
   
   if ( nxComp == 2 )
     createSC(chemSolute, coord_x_start, coord_y_start, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
-	     bdys_bot, &coord_x_end, &coord_y_end);
+	     bdys_bot_0conc, &coord_x_end, &coord_y_end);
   else
     createSC(chemSolute, coord_x_start, coord_y_start, n_layer_x_sc, n_layer_y_sc, offset_y_sc, 
 	     bdys_mid, &coord_x_end, &coord_y_end);
@@ -103,12 +105,11 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
   // VE
   if ( nxComp > 2 ) {
     m_nViaEpd = 1;
-    m_dim_all += m_dim_ve;
     coord_x_start = coord_x_end; coord_y_start = 0;
     
     if ( nxComp == 3 )
       createVE(chemSolute, coord_x_start, coord_y_start, x_len_ve, y_len_sc, n_grids_x_ve, 1,
-	       bdys_bot, &coord_x_end, &coord_y_end);
+	       bdys_bot_0conc, &coord_x_end, &coord_y_end);
     else
       createVE(chemSolute, coord_x_start, coord_y_start, x_len_ve, y_len_sc, n_grids_x_ve, 1,
 	       bdys_mid, &coord_x_end, &coord_y_end);
@@ -116,22 +117,31 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
     m_CompIdx[2][0].type = emVE;
     m_CompIdx[2][0].pComp = new Comp*[1];
     m_CompIdx[2][0].pComp[0] = &m_ViaEpd[0];
+
+    m_dim_all += m_dim_ve;
   }
 
   // DE
   if ( nxComp > 3 ) {
     m_nDermis = 1;
-    m_dim_all += m_dim_de;
     coord_x_start = coord_x_end; coord_y_start = 0;
-    createDE(chemSolute, coord_x_start, coord_y_start, x_len_de, y_len_sc, n_grids_x_de, 1, m_b_has_blood,
-	     bdys_bot, &coord_x_end, &coord_y_end);
+
+    if ( nxCompAll != 5 ) // no blood compartment, thus in vitro with receptor fluid
+      createDE(chemSolute, coord_x_start, coord_y_start, x_len_de, y_len_sc, n_grids_x_de, 1, m_b_has_blood,
+	       bdys_bot_0conc, &coord_x_end, &coord_y_end);
+    else // otherwise connect with blood
+      createDE(chemSolute, coord_x_start, coord_y_start, x_len_de, y_len_sc, n_grids_x_de, 1, m_b_has_blood,
+	       bdys_bot_0flux, &coord_x_end, &coord_y_end);
+    
     m_CompIdx[3][0].type = emDE;
     m_CompIdx[3][0].pComp = new Comp*[1];
     m_CompIdx[3][0].pComp[0] = &m_Dermis[0];
+    
+    m_dim_all += m_dim_de;    
   }
 
   // BD
-  if ( strlen(m_sComps) == 5 ) {
+  if ( nxCompAll == 5 ) {
     m_dim_all += m_dim_bd;
     createBD(par_dermis2blood, blood_k_clear);
   }
@@ -151,27 +161,24 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
           m_StraCorn[i].createBoundary(0, 0);
 	  m_StraCorn[i].setBoundaryGrids(NULL, NULL);
     }
-    else {
+    else { // has viable epidermis
       m_StraCorn[i].createBoundary(0, m_ViaEpd[i].m_ny);
       m_StraCorn[i].setBoundaryGrids(NULL, m_ViaEpd[i].m_grids);
-    }
 
-    // Viable epidermis
-    if ( nxComp == 3 ) {
-      m_ViaEpd[i].createBoundary(0, 0);
-      m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
-    }
-    else {
-      m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);
-      m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
-    }
+      // Viable epidermis
+      if ( nxComp == 3 ) {
+	m_ViaEpd[i].createBoundary(0, 0);
+	m_ViaEpd[i].setBoundaryGrids(NULL, NULL);
+      }
+      else { // has dermis
+	m_ViaEpd[i].createBoundary(0, m_Dermis[i].m_ny);
+	m_ViaEpd[i].setBoundaryGrids(NULL, m_Dermis[i].m_grids);
 
-    // Dermis
-    if ( nxComp > 3) {
-      m_Dermis[i].createBoundary(0, 0);    
-      m_Dermis[i].setBoundaryGrids(NULL, NULL);
+	// Dermis
+	m_Dermis[i].createBoundary(0, 0);    
+	m_Dermis[i].setBoundaryGrids(NULL, NULL);
+      }
     }
-
   }
 
 
@@ -190,6 +197,40 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
 {
   if ( nChem > 1 )
     SayBye("Not implemented: diffusion of multiple compounds through 2D matrix setup of compartments");
+}
+
+/*! save flux terms; right now only implemented for 
+    flux into stratum corneum and from stratum corneum into either sink or viable epidermis
+    return: TRUE if the two flux values are close to each other; otherwise FALSE
+ */
+bool Skin_Setup::saveFlux(bool b_1st_time, const char fn[], double *flux_rtn)
+{
+  if ( strcmp(m_sComps, "VS") )
+    return false;
+  
+  int i;
+  double flux, flux1;
+  FILE *file = NULL;
+   
+  if ( b_1st_time )
+    file = fopen(fn, "w");
+  else 
+    file = fopen(fn, "a");
+
+  compFlux_2sc(&flux);
+  fprintf(file, "%.5e\t", flux);
+  compFlux_sc2down(&flux1);
+  fprintf(file, "%.5e\t", flux1);
+  fprintf(file, "\n");
+  
+  fclose(file);
+
+  if ( fabs( 1 - flux1/flux )  < 1e-6 ) {
+    *flux_rtn = flux;
+    return true;
+  }
+  else
+    return false;
 }
 
 /*

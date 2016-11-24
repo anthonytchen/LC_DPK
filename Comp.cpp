@@ -252,8 +252,13 @@ double Comp::compTotalArea(int direction)
  */
 double Comp::compTotalVolume()
 {
-  double volume;
-  SayBye("not implemented yet");
+  double volume = 0;;
+  int i, j;
+
+  for ( i = 0; i < m_nx; i ++ ) 
+    for ( j = 0; j < m_ny; j ++ )
+      volume += compVolume( m_grids[i*m_ny+j] );
+
   return volume;
 }
 

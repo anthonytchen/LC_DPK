@@ -46,6 +46,9 @@ public:
   
   void InitVecCompart(Chemical*, int, double*, double*, double*, double, double, int, int, double, double, int, double, int, double*, double*, bool);
   void InitMtxCompart(Chemical*, int, double*, double*, double*, double, double, int, int, double, double, int, double, int, double*, double*, bool);
+
+  bool saveFlux(bool, const char [], double*);
+
 };
 
 #endif

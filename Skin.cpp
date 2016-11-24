@@ -8,6 +8,8 @@ void Skin::Init()
 {
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
+  m_amount = NULL;
+  
   m_Vehicle = NULL;
   m_SurSebum = NULL;
   m_Sebum = NULL;
@@ -42,6 +44,8 @@ void Skin::InitReaction(int idx_substrate, int idx_product, double Vmax, double 
 void Skin::Release(void)
 {
   int i;
+
+  if (!m_amount) delete [] m_amount;
 
   if(m_nVehicle>0){
     delete [] m_concVehicleInit;
@@ -88,6 +92,12 @@ void Skin::createCompMatrix(int nxComp, int nyComp)
   m_CompIdx = new CompIdx*[nxComp];
   for (int i = 0; i < nxComp; i++)
     m_CompIdx[i] = new CompIdx[nyComp];
+
+  if ( m_nBlood > 0 ) // [total] [compartments] [blood] [blood_cleared]
+    m_n_amount = m_nxComp*m_nyComp+3;
+  else // [total] [compartments] [sink]
+    m_n_amount = m_nxComp*m_nyComp+2;
+  m_amount = new double[m_n_amount];
 }
 
 void Skin::releaseCompMatrix()
@@ -193,7 +203,8 @@ void Skin::createSC(const Chemical *chemSolute,
 
   double g, d, s, t, water_frac_surface;
   g=.075e-6; d=40e-6; s=0.075e-6; t=0.8e-6;
-  water_frac_surface = 0.20; // mass fraction of water on the surface of stratum corneum
+  water_frac_surface = 0.55; // mass fraction of water on the surface of stratum corneum;
+                             // 55% -- fully hydrated; 20% -- dry
 
   for (i=0; i<m_nChem; i++) {
     m_StraCorn[i].Init(g, d, s, t, m_dz_dtheta, n_layer_x_sc, n_layer_y_sc, offset_y_sc,
@@ -762,6 +773,62 @@ double Skin::getSCYlen()
 
 /*!
   Compute the mass (or mol, depending on concentration unit used) of solute in 
+   each compartment
+*/
+double Skin::compCompartAmount()
+{
+  assert(m_nChem == 1);
+
+  int i, j, idx, chemIdx=0;
+  double tmp, total, frac;
+  Comp *pCompThis = NULL;
+
+  total = m_concVehicleInit[chemIdx] * m_Vehicle[chemIdx].compTotalVolume();
+  m_amount[0] = total;
+  
+  idx = 1;
+  frac = 0;
+  for ( i = 0; i < m_nxComp; i++ ) {
+    for ( j = 0; j < m_nyComp; j++ ) {
+      pCompThis = m_CompIdx[i][j].pComp[chemIdx];
+      tmp = pCompThis->getAmount() / total;
+      m_amount[ idx + i*m_nyComp+j ] = tmp;
+      frac += tmp;
+    }
+  }
+  
+  idx = 1 + m_nxComp*m_nyComp;
+  if ( m_nBlood > 0 ) { // has blood
+    tmp = m_Blood[chemIdx].getAmount() / total;
+    m_amount[idx] = tmp;
+    frac += tmp;
+
+    tmp = m_Blood[chemIdx].getClearedAmount() / total;
+    m_amount[idx+1] = tmp;
+    frac += tmp;
+  }
+  else{ // has sink a.k.a. receptor fluid
+    m_amount[idx] = 1-frac; // this is not ideal but has been verified
+                            //  when switching off sink, i.e. using zero flux at the bottom
+  }
+
+  return total;
+
+  /*
+  fLayersAmount[0] = m_concVehicleInit[i] * m_Vehicle[i].compTotalVolume();
+  fLayersAmount[1] = m_Vehicle[i].getAmount();
+
+  m_StraCorn[i].getAmount(fLayersAmount+2, fLayersAmount+3, fLayersAmount+4);
+  fLayersAmount[5] = m_ViaEpd[i].getAmount();
+  fLayersAmount[6] = m_Dermis[i].getAmount();
+  fLayersAmount[7] = m_Blood[i].getAmount();
+  fLayersAmount[8] = m_Blood[i].getClearedAmount();
+  */
+}
+
+
+/*!
+  Compute the mass (or mol, depending on concentration unit used) of solute in 
    each layer
 */
 void Skin::getLayersAmount(double *fLayersAmount, int dim, int idx_chem)
@@ -914,6 +981,26 @@ void Skin::saveGrids(bool b_1st_time, const char fn[])
       m_Blood[i].saveConc(b_1st_time, fn_tmp);
     }
   }
+}
+
+/*! Save the total amount and percentage in individual compartments
+ */
+void Skin::saveAmount(bool b_1st_time, const char fn[])
+{
+  int i;
+  FILE *file = NULL;
+
+  if ( b_1st_time )
+    file = fopen(fn, "w");
+  else 
+    file = fopen(fn, "a");
+	
+  for ( i = 0; i < m_n_amount; i++ ){
+    fprintf(file, "%.5e\t", m_amount[i]);
+  }
+  fprintf(file, "\n");
+
+  fclose(file);
 }
 
 

@@ -105,7 +105,7 @@ void Grid::InitSK(const char name[], Chemical chem, double concChem, double x_co
   Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
 
   m_D = 1; // very big value, essentially means anything in the sink can be quickly removed
-  m_Kw = 1; // arbitrary value
+  m_Kw = 1; // 
 }
 
 void Grid::InitSK()
@@ -227,16 +227,20 @@ void Grid::InitVE_DE(const char name[], Chemical chem, double concChem, double x
 {
   Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
 
-  double binding_factor, D_free;
+  double binding_factor, D_free, K_lip, rou_lipid, rou_water;
 
-  binding_factor = 0.68 + 0.32/chem.m_frac_unbound + 0.025*chem.m_frac_non_ion*pow(chem.m_K_ow, 0.7);
+  rou_lipid = 0.9;
+  rou_water = 1;
+  K_lip = rou_lipid / rou_water * pow(chem.m_K_ow,0.69); // partition in SC lipid
+  
+  binding_factor = 0.65 + 0.325/chem.m_frac_unbound + 0.025*chem.m_frac_non_ion*K_lip;
 
   // c.f. L. Chen's Phar. Res. paper; -8.15 used because of unit (m2/s)
   //  Kasting's original paper used -4.15 because of unit (cm2/s)
   D_free = pow(10, -8.15-0.655*log10(chem.m_mw));
   m_D = D_free / binding_factor;
 
-  m_Kw = 0.7 * binding_factor;
+  m_Kw = 0.6 * binding_factor;
 }
 
 /*  --------------------------------------------- */
