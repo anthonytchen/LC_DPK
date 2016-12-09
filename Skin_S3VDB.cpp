@@ -21,7 +21,8 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
 
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
-  m_coord_sys = Cylindrical;
+  // m_coord_sys = Cylindrical;
+  m_coord_sys = Cartesian;
   
 
   // setup compartment matrix
@@ -93,13 +94,20 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   sursb_k_rect = 4.235e-6; // from Unilever, coverted to 1/s, note large error because the reaction is not first order
   // sursb_k_rect = 1.736e-5; // from Unilever, only use the first 2 data points (i.e. up to day 1) for estimation
   //sursb_k_rect *= 0; //0.1;
-  // sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
+  //sursb_Csat = 40 * 1e-6/(1e-3*0.9105); // 40 ppm, sebum specific gravity is 0.9105
   sursb_Csat = 40 * 1e-3; // 40 ppm, converted to kg/m3
 
+  int solid_at = 0;
+  
   coord_x_start = 0; coord_y_start = 0;
-  createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
-	      bdys_sb_sur1, &coord_x_end, &coord_y_end, 0,
-	      crystal, sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat);
+  if (solid_at == 0)
+    createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
+		bdys_sb_sur1, &coord_x_end, &coord_y_end, 0,
+		crystal, sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat);
+  else
+    createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sc, n_grids_x_sb_sur, n_grids_y_sb_sur,
+		bdys_sb_sur1, &coord_x_end, &coord_y_end, 0,
+		crystal, -1, -1, sursb_k_rect, -1);
   // m_SurSebum[0].setGridConc(1.0, 0, 0); // give the first grid some initial concentration
   m_CompIdx[0][0].type = emSurSB;
   m_CompIdx[0][0].pComp = new Comp*[1];
@@ -108,9 +116,14 @@ void Skin_S3VDB::Init(Chemical *chemSolute, int nChem,
   // m_SurSebum[0].m_grids[19].m_concChem = 1;
 
   coord_x_start = 0; coord_y_start = y_len_sc;
-  createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,
-	      bdys_sb_sur2, &coord_x_end, &coord_y_end, 1,
-	      crystal, -1, -1, sursb_k_rect, -1);
+  if (solid_at == 0)
+    createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,
+		bdys_sb_sur2, &coord_x_end, &coord_y_end, 1,
+		crystal, -1, -1, sursb_k_rect, -1);
+  else
+    createSurSB(chemSolute, coord_x_start, coord_y_start, x_len_sb_sur, y_len_sb_har, n_grids_x_sb_sur, 1,
+		bdys_sb_sur2, &coord_x_end, &coord_y_end, 1,
+		crystal, sursb_init_mass_solid, sursb_k_disv_per_area, sursb_k_rect, sursb_Csat);
   m_CompIdx[0][1].type = emSurSB;
   m_CompIdx[0][1].pComp = new Comp*[1];
   m_CompIdx[0][1].pComp[0] = &m_SurSebum[1];

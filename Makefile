@@ -19,7 +19,7 @@ LFLAGS=-g -O0 -Wno-write-strings -std=c++11
 all:	except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o \
 	StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Skin_VSVDB.o Skin_S3VDB.o Blood.o \
-	run_VecCompart run_VS run_VSVDB run_S3VDB #LCK_metabo
+	run_VecCompart run_VSVDB run_S3VDB #LCK_metabo
 
 clean:
 	rm -f *.o *.lnk
@@ -28,17 +28,11 @@ clean:
 
 # vector compartments
 run_VecCompart: run_VecCompart.cpp except.o arg.o Config.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Blood.o
 	$(LD) $(LFLAGS)  run_VecCompart.cpp except.o arg.o Config.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o \
+	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Blood.o \
 	$(LIBS) $(INC) -o run_VecCompart
-	
-# vehicle & stratum corneum
-run_VS: run_VS.cpp except.o arg.o Config.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o
-	$(LD) $(LFLAGS)  run_VS.cpp except.o arg.o Config.o Chemical.o \
-	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o Skin.o Skin_Setup.o Skin_VS.o Blood.o \
-	$(LIBS) $(INC) -o run_VS
+
 
 # vehicle, stratum corneum, viable epidermis, dermis & blood
 run_VSVDB: run_VSVDB.cpp except.o arg.o Config.o Chemical.o \
@@ -50,10 +44,10 @@ run_VSVDB: run_VSVDB.cpp except.o arg.o Config.o Chemical.o \
 # surface sebum, stratum corneum, hair sebum
 run_S3VDB: run_S3VDB.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o \
-	Skin.o Skin_Setup.o Skin_S3VDB.o Blood.o
+	Skin.o Skin_S3VDB.o Blood.o
 	$(LD) $(LFLAGS)  run_S3VDB.cpp except.o arg.o Config.o Chemical.o \
 	Grid.o Comp.o Vehicle.o Sebum.o SurSebum.o StraCorn.o ViaEpd.o Dermis.o \
-	Skin.o Skin_Setup.o Skin_S3VDB.o Blood.o \
+	Skin.o Skin_S3VDB.o Blood.o \
 	$(LIBS) $(INC) -o run_S3VDB
 
 #LCK_metabo: LCK_metabo.cpp Chemical.o Grid.o StraCorn.o ViaEpd.o Dermis.o Skin.o Blood.o
@@ -81,8 +75,6 @@ Sebum.o: Sebum.h Sebum.cpp
 	$(CC) $(CFLAGS) Sebum.cpp $(INC) -o Sebum.o
 SurSebum.o: SurSebum.h SurSebum.cpp
 	$(CC) $(CFLAGS) SurSebum.cpp $(INC) -o SurSebum.o
-#HarSebum.o: HarSebum.h HarSebum.cpp
-#	$(CC) $(CFLAGS) HarSebum.cpp $(INC) -o HarSebum.o
 StraCorn.o: StraCorn.h StraCorn.cpp
 	$(CC) $(CFLAGS) StraCorn.cpp $(INC) -o StraCorn.o
 ViaEpd.o: ViaEpd.h ViaEpd.cpp
@@ -91,13 +83,11 @@ Dermis.o: Dermis.h Dermis.cpp
 	$(CC) $(CFLAGS) Dermis.cpp $(INC) -o Dermis.o
 Skin.o: Skin.h Skin.cpp
 	$(CC) $(CFLAGS) Skin.cpp $(INC) -o Skin.o
-Skin_Setup.o: Skin_Setup.h Skin_Setup.cpp
-	$(CC) $(CFLAGS) Skin_Setup.cpp $(INC) -o Skin_Setup.o
-Skin_VS.o: Skin_VS.h Skin_VS.cpp
-	$(CC) $(CFLAGS) Skin_VS.cpp $(INC) -o Skin_VS.o
-Skin_VSVDB.o: Skin_VSVDB.h Skin_VSVDB.cpp
-	$(CC) $(CFLAGS) Skin_VSVDB.cpp $(INC) -o Skin_VSVDB.o
-Skin_S3VDB.o: Skin_S3VDB.h Skin_S3VDB.cpp
-	$(CC) $(CFLAGS) Skin_S3VDB.cpp $(INC) -o Skin_S3VDB.o
+Skin_Setup.o: Skin_Setup.h Skin_Setup.cpp Skin.h
+	$(CC) $(CFLAGS) Skin_Setup.cpp $(INC)
+Skin_VSVDB.o: Skin_VSVDB.h Skin_VSVDB.cpp Skin.h
+	$(CC) $(CFLAGS) Skin_VSVDB.cpp $(INC)
+Skin_S3VDB.o: Skin_S3VDB.h Skin_S3VDB.cpp Skin.h
+	$(CC) $(CFLAGS) Skin_S3VDB.cpp $(INC)
 Blood.o: Blood.h Blood.cpp
-	$(CC) $(CFLAGS) Blood.cpp $(INC) -o Blood.o
+	$(CC) $(CFLAGS) Blood.cpp $(INC)
