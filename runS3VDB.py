@@ -267,7 +267,7 @@ def runS3VDBfunc(t_range, t, fnchem):
     plt.savefig("2D_" + str(t_range[t]/3600.0) + "hr.png", bbox_inches='tight', dpi=300)
     plt.close()
 
-    return;
+    return (dat_sursb, dat_sursb_har, dat_sc, dat_sb_har)
 
 
 

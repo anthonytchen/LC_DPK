@@ -60,7 +60,7 @@ void SurSebum::compODE_dydt (double t, const double y[], double f[])
     updateKdisv(m_crystal.shape, y[idx]);
 
     idx = 0; // assume the solid only disolves into the left-most grid of sebum
-    // idx = m_dim-2; // assume the solid only disolves into the right-most grid of sebum
+    //idx = m_dim-2; // assume the solid only disolves into the right-most grid of sebum
     Cdiff =  m_Csat - y[idx];
     V = compVolume(m_grids[idx]);
     f[idx] += m_k_disv * Cdiff / V;
