@@ -20,7 +20,9 @@ Z = (dat_Plp[:,1], dat_Kcc[:,1])
 paras = np.empty_like (paras0)
 np.copyto(paras, paras0)
 
-hybmdl.EMmain(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, Y, Xz, Z, paras0, sig2_y, sig2_z, 500, 20, bnds)
+rlt_em = hybmdl.EMmain(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, Y, Xz, Z, paras0, sig2_y, sig2_z, 100, 10, bnds)
+rlt_pred = hybmdl.pred(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, rlt_em[0], rlt_em[1], rlt_em[2], rlt_em[3])
+plt.plot(Xy[:,0], np.squeeze(rlt_pred[2]), 'x', Xy[:,0], Y, 'o', Xy[:,0], np.squeeze(rlt_pred[2])+1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.', Xy[:,0], np.squeeze(rlt_pred[2])-1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.')
 
 
 def qspr_lg10K_cc_lip(paras, lg10Kow):

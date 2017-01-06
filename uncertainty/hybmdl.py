@@ -16,9 +16,8 @@ Nfeval = 1
 # Example:
 
 # todo list:
-# 1. modify calHess to allow arbitrary arguments to be used
-# 2. add a prediction function to allow prediction of mean and variance
-# 3. add a function to allow plug-in type model identification
+# 1. add a function to allow plug-in type model identification
+# 2. simulate data to compare plug-in and full bayesian approach
 
 ###########################################################
 def EMmain(func_top, func_low, Xy, Y, Xz, Z, theta0, sig2_y0, sig2_z0, Nmc=10, Niter=10, bnds=None):
@@ -44,7 +43,11 @@ def EMmain(func_top, func_low, Xy, Y, Xz, Z, theta0, sig2_y0, sig2_z0, Nmc=10, N
         np.copyto(sig2_y, Mrlt[1])
         np.copyto(sig2_z, Mrlt[2])
 
-    return (theta, sig2_y, sig2_z)
+    # calculate the hessian to determine the variability of the parameter estimate
+    H = calcHessVargs(Mstep_theta_obj_wrapper, theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z, sig2_y, sig2_z)
+    V = np.linalg.inv(H)
+    
+    return (theta, sig2_y, sig2_z, V, Zsamples)
 
 
 ###########################################################
@@ -126,6 +129,14 @@ def callbackF(Xi):
     global Nfeval
     print '\t Iter {0:4d}:  Para values: {1:}'.format(Nfeval, Xi)
     Nfeval += 1
+
+def Mstep_theta_obj_wrapper(theta, *args):
+    ''' The wrapper to pass variable arguments to Mstep_theta_obj
+    '''
+
+    return Mstep_theta_obj(theta, *args)
+    #return Mstep_theta_obj(theta, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
+
     
 def Mstep_theta_obj(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z, sig2_y, sig2_z):
     ''' The objective function (negative log-likelihood) for optimising theta
@@ -203,17 +214,68 @@ def Mstep_theta_grad(func_top, func_low, theta, X, Y, sig2_y, sig2_z, Z, W):
 
     return grad
 
-def calc_grad(func, theta, X, Z=None):
+def calc_grad_theta_Z(func, theta, X, Z):
+    '''Calculate the gradient of <func> w.r.t parameters <theta> & <Z>, with given <X> and <Z>
+    using finite difference
+    '''
+
+    grad_theta = calc_grad_theta(func, theta, X, Z)
+
+    n_Z = Z.shape[1]
+    n_dat = X.shape[0]
+
+    f = func(theta, X, Z)
+    if f.ndim == 1:
+        d_f = 1
+    else:
+        d_f = f.shape[1]
+    
+    Z1 = np.zeros(Z[0,:].shape)
+    grad = np.zeros((n_dat, d_f, n_Z))
+
+    for i in range(n_dat):
+        for j in range(n_Z):
+
+            delta = Z[i,j]*1e-4
+            np.copyto(Z1, Z[i,:])
+            if np.abs(delta) < 1e-5:
+                delta = 1e-5
+            Z1[j] += delta
+
+            f = func(theta, X[i,:], Z[i,:])
+            f1 = func(theta, X[i,:], Z1)
+
+            gd = (f1-f) / delta
+            if np.isscalar(gd):
+                grad[i,:,j] = gd
+            else:
+                grad[i,:,j] = gd[:,None]
+
+    return (grad_theta, grad)
+
+def calc_grad_theta(func, theta, X, Z=None):
     '''Calculate the gradient of <func> w.r.t parameters <theta> with given <X> and <Z>
     using finite difference
     '''
     n_theta = theta.shape[0]
-    theta1 = np.array(theta.shape)
-    grad = np.array(theta.shape)
+    n_dat = X.shape[0]
+
+    if Z is not None:
+        f = func(theta, X, Z)
+    else:
+        f = func(theta, X)
+
+    if f.ndim == 1:
+        d_f = 1
+    else:
+        d_f = f.shape[1]
+    
+    theta1 = np.zeros(theta.shape)
+    grad = np.zeros((n_dat, d_f, n_theta))
 
     for i in range(n_theta):
         delta = theta[i]*1e-4
-        theta1 = theta
+        np.copyto(theta1,theta)
         if np.abs(delta) < 1e-5:
             delta = 1e-5
         theta1[i] += delta
@@ -225,10 +287,15 @@ def calc_grad(func, theta, X, Z=None):
             f = func(theta, X)
             f1 = func(theta1, X)
 
-        grad[i] = (f1-f) / delta
+        gd = (f1-f) / delta
+        if gd.ndim < 2:
+            grad[:,:,i] = gd[:,None]
+        else:
+            grad[:,:,i] = gd
+
+    return grad
 
 
-        
 def Mstep_var(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z):
     ''' The function to calculate the optimal values of the variance terms
     '''
@@ -274,6 +341,52 @@ def Mstep_var(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z):
 
     return (sig2_y, sig2_z)
 
+def pred(func_top, func_low, X, theta, sig2_y, sig2_z, V):
+    ''' Function to make prediction (both mean and variance
+    Args:
+    theta - parameter (estimated)
+    V - the covariance matrix of theta
+    '''
+
+    n_dat = X.shape[0]
+    n_theta = theta.shape[0]
+    
+    # step 1: predict for lower-level model
+    
+    Z_mean = func_low(theta, X)
+    grad_low = calc_grad(func_low, theta, X)
+    d_func_low = grad_low.shape[1] # grad_low in shape of [n_dat, d_func, n_paras]
+    
+    Z_cov = np.zeros((n_dat, d_func_low, d_func_low))
+    for i in range(n_dat): 
+        gd = np.mat(grad_low[i,:,:])
+        #print gd
+        Z = gd * V * np.matrix.transpose(gd) + np.diag(sig2_z)
+        #print Z
+        Z_cov[i,:,:] = np.array(Z)
+
+        
+    # step 2: predict for higher-level model
+    
+    Y_mean = func_top(theta, X, Z_mean)
+    grad_high = calc_grad_theta_Z(func_top, theta, X, Z_mean)
+    grad_high_theta = grad_high[0] # grad_high_theta in shape of [n_dat, d_func, n_paras]
+    grad_high_Z = grad_high[1]     # grad_high_Z in shape of [n_dat, d_func, d_Z]
+    d_func_high = grad_high_theta.shape[1] 
+
+    Y_cov = np.zeros((n_dat, d_func_high, d_func_high))
+    zero_mat = np.mat(np.zeros((V.shape[0], Z_cov.shape[1])))
+    zero_mat_trans = np.matrix.transpose(zero_mat)
+    for i in range(n_dat):
+        Z = np.mat(Z_cov[i,:,:])
+        block_mat = np.bmat([ [V, zero_mat], [zero_mat_trans, Z] ])
+        gd = np.bmat( [ grad_high_theta[i,:,:], grad_high_Z[i,:,:] ] )
+        Y = gd * block_mat * np.matrix.transpose(gd) + np.diag(sig2_y)
+        print Y
+        Y_cov[i,:,:] = np.array(Y)
+
+    return (Z_mean, Z_cov, Y_mean, Y_cov)
+    
 def testFunc_top(theta, X, Z):
     ''' Function to predict the partition coefficient between stratum corneum (and water)
     Note that the prediction is the VOLUMETRIC partition coefficient between stratum corneum and water 
@@ -389,11 +502,11 @@ def TransUnctnKF(func, paras_mean, paras_cov, X):
     return (y_mean, y_cov)
 
 
-
 ###########################################################
-def calcHess(func_post, paras, X, Y, sig2=1):
+def calcHessVargs(func_post, paras, *args):
     ''' Function to calculate the Hessian of negative
-        log posterior w.r.t. model parameters '''
+        log posterior w.r.t. model parameters with variable arguments
+    '''
 
     n_paras = len(paras)
     H = np.zeros( (n_paras, n_paras) )
@@ -411,27 +524,26 @@ def calcHess(func_post, paras, X, Y, sig2=1):
                 p1 = np.copy(paras)                
                 p1[i] += delta_paras[i]
                 p1[j] += delta_paras[j]
-                t1 = func_post(p1, X, Y, sig2)
+                t1 = func_post(p1, *args)
 
                 p2 = np.copy(paras)                
                 p2[i] += delta_paras[i]
                 p2[j] -= delta_paras[j]
-                t2 = func_post(p2, X, Y, sig2)
+                t2 = func_post(p2, *args)
 
                 p3 = np.copy(paras)                
                 p3[i] -= delta_paras[i]
                 p3[j] += delta_paras[j]
-                t3 = func_post(p3, X, Y, sig2)
+                t3 = func_post(p3, *args)
 
                 p4 = np.copy(paras)                
                 p4[i] -= delta_paras[i]
                 p4[j] -= delta_paras[j]
-                t4 = func_post(p4, X, Y, sig2)
+                t4 = func_post(p4, *args)
 
                 H[i,j] = (t1-t2-t3+t4) / (4*delta_paras[i]*delta_paras[j])            
 
     return H
-
 
 ###########################################################
 def lognormpdf(x,mu,S):
