@@ -1,15 +1,28 @@
-from hybmdl import * 
-from qspr_Kcc import *
-from qspr_Klp import *
+#from hybmdl import * 
+#from qspr_Kcc import *
+#from qspr_Klp import *
+import hybmdl
 
 dat_Plp = np.matrix( np.loadtxt("Kow_Plp_lg10.txt") )
 dat_Ksc = np.matrix( np.loadtxt("Kow_Ksc_lg10.txt") )
 dat_Kcc = np.matrix( np.loadtxt("Kow_Kcc_lg10.txt") )
-paras = np.log( np.array([4.2, 0.31, 0.69]) )
+paras0 = np.log( np.array([4.2, 0.31, 0.69]) )
+bnds = ((-10, 10), (-10, 10), (-10, 10))
 
-#Estep(qspr_lg10Ksc, func_low, theta, X, Y, sig2_y, sig2_z, N=100)
-#test_hybmdl.Estep(test_hybmdl.qspr_lg10Ksc, test_hybmdl.qspr_lg10K_cc_lip, paras, np.array(dat_Ksc[:,0]), dat_Ksc[:,1], 0.05, np.matrix([[0.05, 0], [0, 0.05]]), N=10)
+sig2_y = np.array([0.05])
+sig2_z = np.array([0.05, 0.05])
 
+Xy = dat_Ksc[:,0]
+Y = dat_Ksc[:,1]
+Xz = (dat_Plp[:,0], dat_Kcc[:,0])
+Z = (dat_Plp[:,1], dat_Kcc[:,1])
+
+paras = np.empty_like (paras0)
+np.copyto(paras, paras0)
+
+rlt_em = hybmdl.EMmain(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, Y, Xz, Z, paras0, sig2_y, sig2_z, 100, 10, bnds)
+rlt_pred = hybmdl.pred(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, rlt_em[0], rlt_em[1], rlt_em[2], rlt_em[3])
+plt.plot(Xy[:,0], np.squeeze(rlt_pred[2]), 'x', Xy[:,0], Y, 'o', Xy[:,0], np.squeeze(rlt_pred[2])+1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.', Xy[:,0], np.squeeze(rlt_pred[2])-1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.')
 
 
 def qspr_lg10K_cc_lip(paras, lg10Kow):

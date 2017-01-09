@@ -24,6 +24,34 @@ rlt_em = hybmdl.EMmain(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, Y, Xz, Z, p
 rlt_pred = hybmdl.pred(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, rlt_em[0], rlt_em[1], rlt_em[2], rlt_em[3])
 plt.plot(Xy[:,0], np.squeeze(rlt_pred[2]), 'x', Xy[:,0], Y, 'o', Xy[:,0], np.squeeze(rlt_pred[2])+1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.', Xy[:,0], np.squeeze(rlt_pred[2])-1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.')
 
+# first variable in Z
+rlt_pred_z0 = hybmdl.pred(hybmdl.testFunc_top, hybmdl.testFunc_low, Xz[0], rlt_em[0], rlt_em[1], rlt_em[2], rlt_em[3])
+
+plt_x = Xz[0][:,0]
+plt_dat = Z[0][:,0]
+plt_pred = np.squeeze(rlt_pred_z0[0][:,0])
+plt_pred_h = plt_pred + 1.58*np.squeeze(np.sqrt(rlt_pred_z0[1][:,0,0]))
+plt_pred_l = plt_pred - 1.58*np.squeeze(np.sqrt(rlt_pred_z0[1][:,0,0]))
+
+plt.plot(plt_x, plt_dat, 'x', plt_x, plt_pred, 'o', plt_x, plt_pred_h, '.', plt_x, plt_pred_l, '.')
+
+plt.plot(Xz[:,0], np.squeeze(rlt_pred[2]), 'x', Xy[:,0], Y, 'o', Xy[:,0], np.squeeze(rlt_pred[2])+1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.', Xy[:,0], np.squeeze(rlt_pred[2])-1.58*np.squeeze(np.sqrt(rlt_pred[3])), '.')
+
+rlt_plugin = hybmdl.PluginMain(hybmdl.testFunc_top_plugin, hybmdl.testFunc_low, Xy, Y, Xz, Z, paras0, sig2_y, sig2_z, 10, bnds)
+rlt_pred_plugin = hybmdl.pred(hybmdl.testFunc_top, hybmdl.testFunc_low, Xy, rlt_plugin[0], rlt_plugin[1], rlt_plugin[2], rlt_plugin[3])
+
+# first variable in Z
+rlt_pred_plugin_z0 = hybmdl.pred(hybmdl.testFunc_top, hybmdl.testFunc_low, Xz[0], rlt_plugin[0], rlt_plugin[1], rlt_plugin[2], rlt_plugin[3])
+
+plt_x = Xz[0][:,0]
+plt_dat = Z[0][:,0]
+plt_pred = np.squeeze(rlt_pred_plugin_z0[0][:,0])
+plt_pred_h = plt_pred + 1.58*np.squeeze(np.sqrt(rlt_pred_plugin_z0[1][:,0,0]))
+plt_pred_l = plt_pred - 1.58*np.squeeze(np.sqrt(rlt_pred_plugin_z0[1][:,0,0]))
+plt.plot(plt_x, plt_dat, 'x', plt_x, plt_pred, 'o', plt_x, plt_pred_h, '.', plt_x, plt_pred_l, '.')
+
+
+plt.plot(Xy[:,0], np.squeeze(rlt_pred_plugin[2]), 'x', Xy[:,0], Y, 'o', Xy[:,0], np.squeeze(rlt_pred_plugin[2])+1.58*np.squeeze(np.sqrt(rlt_pred_plugin[3])), '.', Xy[:,0], np.squeeze(rlt_pred_plugin[2])-1.58*np.squeeze(np.sqrt(rlt_pred_plugin[3])), '.')
 
 def qspr_lg10K_cc_lip(paras, lg10Kow):
     ''' Calculate log10 partition in CC-water and LP-water, and return a Nx2 matrix

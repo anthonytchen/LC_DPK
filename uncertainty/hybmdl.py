@@ -20,6 +20,130 @@ Nfeval = 1
 # 2. simulate data to compare plug-in and full bayesian approach
 
 ###########################################################
+def PluginMain(func_top, func_low, Xy, Y, Xz, Z, theta0, sig2_y0, sig2_z0, Niter=10, bnds=None):
+    ''' The main function to run plug-in algorithm for parameter estimation
+    Args:
+    Rtns:
+    '''
+
+    theta = np.empty_like(theta0)
+    sig2_y = np.empty_like(sig2_y0)
+    sig2_z = np.empty_like(sig2_z0)
+    np.copyto(theta, theta0)
+    np.copyto(sig2_y, sig2_y0)
+    np.copyto(sig2_z, sig2_z0)
+
+    global Nfeval
+    Nfeval = 1 
+    
+    for i in range(Niter):
+        feval = Plugin_theta_obj(theta, func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z)
+        print 'Plugin Iter {0:4d}, f = {1:.6f}'.format(i, float(feval[0]))
+
+        if bnds == None:
+            res = minimize(Plugin_theta_obj, theta, args=(func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z), 
+                           method='BFGS', callback=callbackF, options={'disp': True, 'maxiter': 100})
+        else:
+            res = minimize(Plugin_theta_obj, theta, args=(func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z), 
+                       method='L-BFGS-B', bounds=bnds, callback=callbackF, options={'disp': True, 'maxiter': 100})
+        
+        np.copyto(theta, res.x)
+        var = Plugin_var(theta, func_top, func_low, Xy, Y, Xz, Z)
+        np.copyto(sig2_y, var[0])
+        np.copyto(sig2_z, var[1])
+
+    # calculate the hessian to determine the variability of the parameter estimate
+    H = calcHessVargs(Plugin_theta_obj_wrapper, theta, func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z)
+    # print theta, H
+    V = np.linalg.inv(H)
+    
+    return (theta, sig2_y, sig2_z, V)
+
+def Plugin_theta_obj_wrapper(theta, *args):
+    ''' The wrapper to pass variable arguments to Plugin_theta_obj
+    '''
+    return Plugin_theta_obj(theta, *args)
+
+    
+def Plugin_theta_obj(theta, func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z):
+    ''' The objective function (negative log-likelihood) for optimising theta using the plug-in method
+    Terms that are not dependent on theta (thus constant as far as optimisation is concerned)
+    are not calculated.
+    '''
+   
+    n_dat_Xy = Xy.shape[0]
+    
+    beta = 1.0/sig2_z
+    alpha = 1.0/sig2_y
+
+    neg_lnlik = .0
+    
+    # For high-level X-Y data
+    for n in range(n_dat_Xy):
+        #print '\t theta = {0:}'.format(theta)
+        y_func = func_top(theta, Xy[n,:], func_low)
+        err = Y[n,:] - y_func
+        neg_lnlik += 0.5*(alpha*err*err)
+
+    # For low-level X-Z data
+    d_z = len(Xz)
+
+    # Data in Xz and Z are saved in lists, each item in the lists represent one
+    #    Z-variable
+    for i in range (d_z):
+        Xtmp = Xz[i]
+        Ztmp = Z[i]
+        n_dat_Xz = Xtmp.shape[0]   
+        for n in range(n_dat_Xz):
+            z_func = func_low(theta, np.array(Xtmp[n,:]))
+            err = Ztmp[n] - z_func[:,i]
+            #print '\t err = {0:}'.format(err)
+            neg_lnlik += 0.5* np.sum( beta[i]* (np.array(err)**2) )
+            
+    if np.isfinite(neg_lnlik):
+        return neg_lnlik
+    else:
+        return 1e10
+
+def Plugin_var(theta, func_top, func_low, Xy, Y, Xz, Z):
+    ''' The function to calculate the optimal values of the variance terms using the plug-in method
+    '''
+    
+    n_dat_Xy = Xy.shape[0]
+
+    sse_l = np.zeros(len(Z))
+    sse_h = np.zeros(Y[0,:].shape)
+    sig2_z = np.zeros(sse_l.shape)
+    sig2_y = np.zeros(sse_h.shape)
+    
+    # For high-level X-Y data
+    for n in range(n_dat_Xy):
+        y_func = func_top(theta, Xy[n,:], func_low)
+        err = Y[n,:] - y_func
+        sse_h += np.squeeze(err)**2
+    sig2_y = sse_h / n_dat_Xy
+    
+    # For low-level X-Z data
+    d_z = len(Xz)
+
+    # Data in Xz and Z are saved in lists, each item in the lists represent one
+    #    Z-variable
+    for i in range (d_z):
+        Xtmp = Xz[i]
+        Ztmp = Z[i]
+        n_dat_Xz = Xtmp.shape[0]   
+        for n in range(n_dat_Xz):
+            z_func = func_low(theta, np.array(Xtmp[n,:]))
+            err = Ztmp[n] - z_func[:,i]
+            #print sse_l[i].shape
+            #print err.shape
+            sse_l[i] += err*err
+
+        sig2_z[i] = sse_l[i] / (n_dat_Xz)
+
+    return (sig2_y, sig2_z)
+
+###########################################################
 def EMmain(func_top, func_low, Xy, Y, Xz, Z, theta0, sig2_y0, sig2_z0, Nmc=10, Niter=10, bnds=None):
     ''' The main function to run EM algorithm for parameter estimation
     Args:
@@ -354,7 +478,7 @@ def pred(func_top, func_low, X, theta, sig2_y, sig2_z, V):
     # step 1: predict for lower-level model
     
     Z_mean = func_low(theta, X)
-    grad_low = calc_grad(func_low, theta, X)
+    grad_low = calc_grad_theta(func_low, theta, X)
     d_func_low = grad_low.shape[1] # grad_low in shape of [n_dat, d_func, n_paras]
     
     Z_cov = np.zeros((n_dat, d_func_low, d_func_low))
@@ -382,11 +506,51 @@ def pred(func_top, func_low, X, theta, sig2_y, sig2_z, V):
         block_mat = np.bmat([ [V, zero_mat], [zero_mat_trans, Z] ])
         gd = np.bmat( [ grad_high_theta[i,:,:], grad_high_Z[i,:,:] ] )
         Y = gd * block_mat * np.matrix.transpose(gd) + np.diag(sig2_y)
-        print Y
+        #print Y
         Y_cov[i,:,:] = np.array(Y)
 
     return (Z_mean, Z_cov, Y_mean, Y_cov)
     
+def testFunc_top_plugin(theta, X, func_low):
+    ''' Function to predict the partition coefficient between stratum corneum (and water)
+    Note that the prediction is the VOLUMETRIC partition coefficient between stratum corneum and water 
+    Here used as a test function of the top-level model
+    Args:
+      theta -- model parameters
+      X -- lg10Kow, np.mat, dim: [n_dat, 1]
+    Rtns:
+      Y -- Ksc_pred, predicted coefficient between stratum corneum (and water)
+    '''
+
+    w_pro = 0.77
+    w_lip = 0.23
+    w_wat = 2.99
+
+    rho_pro = 1.37
+    v_pro = w_pro/rho_pro
+    rho_lip = 0.90
+    v_lip = w_lip/rho_lip
+    rho_wat = 1.00
+    v_wat = w_wat/rho_wat
+
+    v_total = v_pro + v_lip + v_wat
+    phi_pro = v_pro / v_total
+    phi_lip = v_lip / v_total
+    phi_wat = v_wat / v_total
+
+    rlt_low = func_low(theta, X)
+    #print rlt_low
+    Kcc = 10**rlt_low[:,0]
+    Klp = 10**rlt_low[:,1]
+
+    Ksc_pred = phi_pro*rho_pro/rho_wat* Kcc + phi_lip*rho_lip/rho_wat* Klp + phi_wat
+    Y =  Ksc_pred
+
+    if Y<0:
+        print 'Y is {0:}'.format(Y)
+
+    return np.log10(Y)
+
 def testFunc_top(theta, X, Z):
     ''' Function to predict the partition coefficient between stratum corneum (and water)
     Note that the prediction is the VOLUMETRIC partition coefficient between stratum corneum and water 
@@ -426,7 +590,6 @@ def testFunc_top(theta, X, Z):
     Y =  Ksc_pred
         
     return np.log10(Y)
-
 
 def testFunc_low(theta, X):
     ''' Function to predict the volumetric partition coefficient between corneocyte (and water)
@@ -469,8 +632,8 @@ def testFunc_low(theta, X):
 
     for i in range(n_dat):
         lg10_K_ow = X[i,0]
-        Z[i, 0] = np.log10(rho_pro/rho_wat) + np.log10(a) + b*lg10_K_ow # stratum corneum
-        Z[i, 1] = np.log10(rho_lip/rho_wat) + c*lg10_K_ow # lipid
+        Z[i,0] = np.log10(rho_pro/rho_wat) + np.log10(a) + b*lg10_K_ow # stratum corneum
+        Z[i,1] = np.log10(rho_lip/rho_wat) + c*lg10_K_ow # lipid
         
     return Z
 
