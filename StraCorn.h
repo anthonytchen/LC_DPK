@@ -30,6 +30,7 @@ public:
   void getAmount(double*, double*, double*);
   void comp1DConc();
   void saveCoord(const char [], const char []);
+  void setGridsProperties(double, double, double, double);
 
 };
 

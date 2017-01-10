@@ -412,4 +412,36 @@ void StraCorn::saveCoord(const char fn_x[], const char fn_y[])
 {
   Comp::saveCoord(fn_x, fn_y, ".sc");
 }
+
+/*! Set the partition (Kw) and diffusion coefficients to given values
+ */
+void StraCorn::setGridsProperties(double lip_Kw, double lip_D, double cc_Kw, double cc_D)
+{
+  int i, j, idx;
+
+  for ( i = 0; i < m_nx; i++ ){ // verticle direction up to down
+    for ( j = 0; j < m_ny; j++ ){ // lateral direction left to right
+			
+      idx = i*m_ny + j;
+
+      if ( !strcmp(m_grids[idx].m_name, "LP") ) {
+	if (lip_Kw > 0)
+	  m_grids[idx].setKw(lip_Kw);
+	if (lip_D > 0 )
+	  m_grids[idx].setD(lip_D);
+      }
+      else if ( !strcmp(m_grids[idx].m_name, "CC") ) {
+	if (cc_Kw > 0)
+	  m_grids[idx].setKw(cc_Kw);
+	if (cc_D > 0 )
+	  m_grids[idx].setD(cc_D);
+      }
+      else {
+	SayBye("Grid type not defined");
+      }
+
+    }
+  }
+
+}
 /*  ---- END <I/O functions> ---- */

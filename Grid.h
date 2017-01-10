@@ -67,6 +67,8 @@ public:
   void setConcChem(double conc) { m_concChem = conc; }
   char* getName() { return m_name; }
   void setName(const char name[]) { strcpy(m_name, name); };
+  void setKw(double Kw) { m_Kw = Kw; };
+  void setD(double D) { m_D = D; };
 
   double compFlux(Grid*, double, double, double, double, double*, double*);
 
