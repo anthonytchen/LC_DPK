@@ -46,7 +46,7 @@ class Config
  public:
   void ReadConfigFile(const char []);
   // void InitChemical(Chemical&);
-  void InitSkin();
+  //void InitSkin();
   
   void Tokenize(const string& str, vector<string>& tokens, const string& delimiters = " ");
 };

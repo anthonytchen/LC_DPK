@@ -1,4 +1,6 @@
 * TODO simulate the scenario with multiple doses
+* When building sundials, make sure to use:
+	configure --prefix=... --with-cflags=-fPIC --with-cxxflags=-fPIC
 * The way to build the programme is by using
   python setup.py build_ext --inplace
 * The way to use the python modules

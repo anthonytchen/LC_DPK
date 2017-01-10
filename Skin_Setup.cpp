@@ -209,6 +209,7 @@ void Skin_Setup::InitVecCompart(Chemical *chemSolute, int nChem,
           e.g. VV,SH -- [vehicle, vehicle] [stratum corneum, hair]
                MM,SH,EH -- [sebum, sebum] [stratum corneum, hair] [viable epidermis, hair]
  */
+
 void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
 				double *conc_vehicle, double *partition_vehicle, double *diffu_vehicle, 
 				double dx_vehicle, double area_vehicle, 
@@ -216,6 +217,8 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
 				double x_len_ve, int n_grids_x_ve, double x_len_de, int n_grids_x_de,
 				double *par_dermis2blood, double *blood_k_clear, bool bInfSrc)
 {
+}
+/*
   if ( nChem > 1 )
     SayBye("Not implemented: diffusion of multiple compounds through 2D matrix setup of compartments");
   m_nChem = nChem;
@@ -228,7 +231,7 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
  
   m_dz_dtheta = 0.01; // fixing dz, the dimension perpendicular to x-y domain
 
-  /* setup compartment matrix */
+  //* setup compartment matrix 
 
   nyComp = 2;
   nxCompAll = strlen(m_sComps); // potentially it contains blood compartment
@@ -245,7 +248,7 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
   
   createCompMatrix(nxComp, nyComp);
 
-  /* define possible boundary condition (up, left, right, down) */
+  //* define possible boundary condition (up, left, right, down) 
 
   BdyCondStr bdys_top_left = {ZeroFlux,  ZeroFlux, FromOther, FromOther}; 
   BdyCondStr bdys_top_right = {ZeroFlux, FromOther, ZeroFlux, FromOther};
@@ -260,7 +263,7 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
   BdyCondStr bdys_bot_right_0flux = {FromOther, FromOther, ZeroFlux, ZeroFlux};
 
   
-  /* setup the compartments */
+  //* setup the compartments 
 
   y_len_sc = getSCYlen() * n_layer_y_sc;
 
@@ -293,7 +296,7 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
   assert(false);
 
  
-  /*  set up the compartments */
+  //*  set up the compartments 
 
 
   // Vehicle
@@ -367,8 +370,8 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
   }
 
   
-  /* link the compartments through boundary setting
-     bdy conditions: up/left/right/down */
+  //* link the compartments through boundary setting
+  //   bdy conditions: up/left/right/down 
   
   for (i=0; i<m_nChem; i++) {
 
@@ -407,6 +410,7 @@ void Skin_Setup::InitMtxCompart(Chemical *chemSolute, int nChem,
 
 
 }
+*/
 
 /*! save flux terms; right now only implemented for 
     flux into stratum corneum and from stratum corneum into either sink or viable epidermis

@@ -3006,11 +3006,12 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_Chemical swig_types[0]
-#define SWIGTYPE_p_Config swig_types[1]
-#define SWIGTYPE_p_char swig_types[2]
-static swig_type_info *swig_types[4];
-static swig_module_info swig_module = {swig_types, 3, 0, 0, 0, 0};
+#define SWIGTYPE_p_Config swig_types[0]
+#define SWIGTYPE_p_char swig_types[1]
+#define SWIGTYPE_p_string swig_types[2]
+#define SWIGTYPE_p_vectorT_string_t swig_types[3]
+static swig_type_info *swig_types[5];
+static swig_module_info swig_module = {swig_types, 4, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3023,16 +3024,16 @@ static swig_module_info swig_module = {swig_types, 3, 0, 0, 0, 0};
 #endif
 
 /*-----------------------------------------------
-              @(target):= _Chemical.so
+              @(target):= _Config.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__Chemical
+#  define SWIG_init    PyInit__Config
 
 #else
-#  define SWIG_init    init_Chemical
+#  define SWIG_init    init_Config
 
 #endif
-#define SWIG_name    "_Chemical"
+#define SWIG_name    "_Config"
 
 #define SWIGVERSION 0x030008 
 #define SWIG_VERSION SWIGVERSION
@@ -3115,56 +3116,7 @@ namespace swig {
 }
 
 
-#include "Chemical.h"
-
-
-SWIGINTERN int
-SWIG_AsVal_double (PyObject *obj, double *val)
-{
-  int res = SWIG_TypeError;
-  if (PyFloat_Check(obj)) {
-    if (val) *val = PyFloat_AsDouble(obj);
-    return SWIG_OK;
-#if PY_VERSION_HEX < 0x03000000
-  } else if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AsLong(obj);
-    return SWIG_OK;
-#endif
-  } else if (PyLong_Check(obj)) {
-    double v = PyLong_AsDouble(obj);
-    if (!PyErr_Occurred()) {
-      if (val) *val = v;
-      return SWIG_OK;
-    } else {
-      PyErr_Clear();
-    }
-  }
-#ifdef SWIG_PYTHON_CAST_MODE
-  {
-    int dispatch = 0;
-    double d = PyFloat_AsDouble(obj);
-    if (!PyErr_Occurred()) {
-      if (val) *val = d;
-      return SWIG_AddCast(SWIG_OK);
-    } else {
-      PyErr_Clear();
-    }
-    if (!dispatch) {
-      long v = PyLong_AsLong(obj);
-      if (!PyErr_Occurred()) {
-	if (val) *val = v;
-	return SWIG_AddCast(SWIG_AddCast(SWIG_OK));
-      } else {
-	PyErr_Clear();
-      }
-    }
-  }
-#endif
-  return res;
-}
-
-
-  #define SWIG_From_double   PyFloat_FromDouble 
+#include "Config.h"
 
 
 SWIGINTERN swig_type_info*
@@ -3304,6 +3256,41 @@ SWIG_AsCharArray(PyObject * obj, char *val, size_t size)
 }
 
 
+SWIGINTERNINLINE PyObject *
+SWIG_FromCharPtrAndSize(const char* carray, size_t size)
+{
+  if (carray) {
+    if (size > INT_MAX) {
+      swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+      return pchar_descriptor ? 
+	SWIG_InternalNewPointerObj(const_cast< char * >(carray), pchar_descriptor, 0) : SWIG_Py_Void();
+    } else {
+#if PY_VERSION_HEX >= 0x03000000
+#if PY_VERSION_HEX >= 0x03010000
+      return PyUnicode_DecodeUTF8(carray, static_cast< Py_ssize_t >(size), "surrogateescape");
+#else
+      return PyUnicode_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
+#endif
+#else
+      return PyString_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
+#endif
+    }
+  } else {
+    return SWIG_Py_Void();
+  }
+}
+
+
+size_t
+SWIG_strnlen(const char* s, size_t maxlen)
+{
+  const char *p;
+  for (p = s; maxlen-- && *p; p++)
+    ;
+  return p - s;
+}
+
+
 #include <limits.h>
 #if !defined(SWIG_NO_LLONG_MAX)
 # if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
@@ -3312,6 +3299,52 @@ SWIG_AsCharArray(PyObject * obj, char *val, size_t size)
 #   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
 # endif
 #endif
+
+
+SWIGINTERN int
+SWIG_AsVal_double (PyObject *obj, double *val)
+{
+  int res = SWIG_TypeError;
+  if (PyFloat_Check(obj)) {
+    if (val) *val = PyFloat_AsDouble(obj);
+    return SWIG_OK;
+#if PY_VERSION_HEX < 0x03000000
+  } else if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return SWIG_OK;
+#endif
+  } else if (PyLong_Check(obj)) {
+    double v = PyLong_AsDouble(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      PyErr_Clear();
+    }
+  }
+#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    double d = PyFloat_AsDouble(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = d;
+      return SWIG_AddCast(SWIG_OK);
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      long v = PyLong_AsLong(obj);
+      if (!PyErr_Occurred()) {
+	if (val) *val = v;
+	return SWIG_AddCast(SWIG_AddCast(SWIG_OK));
+      } else {
+	PyErr_Clear();
+      }
+    }
+  }
+#endif
+  return res;
+}
 
 
 #include <float.h>
@@ -3394,61 +3427,150 @@ SWIG_AsVal_long (PyObject *obj, long* val)
 
 
 SWIGINTERN int
-SWIG_AsVal_char (PyObject * obj, char *val)
-{    
-  int res = SWIG_AsCharArray(obj, val, 1);
-  if (!SWIG_IsOK(res)) {
-    long v;
-    res = SWIG_AddCast(SWIG_AsVal_long (obj, &v));
-    if (SWIG_IsOK(res)) {
-      if ((CHAR_MIN <= v) && (v <= CHAR_MAX)) {
-	if (val) *val = static_cast< char >(v);
-      } else {
-	res = SWIG_OverflowError;
-      }
+SWIG_AsVal_int (PyObject * obj, int *val)
+{
+  long v;
+  int res = SWIG_AsVal_long (obj, &v);
+  if (SWIG_IsOK(res)) {
+    if ((v < INT_MIN || v > INT_MAX)) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = static_cast< int >(v);
     }
-  }
+  }  
   return res;
 }
 
 
-SWIGINTERNINLINE PyObject *
-SWIG_FromCharPtrAndSize(const char* carray, size_t size)
+SWIGINTERNINLINE PyObject*
+  SWIG_From_int  (int value)
 {
-  if (carray) {
-    if (size > INT_MAX) {
-      swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
-      return pchar_descriptor ? 
-	SWIG_InternalNewPointerObj(const_cast< char * >(carray), pchar_descriptor, 0) : SWIG_Py_Void();
-    } else {
-#if PY_VERSION_HEX >= 0x03000000
-#if PY_VERSION_HEX >= 0x03010000
-      return PyUnicode_DecodeUTF8(carray, static_cast< Py_ssize_t >(size), "surrogateescape");
-#else
-      return PyUnicode_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
-#endif
-#else
-      return PyString_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
-#endif
-    }
-  } else {
-    return SWIG_Py_Void();
-  }
+  return PyInt_FromLong((long) value);
 }
 
 
-SWIGINTERNINLINE PyObject *
-SWIG_From_char  (char c) 
-{ 
-  return SWIG_FromCharPtrAndSize(&c,1);
-}
+  #define SWIG_From_double   PyFloat_FromDouble 
+
+
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_Chemical_m_mw_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_sComps_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
+  char *arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  char temp2[1024] ;
+  int res2 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_sComps_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_sComps_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  res2 = SWIG_AsCharArray(obj1, temp2, 1024);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Config_m_sComps_set" "', argument " "2"" of type '" "char [1024]""'");
+  }
+  arg2 = reinterpret_cast< char * >(temp2);
+  if (arg2) memcpy(arg1->m_sComps,arg2,1024*sizeof(char));
+  else memset(arg1->m_sComps,0,1024*sizeof(char));
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_sComps_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_sComps_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_sComps_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (char *)(char *) ((arg1)->m_sComps);
+  {
+    size_t size = SWIG_strnlen(result, 1024);
+    
+    
+    
+    resultobj = SWIG_FromCharPtrAndSize(result, size);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_nChem_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_nChem_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_nChem_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_nChem_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_nChem = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_nChem_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_nChem_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_nChem_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_nChem);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_mw_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3457,15 +3579,15 @@ SWIGINTERN PyObject *_wrap_Chemical_m_mw_set(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_mw_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_mw_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_mw_set" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_mw_set" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_mw_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_mw_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->m_mw = arg2;
@@ -3476,20 +3598,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_mw_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_mw_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_mw_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_mw_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_mw_get" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_mw_get" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   result = (double) ((arg1)->m_mw);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -3498,9 +3620,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_K_ow_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_K_ow_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3509,15 +3631,15 @@ SWIGINTERN PyObject *_wrap_Chemical_m_K_ow_set(PyObject *SWIGUNUSEDPARM(self), P
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_K_ow_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_K_ow_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_K_ow_set" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_K_ow_set" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_K_ow_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_K_ow_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->m_K_ow = arg2;
@@ -3528,20 +3650,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_K_ow_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_K_ow_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_K_ow_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_K_ow_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_K_ow_get" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_K_ow_get" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   result = (double) ((arg1)->m_K_ow);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -3550,9 +3672,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_pKa_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_pKa_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3561,15 +3683,15 @@ SWIGINTERN PyObject *_wrap_Chemical_m_pKa_set(PyObject *SWIGUNUSEDPARM(self), Py
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_pKa_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_pKa_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_pKa_set" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_pKa_set" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_pKa_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_pKa_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->m_pKa = arg2;
@@ -3580,20 +3702,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_pKa_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_pKa_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_pKa_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_pKa_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_pKa_get" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_pKa_get" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   result = (double) ((arg1)->m_pKa);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -3602,9 +3724,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_frac_non_ion_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_frac_non_ion_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3613,15 +3735,15 @@ SWIGINTERN PyObject *_wrap_Chemical_m_frac_non_ion_set(PyObject *SWIGUNUSEDPARM(
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_frac_non_ion_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_frac_non_ion_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_non_ion_set" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_frac_non_ion_set" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_frac_non_ion_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_frac_non_ion_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->m_frac_non_ion = arg2;
@@ -3632,20 +3754,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_frac_non_ion_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_frac_non_ion_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_frac_non_ion_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_frac_non_ion_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_non_ion_get" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_frac_non_ion_get" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   result = (double) ((arg1)->m_frac_non_ion);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -3654,9 +3776,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_frac_unbound_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_frac_unbound_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3665,15 +3787,15 @@ SWIGINTERN PyObject *_wrap_Chemical_m_frac_unbound_set(PyObject *SWIGUNUSEDPARM(
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_frac_unbound_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_frac_unbound_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_unbound_set" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_frac_unbound_set" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_frac_unbound_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_frac_unbound_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->m_frac_unbound = arg2;
@@ -3684,20 +3806,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_frac_unbound_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_frac_unbound_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_frac_unbound_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_frac_unbound_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_frac_unbound_get" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_frac_unbound_get" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   result = (double) ((arg1)->m_frac_unbound);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -3706,9 +3828,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_r_s_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_acid_base_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3717,69 +3839,17 @@ SWIGINTERN PyObject *_wrap_Chemical_m_r_s_set(PyObject *SWIGUNUSEDPARM(self), Py
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_r_s_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_acid_base_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_r_s_set" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_acid_base_set" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_r_s_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_acid_base_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
-  if (arg1) (arg1)->m_r_s = arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Chemical_m_r_s_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  double result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_r_s_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_r_s_get" "', argument " "1"" of type '" "Chemical *""'"); 
-  }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  result = (double) ((arg1)->m_r_s);
-  resultobj = SWIG_From_double(static_cast< double >(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Chemical_m_acid_base_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
-  char arg2 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  char val2 ;
-  int ecode2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_m_acid_base_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_acid_base_set" "', argument " "1"" of type '" "Chemical *""'"); 
-  }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  ecode2 = SWIG_AsVal_char(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_m_acid_base_set" "', argument " "2"" of type '" "char""'");
-  } 
-  arg2 = static_cast< char >(val2);
   if (arg1) (arg1)->m_acid_base = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3788,54 +3858,1343 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_m_acid_base_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_acid_base_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  char result;
+  double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_m_acid_base_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_acid_base_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_m_acid_base_get" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_acid_base_get" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  result = (char) ((arg1)->m_acid_base);
-  resultobj = SWIG_From_char(static_cast< char >(result));
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_acid_base);
+  resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_new_Chemical(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_partition_vehicle_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *result = 0 ;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)":new_Chemical")) SWIG_fail;
-  result = (Chemical *)new Chemical();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Chemical, SWIG_POINTER_NEW |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_partition_vehicle_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_partition_vehicle_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_partition_vehicle_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_partition_vehicle = arg2;
+  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_Chemical(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Config_m_partition_vehicle_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_partition_vehicle_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_partition_vehicle_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_partition_vehicle);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_diffu_vehicle_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_diffu_vehicle_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_diffu_vehicle_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_diffu_vehicle_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_diffu_vehicle = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_diffu_vehicle_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_diffu_vehicle_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_diffu_vehicle_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_diffu_vehicle);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_conc_vehicle_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_conc_vehicle_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_conc_vehicle_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_conc_vehicle_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_conc_vehicle = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_conc_vehicle_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_conc_vehicle_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_conc_vehicle_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_conc_vehicle);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_vehicle_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_x_len_vehicle_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_vehicle_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_x_len_vehicle_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_x_len_vehicle = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_vehicle_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_x_len_vehicle_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_vehicle_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_x_len_vehicle);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_area_vehicle_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_area_vehicle_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_area_vehicle_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_area_vehicle_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_area_vehicle = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_area_vehicle_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_area_vehicle_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_area_vehicle_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_area_vehicle);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_bInfSrc_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_bInfSrc_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_bInfSrc_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_bInfSrc_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_bInfSrc = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_bInfSrc_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_bInfSrc_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_bInfSrc_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_bInfSrc);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_layer_x_sc_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_layer_x_sc_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_layer_x_sc_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_layer_x_sc_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_layer_x_sc = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_layer_x_sc_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_layer_x_sc_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_layer_x_sc_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_layer_x_sc);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_layer_y_sc_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_layer_y_sc_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_layer_y_sc_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_layer_y_sc_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_layer_y_sc = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_layer_y_sc_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_layer_y_sc_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_layer_y_sc_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_layer_y_sc);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_offset_y_sc_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_offset_y_sc_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_offset_y_sc_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_offset_y_sc_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_offset_y_sc = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_offset_y_sc_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_offset_y_sc_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_offset_y_sc_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_offset_y_sc);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_ve_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_grids_x_ve_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_ve_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_grids_x_ve_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_grids_x_ve = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_ve_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_grids_x_ve_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_ve_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_grids_x_ve);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_de_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_grids_x_de_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_de_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_grids_x_de_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_grids_x_de = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_de_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_grids_x_de_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_de_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_grids_x_de);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_ve_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_x_len_ve_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_ve_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_x_len_ve_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_x_len_ve = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_ve_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_x_len_ve_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_ve_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_x_len_ve);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_de_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_x_len_de_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_de_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_x_len_de_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_x_len_de = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_de_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_x_len_de_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_de_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_x_len_de);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_partition_dermis2blood_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_partition_dermis2blood_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_partition_dermis2blood_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_partition_dermis2blood_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_partition_dermis2blood = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_partition_dermis2blood_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_partition_dermis2blood_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_partition_dermis2blood_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_partition_dermis2blood);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_Kclear_blood_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_Kclear_blood_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_Kclear_blood_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_Kclear_blood_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_Kclear_blood = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_Kclear_blood_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_Kclear_blood_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_Kclear_blood_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_Kclear_blood);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_sb_sur_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_grids_x_sb_sur_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_sb_sur_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_grids_x_sb_sur_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_grids_x_sb_sur = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_sb_sur_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_grids_x_sb_sur_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_sb_sur_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_grids_x_sb_sur);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_y_sb_sur_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_grids_y_sb_sur_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_y_sb_sur_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_grids_y_sb_sur_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_grids_y_sb_sur = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_y_sb_sur_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_grids_y_sb_sur_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_y_sb_sur_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_grids_y_sb_sur);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_sb_har_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_grids_x_sb_har_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_sb_har_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_grids_x_sb_har_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_grids_x_sb_har = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_x_sb_har_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_grids_x_sb_har_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_x_sb_har_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_grids_x_sb_har);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_y_sb_har_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_n_grids_y_sb_har_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_y_sb_har_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_n_grids_y_sb_har_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (arg1) (arg1)->m_n_grids_y_sb_har = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_n_grids_y_sb_har_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_n_grids_y_sb_har_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_n_grids_y_sb_har_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (int) ((arg1)->m_n_grids_y_sb_har);
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_sb_sur_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_x_len_sb_sur_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_sb_sur_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_x_len_sb_sur_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_x_len_sb_sur = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_x_len_sb_sur_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_x_len_sb_sur_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_x_len_sb_sur_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_x_len_sb_sur);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_y_len_sb_har_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_m_y_len_sb_har_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_y_len_sb_har_set" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Config_m_y_len_sb_har_set" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  if (arg1) (arg1)->m_y_len_sb_har = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_m_y_len_sb_har_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Config_m_y_len_sb_har_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_m_y_len_sb_har_get" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  result = (double) ((arg1)->m_y_len_sb_har);
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_ReadConfigFile(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  char *arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Config_ReadConfigFile",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_ReadConfigFile" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Config_ReadConfigFile" "', argument " "2"" of type '" "char const []""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  (arg1)->ReadConfigFile((char const (*))arg2);
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_Tokenize__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  string *arg2 = 0 ;
+  vector< string > *arg3 = 0 ;
+  string *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  void *argp4 = 0 ;
+  int res4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:Config_Tokenize",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_Tokenize" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_string,  0  | 0);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Config_Tokenize" "', argument " "2"" of type '" "string const &""'"); 
+  }
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Config_Tokenize" "', argument " "2"" of type '" "string const &""'"); 
+  }
+  arg2 = reinterpret_cast< string * >(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_vectorT_string_t,  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Config_Tokenize" "', argument " "3"" of type '" "vector< string > &""'"); 
+  }
+  if (!argp3) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Config_Tokenize" "', argument " "3"" of type '" "vector< string > &""'"); 
+  }
+  arg3 = reinterpret_cast< vector< string > * >(argp3);
+  res4 = SWIG_ConvertPtr(obj3, &argp4, SWIGTYPE_p_string,  0  | 0);
+  if (!SWIG_IsOK(res4)) {
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "Config_Tokenize" "', argument " "4"" of type '" "string const &""'"); 
+  }
+  if (!argp4) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Config_Tokenize" "', argument " "4"" of type '" "string const &""'"); 
+  }
+  arg4 = reinterpret_cast< string * >(argp4);
+  (arg1)->Tokenize((string const &)*arg2,*arg3,(string const &)*arg4);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_Tokenize__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
+  string *arg2 = 0 ;
+  vector< string > *arg3 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:Config_Tokenize",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Config_Tokenize" "', argument " "1"" of type '" "Config *""'"); 
+  }
+  arg1 = reinterpret_cast< Config * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_string,  0  | 0);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Config_Tokenize" "', argument " "2"" of type '" "string const &""'"); 
+  }
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Config_Tokenize" "', argument " "2"" of type '" "string const &""'"); 
+  }
+  arg2 = reinterpret_cast< string * >(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3, SWIGTYPE_p_vectorT_string_t,  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Config_Tokenize" "', argument " "3"" of type '" "vector< string > &""'"); 
+  }
+  if (!argp3) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Config_Tokenize" "', argument " "3"" of type '" "vector< string > &""'"); 
+  }
+  arg3 = reinterpret_cast< vector< string > * >(argp3);
+  (arg1)->Tokenize((string const &)*arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Config_Tokenize(PyObject *self, PyObject *args) {
+  Py_ssize_t argc;
+  PyObject *argv[5] = {
+    0
+  };
+  Py_ssize_t ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = args ? PyObject_Length(args) : 0;
+  for (ii = 0; (ii < 4) && (ii < argc); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 3) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_Config, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_ConvertPtr(argv[1], 0, SWIGTYPE_p_string, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(argv[2], &vptr, SWIGTYPE_p_vectorT_string_t, 0);
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          return _wrap_Config_Tokenize__SWIG_1(self, args);
+        }
+      }
+    }
+  }
+  if (argc == 4) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_Config, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_ConvertPtr(argv[1], 0, SWIGTYPE_p_string, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(argv[2], &vptr, SWIGTYPE_p_vectorT_string_t, 0);
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          int res = SWIG_ConvertPtr(argv[3], 0, SWIGTYPE_p_string, 0);
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            return _wrap_Config_Tokenize__SWIG_0(self, args);
+          }
+        }
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'Config_Tokenize'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    Config::Tokenize(string const &,vector< string > &,string const &)\n"
+    "    Config::Tokenize(string const &,vector< string > &)\n");
+  return 0;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_Config(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)":new_Config")) SWIG_fail;
+  result = (Config *)new Config();
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Config, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_Config(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Config *arg1 = (Config *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_Chemical",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, SWIG_POINTER_DISOWN |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_Config",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Config, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Chemical" "', argument " "1"" of type '" "Chemical *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Config" "', argument " "1"" of type '" "Config *""'"); 
   }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
+  arg1 = reinterpret_cast< Config * >(argp1);
   delete arg1;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3844,210 +5203,106 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Chemical_Init(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
-  double arg2 ;
-  double arg3 ;
-  double arg4 ;
-  double arg5 ;
-  double arg6 ;
-  char arg7 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  double val2 ;
-  int ecode2 = 0 ;
-  double val3 ;
-  int ecode3 = 0 ;
-  double val4 ;
-  int ecode4 = 0 ;
-  double val5 ;
-  int ecode5 = 0 ;
-  double val6 ;
-  int ecode6 = 0 ;
-  char val7 ;
-  int ecode7 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  PyObject * obj5 = 0 ;
-  PyObject * obj6 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:Chemical_Init",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_Init" "', argument " "1"" of type '" "Chemical *""'"); 
-  }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  ecode2 = SWIG_AsVal_double(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Chemical_Init" "', argument " "2"" of type '" "double""'");
-  } 
-  arg2 = static_cast< double >(val2);
-  ecode3 = SWIG_AsVal_double(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Chemical_Init" "', argument " "3"" of type '" "double""'");
-  } 
-  arg3 = static_cast< double >(val3);
-  ecode4 = SWIG_AsVal_double(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Chemical_Init" "', argument " "4"" of type '" "double""'");
-  } 
-  arg4 = static_cast< double >(val4);
-  ecode5 = SWIG_AsVal_double(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Chemical_Init" "', argument " "5"" of type '" "double""'");
-  } 
-  arg5 = static_cast< double >(val5);
-  ecode6 = SWIG_AsVal_double(obj5, &val6);
-  if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Chemical_Init" "', argument " "6"" of type '" "double""'");
-  } 
-  arg6 = static_cast< double >(val6);
-  ecode7 = SWIG_AsVal_char(obj6, &val7);
-  if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Chemical_Init" "', argument " "7"" of type '" "char""'");
-  } 
-  arg7 = static_cast< char >(val7);
-  (arg1)->Init(arg2,arg3,arg4,arg5,arg6,arg7);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Chemical_InitConfig(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
-  Config *arg2 = 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:Chemical_InitConfig",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_InitConfig" "', argument " "1"" of type '" "Chemical *""'"); 
-  }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_Config,  0  | 0);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Chemical_InitConfig" "', argument " "2"" of type '" "Config const &""'"); 
-  }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Chemical_InitConfig" "', argument " "2"" of type '" "Config const &""'"); 
-  }
-  arg2 = reinterpret_cast< Config * >(argp2);
-  (arg1)->InitConfig((Config const &)*arg2);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Chemical_calcIon(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_calcIon",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_calcIon" "', argument " "1"" of type '" "Chemical *""'"); 
-  }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  (arg1)->calcIon();
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Chemical_calcBinding(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Chemical *arg1 = (Chemical *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:Chemical_calcBinding",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Chemical, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Chemical_calcBinding" "', argument " "1"" of type '" "Chemical *""'"); 
-  }
-  arg1 = reinterpret_cast< Chemical * >(argp1);
-  (arg1)->calcBinding();
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *Chemical_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *Config_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_Chemical, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_Config, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"SWIG_PyInstanceMethod_New", (PyCFunction)SWIG_PyInstanceMethod_New, METH_O, NULL},
-	 { (char *)"Chemical_m_mw_set", _wrap_Chemical_m_mw_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_mw_get", _wrap_Chemical_m_mw_get, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_K_ow_set", _wrap_Chemical_m_K_ow_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_K_ow_get", _wrap_Chemical_m_K_ow_get, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_pKa_set", _wrap_Chemical_m_pKa_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_pKa_get", _wrap_Chemical_m_pKa_get, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_frac_non_ion_set", _wrap_Chemical_m_frac_non_ion_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_frac_non_ion_get", _wrap_Chemical_m_frac_non_ion_get, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_frac_unbound_set", _wrap_Chemical_m_frac_unbound_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_frac_unbound_get", _wrap_Chemical_m_frac_unbound_get, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_r_s_set", _wrap_Chemical_m_r_s_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_r_s_get", _wrap_Chemical_m_r_s_get, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_acid_base_set", _wrap_Chemical_m_acid_base_set, METH_VARARGS, NULL},
-	 { (char *)"Chemical_m_acid_base_get", _wrap_Chemical_m_acid_base_get, METH_VARARGS, NULL},
-	 { (char *)"new_Chemical", _wrap_new_Chemical, METH_VARARGS, NULL},
-	 { (char *)"delete_Chemical", _wrap_delete_Chemical, METH_VARARGS, NULL},
-	 { (char *)"Chemical_Init", _wrap_Chemical_Init, METH_VARARGS, NULL},
-	 { (char *)"Chemical_InitConfig", _wrap_Chemical_InitConfig, METH_VARARGS, NULL},
-	 { (char *)"Chemical_calcIon", _wrap_Chemical_calcIon, METH_VARARGS, NULL},
-	 { (char *)"Chemical_calcBinding", _wrap_Chemical_calcBinding, METH_VARARGS, NULL},
-	 { (char *)"Chemical_swigregister", Chemical_swigregister, METH_VARARGS, NULL},
+	 { (char *)"Config_m_sComps_set", _wrap_Config_m_sComps_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_sComps_get", _wrap_Config_m_sComps_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_nChem_set", _wrap_Config_m_nChem_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_nChem_get", _wrap_Config_m_nChem_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_mw_set", _wrap_Config_m_mw_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_mw_get", _wrap_Config_m_mw_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_K_ow_set", _wrap_Config_m_K_ow_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_K_ow_get", _wrap_Config_m_K_ow_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_pKa_set", _wrap_Config_m_pKa_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_pKa_get", _wrap_Config_m_pKa_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_frac_non_ion_set", _wrap_Config_m_frac_non_ion_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_frac_non_ion_get", _wrap_Config_m_frac_non_ion_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_frac_unbound_set", _wrap_Config_m_frac_unbound_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_frac_unbound_get", _wrap_Config_m_frac_unbound_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_acid_base_set", _wrap_Config_m_acid_base_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_acid_base_get", _wrap_Config_m_acid_base_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_partition_vehicle_set", _wrap_Config_m_partition_vehicle_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_partition_vehicle_get", _wrap_Config_m_partition_vehicle_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_diffu_vehicle_set", _wrap_Config_m_diffu_vehicle_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_diffu_vehicle_get", _wrap_Config_m_diffu_vehicle_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_conc_vehicle_set", _wrap_Config_m_conc_vehicle_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_conc_vehicle_get", _wrap_Config_m_conc_vehicle_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_vehicle_set", _wrap_Config_m_x_len_vehicle_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_vehicle_get", _wrap_Config_m_x_len_vehicle_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_area_vehicle_set", _wrap_Config_m_area_vehicle_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_area_vehicle_get", _wrap_Config_m_area_vehicle_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_bInfSrc_set", _wrap_Config_m_bInfSrc_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_bInfSrc_get", _wrap_Config_m_bInfSrc_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_layer_x_sc_set", _wrap_Config_m_n_layer_x_sc_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_layer_x_sc_get", _wrap_Config_m_n_layer_x_sc_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_layer_y_sc_set", _wrap_Config_m_n_layer_y_sc_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_layer_y_sc_get", _wrap_Config_m_n_layer_y_sc_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_offset_y_sc_set", _wrap_Config_m_offset_y_sc_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_offset_y_sc_get", _wrap_Config_m_offset_y_sc_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_ve_set", _wrap_Config_m_n_grids_x_ve_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_ve_get", _wrap_Config_m_n_grids_x_ve_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_de_set", _wrap_Config_m_n_grids_x_de_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_de_get", _wrap_Config_m_n_grids_x_de_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_ve_set", _wrap_Config_m_x_len_ve_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_ve_get", _wrap_Config_m_x_len_ve_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_de_set", _wrap_Config_m_x_len_de_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_de_get", _wrap_Config_m_x_len_de_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_partition_dermis2blood_set", _wrap_Config_m_partition_dermis2blood_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_partition_dermis2blood_get", _wrap_Config_m_partition_dermis2blood_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_Kclear_blood_set", _wrap_Config_m_Kclear_blood_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_Kclear_blood_get", _wrap_Config_m_Kclear_blood_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_sb_sur_set", _wrap_Config_m_n_grids_x_sb_sur_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_sb_sur_get", _wrap_Config_m_n_grids_x_sb_sur_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_y_sb_sur_set", _wrap_Config_m_n_grids_y_sb_sur_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_y_sb_sur_get", _wrap_Config_m_n_grids_y_sb_sur_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_sb_har_set", _wrap_Config_m_n_grids_x_sb_har_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_x_sb_har_get", _wrap_Config_m_n_grids_x_sb_har_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_y_sb_har_set", _wrap_Config_m_n_grids_y_sb_har_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_n_grids_y_sb_har_get", _wrap_Config_m_n_grids_y_sb_har_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_sb_sur_set", _wrap_Config_m_x_len_sb_sur_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_x_len_sb_sur_get", _wrap_Config_m_x_len_sb_sur_get, METH_VARARGS, NULL},
+	 { (char *)"Config_m_y_len_sb_har_set", _wrap_Config_m_y_len_sb_har_set, METH_VARARGS, NULL},
+	 { (char *)"Config_m_y_len_sb_har_get", _wrap_Config_m_y_len_sb_har_get, METH_VARARGS, NULL},
+	 { (char *)"Config_ReadConfigFile", _wrap_Config_ReadConfigFile, METH_VARARGS, NULL},
+	 { (char *)"Config_Tokenize", _wrap_Config_Tokenize, METH_VARARGS, NULL},
+	 { (char *)"new_Config", _wrap_new_Config, METH_VARARGS, NULL},
+	 { (char *)"delete_Config", _wrap_delete_Config, METH_VARARGS, NULL},
+	 { (char *)"Config_swigregister", Config_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_Chemical = {"_p_Chemical", "Chemical *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_Config = {"_p_Config", "Config *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_string = {"_p_string", "string *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_vectorT_string_t = {"_p_vectorT_string_t", "vector< string > *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
-  &_swigt__p_Chemical,
   &_swigt__p_Config,
   &_swigt__p_char,
+  &_swigt__p_string,
+  &_swigt__p_vectorT_string_t,
 };
 
-static swig_cast_info _swigc__p_Chemical[] = {  {&_swigt__p_Chemical, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_Config[] = {  {&_swigt__p_Config, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_string[] = {  {&_swigt__p_string, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_vectorT_string_t[] = {  {&_swigt__p_vectorT_string_t, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
-  _swigc__p_Chemical,
   _swigc__p_Config,
   _swigc__p_char,
+  _swigc__p_string,
+  _swigc__p_vectorT_string_t,
 };
 
 

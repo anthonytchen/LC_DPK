@@ -94,8 +94,8 @@ public:
   double compCompartAmount();
   void compFlux_2sc(double *flux);
   void compFlux_sc2down(double *flux);
-  void compFlux_ve2down(double *flux);
-  void compFlux_de2down(double *flux);
+  //void compFlux_ve2down(double *flux);
+  //void compFlux_de2down(double *flux);
 	
   // Functions needed for ODE solver
   int compODE_dydt (double, const double[], double []);
