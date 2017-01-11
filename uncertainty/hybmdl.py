@@ -15,9 +15,6 @@ Nfeval = 1
 
 # Example:
 
-# todo list:
-# 1. add a function to allow plug-in type model identification
-# 2. simulate data to compare plug-in and full bayesian approach
 
 ###########################################################
 def PluginMain(func_top, func_low, Xy, Y, Xz, Z, theta0, sig2_y0, sig2_z0, Niter=10, bnds=None):
@@ -81,7 +78,7 @@ def Plugin_theta_obj(theta, func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z):
     # For high-level X-Y data
     for n in range(n_dat_Xy):
         #print '\t theta = {0:}'.format(theta)
-        y_func = func_top(theta, Xy[n,:], func_low)
+        y_func = func_top(theta, Xy[n,:].reshape((1,-1)), func_low)
         err = Y[n,:] - y_func
         neg_lnlik += 0.5*(alpha*err*err)
 
@@ -95,7 +92,7 @@ def Plugin_theta_obj(theta, func_top, func_low, Xy, Y, Xz, Z, sig2_y, sig2_z):
         Ztmp = Z[i]
         n_dat_Xz = Xtmp.shape[0]   
         for n in range(n_dat_Xz):
-            z_func = func_low(theta, np.array(Xtmp[n,:]))
+            z_func = func_low( theta, Xtmp[n,:].reshape((1,-1)) )
             err = Ztmp[n] - z_func[:,i]
             #print '\t err = {0:}'.format(err)
             neg_lnlik += 0.5* np.sum( beta[i]* (np.array(err)**2) )
@@ -118,7 +115,8 @@ def Plugin_var(theta, func_top, func_low, Xy, Y, Xz, Z):
     
     # For high-level X-Y data
     for n in range(n_dat_Xy):
-        y_func = func_top(theta, Xy[n,:], func_low)
+        #print Xy[n,:].reshape((1,-1))
+        y_func = func_top(theta, Xy[n,:].reshape((1,-1)), func_low)
         err = Y[n,:] - y_func
         sse_h += np.squeeze(err)**2
     sig2_y = sse_h / n_dat_Xy
@@ -133,7 +131,7 @@ def Plugin_var(theta, func_top, func_low, Xy, Y, Xz, Z):
         Ztmp = Z[i]
         n_dat_Xz = Xtmp.shape[0]   
         for n in range(n_dat_Xz):
-            z_func = func_low(theta, np.array(Xtmp[n,:]))
+            z_func = func_low( theta, Xtmp[n,:].reshape((1,-1)) )
             err = Ztmp[n] - z_func[:,i]
             #print sse_l[i].shape
             #print err.shape
@@ -202,7 +200,7 @@ def Estep(func_top, func_low, theta, X, Y, sig2_y, sig2_z, N=100):
 
     for n in range(n_dat):
 
-        z_n = func_low(theta, X[n,:])        
+        z_n = func_low(theta, X[n,:].reshape(1,-1))        
         Z[:,:,n] = np.tile(z_n,(N,1))
         np.tile(z_n,(N,1))
 
@@ -281,7 +279,7 @@ def Mstep_theta_obj(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z, sig2_y, s
     # For high-level X-Y data
     for n in range(n_dat_Xy):
         #print '\t theta = {0:}'.format(theta)
-        z_func = func_low(theta, np.array(Xy[n,:]))
+        z_func = func_low( theta, Xy[n,:].reshape((1,-1)) )
 
         for i in range(n_mc):
             err = Zmc[i,:,n] - z_func
@@ -300,7 +298,7 @@ def Mstep_theta_obj(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z, sig2_y, s
         Ztmp = Z[i]
         n_dat_Xz = Xtmp.shape[0]   
         for n in range(n_dat_Xz):
-            z_func = func_low(theta, np.array(Xtmp[n,:]))
+            z_func = func_low( theta, Xtmp[n,:].reshape((1,-1)) )
             err = Ztmp[n] - z_func[:,i]
             #print '\t err = {0:}'.format(err)
             neg_lnlik += 0.5* np.sum( beta[i]* (np.array(err)**2) )
@@ -344,7 +342,7 @@ def calc_grad_theta_Z(func, theta, X, Z):
     '''
 
     grad_theta = calc_grad_theta(func, theta, X, Z)
-
+todo: check this
     n_Z = Z.shape[1]
     n_dat = X.shape[0]
 
@@ -366,8 +364,8 @@ def calc_grad_theta_Z(func, theta, X, Z):
                 delta = 1e-5
             Z1[j] += delta
 
-            f = func(theta, X[i,:], Z[i,:])
-            f1 = func(theta, X[i,:], Z1)
+            f = func(theta, X[i,:].reshape((1,-1)), Z[i,:].reshape((1,-1)))
+            f1 = func(theta, X[i,:].reshape((1,-1)), Z1.reshape((1,-1)))
 
             gd = (f1-f) / delta
             if np.isscalar(gd):
@@ -436,7 +434,7 @@ def Mstep_var(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z):
     
     # For high-level X-Y data
     for n in range(n_dat_Xy):
-        z_func = func_low(theta, np.array(Xy[n,:]))
+        z_func = func_low( theta, Xy[n,:].reshape((1,-1)) )
 
         for i in range(n_mc):
             err = Zmc[i,:,n] - z_func
@@ -457,7 +455,7 @@ def Mstep_var(theta, func_top, func_low, Xy, Y, Zsamples, Xz, Z):
         Ztmp = Z[i]
         n_dat_Xz = Xtmp.shape[0]   
         for n in range(n_dat_Xz):
-            z_func = func_low(theta, np.array(Xtmp[n,:]))
+            z_func = func_low( theta, Xtmp[n,:].reshape((1,-1)) )
             err = Ztmp[n] - z_func[:,i]
             sse_l[i] += err*err
 
@@ -613,7 +611,7 @@ def testFunc_low(theta, X):
     c = np.exp(theta[2])
 
     n_dat = X.shape[0]
-
+    #print X.shape
     Z = np.zeros((n_dat, 2))
     #Z = np.mat(Z)
 

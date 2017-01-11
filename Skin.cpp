@@ -1039,5 +1039,16 @@ void Skin::saveCoord(const char fn_x[], const char fn_y[])
   if (m_nDermis>0)
     m_Dermis[0].saveCoord(fn_x, fn_y); 
 }
+
+
+void Skin::setScProperties(double lip_Kw, double lip_D, double cc_Kw, double cc_D)
+{
+  int i;
+  assert (m_nChem == 1);
+  if(m_nStraCorn>0) {
+    for (i=0; i<m_nChem*m_nStraCorn; i++) 
+      m_StraCorn[i].setGridsProperties(lip_Kw, lip_D, cc_Kw, cc_D);
+  }
+}
 /*  END <I/O functions>
 	------------------------------ */

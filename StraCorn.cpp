@@ -2,7 +2,7 @@
 #include "StraCorn.h"
 
 
-/*
+/*!
   Geometric dimensions:
     g: vertical size of lipid layer (typical: 0.075 micron)
     d: lateral size of corneocyte (typical: 40 micron)

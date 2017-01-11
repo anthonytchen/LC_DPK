@@ -123,6 +123,8 @@ public:
   void getXCoord(double *coord_x, int dim);
   void getYCoord(double *coord_y, int dim);
   void saveCoord(const char [], const char []);
+
+  void setScProperties(double, double, double, double);
 };
 
 #endif

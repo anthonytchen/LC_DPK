@@ -3,19 +3,19 @@
 #from qspr_Klp import *
 import hybmdl
 
-dat_Plp = np.matrix( np.loadtxt("Kow_Plp_lg10.txt") )
-dat_Ksc = np.matrix( np.loadtxt("Kow_Ksc_lg10.txt") )
-dat_Kcc = np.matrix( np.loadtxt("Kow_Kcc_lg10.txt") )
+dat_Plp = np.loadtxt("Kow_Plp_lg10.txt")
+dat_Ksc = np.loadtxt("Kow_Ksc_lg10.txt")
+dat_Kcc = np.loadtxt("Kow_Kcc_lg10.txt")
 paras0 = np.log( np.array([4.2, 0.31, 0.69]) )
 bnds = ((-10, 10), (-10, 10), (-10, 10))
 
 sig2_y = np.array([0.05])
 sig2_z = np.array([0.05, 0.05])
 
-Xy = dat_Ksc[:,0]
-Y = dat_Ksc[:,1]
-Xz = (dat_Plp[:,0], dat_Kcc[:,0])
-Z = (dat_Plp[:,1], dat_Kcc[:,1])
+Xy = dat_Ksc[:,0].reshape((-1, 1))
+Y = dat_Ksc[:,1].reshape((-1,1))
+Xz = (dat_Plp[:,0].reshape((-1,1)), dat_Kcc[:,0].reshape((-1,1)))
+Z = (dat_Plp[:,1].reshape((-1,1)), dat_Kcc[:,1].reshape((-1,1)))
 
 paras = np.empty_like (paras0)
 np.copyto(paras, paras0)
