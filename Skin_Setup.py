@@ -454,6 +454,9 @@ class Skin(_object):
 
     def saveCoord(self, arg2, arg3):
         return _Skin_Setup.Skin_saveCoord(self, arg2, arg3)
+
+    def setScProperties(self, arg2, arg3, arg4, arg5):
+        return _Skin_Setup.Skin_setScProperties(self, arg2, arg3, arg4, arg5)
 Skin_swigregister = _Skin_Setup.Skin_swigregister
 Skin_swigregister(Skin)
 

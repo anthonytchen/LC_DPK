@@ -342,7 +342,7 @@ def calc_grad_theta_Z(func, theta, X, Z):
     '''
 
     grad_theta = calc_grad_theta(func, theta, X, Z)
-todo: check this
+#todo: check this
     n_Z = Z.shape[1]
     n_dat = X.shape[0]
 
