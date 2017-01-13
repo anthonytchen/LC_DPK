@@ -432,7 +432,7 @@ void StraCorn::setGridsProperties(double lip_Kw, double lip_D, double cc_Kw, dou
       }
       else if ( !strcmp(m_grids[idx].m_name, "CC") ) {
 	if (cc_Kw > 0)
-	  m_grids[idx].setKw(cc_Kw);
+	  m_grids[idx].set_cc_Kw(cc_Kw);
 	if (cc_D > 0 )
 	  m_grids[idx].setD(cc_D);
       }

@@ -1,6 +1,7 @@
 import os
 import time
 import warnings
+import cPickle as pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
@@ -40,27 +41,34 @@ def main():
     mdl = hybmdl.PluginMain(hybmdl.testFunc_top_plugin, hybmdl.testFunc_low, Xy, Y, Xz, Z, paras0, sig2_y, sig2_z, 10, bnds)
 
     theta = mdl[0]
+    theta = paras0
     sig2_z = mdl[2]
     V = mdl[3]
     
     # predict for permeability
 
-    # caffeine, nicotine
-    mw = [194.19, 162.23]
-    lg10kow = [-0.07, 1.17]
-    X = np.array([mw, lg10kow]).T
+    # caffeine, nicotine for testing
+    #mw = [194.19, 162.23]
+    #lg10kow = [-0.07, 1.17]
+    #X = np.array([mw, lg10kow]).T
+    #idx = [0,1]
 
-    results = Parallel(n_jobs=2)(delayed(
-        hybmdl.pred)(perm_Kw_cc_lip, Kw_cc_lip, X[i,:].reshape((1,-1)), theta, np.array([0]), sig2_z, V) for i in range(2) )
+    ## the order in X is [lg10kow, mw], whilst that in calcuation needs to be [mw, lg10kow]
+    X = np.loadtxt("./data/LongjianAIChE_skin_perm.txt")
+    idx = [1,0] 
     
-    #pool = Pool() # multiprocessing
-    #prd1 = pool.apply_async( hybmdl.pred(perm_Kw_cc_lip, Kw_cc_lip, X[0,:].reshape((1,-1)), theta, np.array([0]), sig2_z, V) )
-    #prd2 = pool.apply_async( hybmdl.pred(perm_Kw_cc_lip, Kw_cc_lip, X[1,:].reshape((1,-1)), theta, np.array([0]), sig2_z, V) )
+    n_simu = X.shape[0]
+    results = Parallel(n_jobs=50)(delayed(
+        hybmdl.pred)(perm_Kw_cc_lip, Kw_cc_lip, X[i,idx].reshape((1,-1)), theta, np.array([0]), sig2_z, V) for i in range(n_simu) )
+    
+
     
     # prd = hybmdl.pred(perm_Kw_cc_lip, Kw_cc_lip, X, theta, np.array([0]), sig2_z, V)
 
     #todo: finally check the transform-based uncertainty results against simple sensitivity analysis!
-    return (mdl, results)
+    all = (mdl, results, X)
+    pickle.dump( all, open("save.p", "wb") )
+    return (mdl, results, X)
 
 
 def dpk_perm(sc_ptys, chem_ptys):

@@ -128,51 +128,23 @@ void Grid::InitSC(const char name[], Chemical chem, double concChem, double mass
 		double rou_lipid, double rou_keratin, double rou_water, double T, double eta, 
 		double x_coord, double y_coord, double dx, double dy, double dz)
 {
-  /* 1. set up member variables */
+  // 1. set up member variables
 
   Init(name, chem, concChem, x_coord, y_coord, dx, dy, dz);
 
-  /* 2. calulcate various mass/volume fractions needed */
+  // 2. calulcate volume fraction of water in CC based on
+  //    mass fraction of water in SC
 
-  double f_l, f_k, mass_lipid, mass_keratin, theta_b, phi_b,
-    V_all, V_lipid, V_keratin, V_water_mortar, V_water_brick;
-	
-  f_l = 0.125; // dry mass fraction of SC lipid and keratin
-  f_k = 1 - f_l;
+  //double theta_b, phi_b;
 
-  // mass fraction of lipid and keratin
-  mass_lipid = (1 - mass_frac_water) * f_l;
-  mass_keratin = (1 - mass_frac_water) * f_k;
-
-  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
-  V_lipid = mass_lipid/rou_lipid / V_all;
-  V_keratin = mass_keratin/rou_keratin / V_all;
-
-  V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
-  V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
-
-  //	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
-  theta_b = V_water_brick / V_brick_geometry * V_all_geometry;
-
-
+  m_theta_b = compVolFracWater_cc( mass_frac_water, rou_lipid, rou_keratin, rou_water,
+				 V_mortar_geometry, V_brick_geometry, V_all_geometry);
   // do the same for saturated water
-  //	TODO: move this part to a separate function
-  // mass fraction of lipid and keratin
-  mass_lipid = (1 - mass_frac_water_sat) * f_l;
-  mass_keratin = (1 - mass_frac_water_sat) * f_k;
-
-  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water_sat/rou_water;
-  V_lipid = mass_lipid/rou_lipid / V_all;
-  V_keratin = mass_keratin/rou_keratin / V_all;
-
-  V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
-  V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
-
-  //	assert( fabs( V_water_mortar+V_water_brick+V_lipid+V_keratin - 1.0 ) < 1e-3 );
-  phi_b = V_water_brick / V_brick_geometry * V_all_geometry;	
+  m_phi_b = compVolFracWater_cc( mass_frac_water_sat, rou_lipid, rou_keratin, rou_water,
+				 V_mortar_geometry, V_brick_geometry, V_all_geometry);
 
 
-  /* 3. calculate diffusivity and partition coefficient */
+  // 3. calculate diffusivity and partition coefficient
 
   double K, r_f, Dw, r_s_inA, alpha, beta, lambda, gamma, K_kw, r_f_inA, phi_f, k, S;
 
@@ -201,7 +173,7 @@ void Grid::InitSC(const char name[], Chemical chem, double concChem, double mass
       K_kw = 0.5* ( 1 + pow(m_K_ow, 0.7) );
     */
     K_kw = rou_keratin / rou_water * 4.2 * pow(chem.m_K_ow,0.31);
-    m_Kw = (1-phi_b) * K_kw + theta_b;
+    m_Kw = (1-m_phi_b) * K_kw + m_theta_b;
 
     // empirically fitted parameters
     alpha = 9.47;
@@ -212,7 +184,7 @@ void Grid::InitSC(const char name[], Chemical chem, double concChem, double mass
     r_s_inA = chem.m_r_s*1e10; // unit in A
     r_f_inA = r_f*1e10; // unit in A
 		
-    phi_f = 1-theta_b;		
+    phi_f = 1 - m_theta_b;
     k = beta*r_f_inA*r_f_inA* pow(phi_f, gamma);
     S = (r_s_inA+r_f_inA)/r_f_inA;
     S = phi_f * S*S;
@@ -246,9 +218,34 @@ void Grid::InitVE_DE(const char name[], Chemical chem, double concChem, double x
 /*  --------------------------------------------- */
 
 
-/*  +++++++++++++++++++++++++++++++++++++++++++
-	Main functions
-	+++++++++++++++++++++++++++++++++++++++++++ */
+/*!
+  Compute the volume fraction of water in corneocyte
+  based on the water content (mass fraction of water) of the stratum corneum
+ */
+double Grid::compVolFracWater_cc(double mass_frac_water, double rou_lipid, double rou_keratin, double rou_water,
+			   double V_mortar_geometry, double V_brick_geometry, double V_all_geometry)
+{
+  double f_l, f_k, mass_lipid, mass_keratin, vol_frac_water_cc,
+    V_all, V_lipid, V_keratin, V_water_mortar, V_water_brick;
+	
+  f_l = 0.125; // dry mass fraction of SC lipid and keratin
+  f_k = 1 - f_l;
+
+  // mass fraction of lipid and keratin
+  mass_lipid = (1 - mass_frac_water) * f_l;
+  mass_keratin = (1 - mass_frac_water) * f_k;
+
+  V_all = mass_lipid/rou_lipid + mass_keratin/rou_keratin + mass_frac_water/rou_water;
+  V_lipid = mass_lipid/rou_lipid / V_all;
+  V_keratin = mass_keratin/rou_keratin / V_all;
+
+  V_water_mortar = V_mortar_geometry/V_all_geometry - V_lipid;
+  V_water_brick = V_brick_geometry/V_all_geometry - V_keratin;
+
+  vol_frac_water_cc = V_water_brick / V_brick_geometry * V_all_geometry;
+  
+  return vol_frac_water_cc;
+}
 
 
 /*! 
@@ -275,6 +272,4 @@ double Grid::compFlux(Grid* other, double conc_this, double conc_other,
   return flux;
 }
 
-
-/* -------------------------------------------- */
 

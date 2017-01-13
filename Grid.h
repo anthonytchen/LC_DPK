@@ -42,6 +42,10 @@ public:
     m_Dw, // diffisivity of solute in water
     m_concChem; // concentration of chemical
 
+  // specific to SC
+  double m_theta_b, // volume fraction of water in CC at given mass fraction of water in SC
+    m_phi_b;        // volume fraction of water in CC at saturated mass fraction of water in SC (usually 55%)
+
   double m_x_coord, m_y_coord; // the starting x and y coordinate for this grid
   double m_dx, m_dy, m_dz; // grid size in verticle direction, lateral direction, and the 3rd dimension. 
                            //    This is 2D simulation, thus dz only used to calculate the diffusion area
@@ -68,8 +72,11 @@ public:
   char* getName() { return m_name; }
   void setName(const char name[]) { strcpy(m_name, name); };
   void setKw(double Kw) { m_Kw = Kw; };
+  void set_cc_Kw(double Kw) { m_Kw = (1-m_phi_b) * Kw + m_theta_b; };
   void setD(double D) { m_D = D; };
+  void set_cc_D(double D) { setD(D); } // for the time being; may need change in the future
 
+  double compVolFracWater_cc(double,double,double,double,double,double,double);
   double compFlux(Grid*, double, double, double, double, double*, double*);
 
 };
